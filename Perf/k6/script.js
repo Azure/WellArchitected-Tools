@@ -34,7 +34,7 @@ export const options = {
   //
   // Define "allowable" thresholds
   // In the below example...
-  //    - the total duration of the http request should not exceed 10 seconds (e.g. max<1000)
+  //    - the total duration of the http request should not exceed 10 seconds (e.g. max<10000)
   //    - under 90% of the targeted load (30 VUs * .9 = 27 VUs), the http request duration should be under 2 seconds (e.g. p(90)<2000)
   //    - under 95% of the targeted load (30 VUs * .95 = 29 VUs), the http request duration should be under 5 seconds (e.g. p(95)<5000), understanding that more load may have some adverse impact on performance
   //    - of all requests, less than 10% should fail
