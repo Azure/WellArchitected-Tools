@@ -6,5 +6,4 @@ PnP_PowerPointReport_Template.pptx
 WAF Category Descriptions.csv
 WASA.json
 index.md
-install-WARP-tools.ps1
 keys.txt
