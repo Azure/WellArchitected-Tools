@@ -35,7 +35,7 @@ There are four sections to this document:
 
 ### Download and prepare your environment for all the scripts
 
-1. Create a directory for the import scripts to be used.
+1. Create a new directory on your computer for the scripts to run in.
 
 1. Right-click on this [link](https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/install-WARP-tools.ps1) and save the installation script in the directory you created in _Step 1_.
 
