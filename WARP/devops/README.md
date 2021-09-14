@@ -37,7 +37,7 @@ There are four sections to this document:
 
 1. Create a directory for the import scripts to be used.
 
-1. Right-click on this [link](https://rspott.com/WARP/install-WARP-tools.ps1) and save the installation script in the directory you created.
+1. Right-click on this [link](https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/install-WARP-tools.ps1) and save the installation script in the directory you created.
 
 1. Right-click on the downloaded file, select **Properties**, then check **Unblock**.
 
@@ -81,7 +81,7 @@ There are four sections to this document:
 
 1. Create or log into an Azure DevOps Organization:
 
-    - If an organization does not exist, follow these steps in this [link](/azure/devops/organizations/accounts/create-organization?view=azure-devops&preserve-view=true).
+    - If an organization does not exist, follow these steps in this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/create-organization?view=azure-devops&preserve-view=true).
 
 1. Note the Organization URI:
 
@@ -89,18 +89,18 @@ There are four sections to this document:
 
 1. Go to the project used for this effort:
 
-    - If a project does not exist in the Azure DevOps Organization, then create a new project using the steps in this [link](/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page&preserve-view=true).
+    - If a project does not exist in the Azure DevOps Organization, then create a new project using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page&preserve-view=true).
     - When you create this project, ensure you select **Agile Process** under **Advanced**.
 
 1. Note the URI created by this action:
 
     Example: `https://dev.azure.com/contoso/WARP-work`
 
-1. Create or acquire a personal access token with read-write access to create DevOps work items using this [link](/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page&preserve-view=true).
+1. Create or acquire a personal access token with read-write access to create DevOps work items using this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page&preserve-view=true).
 
 1. Place this token into the `keys.txt` file in the proper location.
 
-1. Open a command prompt to your PowerShell environment and run the following command: 
+1. Open a command prompt to your PowerShell environment and run the following command:
 
     `PnP-DevOps.ps1 <url to project in Azure Devops>`
 
