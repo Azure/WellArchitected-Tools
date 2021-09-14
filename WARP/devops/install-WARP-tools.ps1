@@ -3,8 +3,8 @@
 #This is the base URL for downloads. Base URL cannot end with a /
 $baseURL = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops"
 
-$workingDirectory = Get-Location
-Write-Host $workingDirectory
+$workingDirectory = (Get-Location).Path
+Write-Host "Working Directory: $workingDirectory"
 Invoke-WebRequest $baseURL/files-list.txt -OutFile $workingDirectory/files-list.txt
 
 

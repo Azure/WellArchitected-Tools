@@ -5,7 +5,7 @@ double click the script'
 
 
 #Get the working directory from the script
-$workingDirectory = $PSScriptRoot
+$workingDirectory = (Get-Location).Path
 
 #Get the WAF report via a system dialog
 Function Get-FileName($initialDirectory)
@@ -21,14 +21,13 @@ Function Get-FileName($initialDirectory)
 
 $inputfile = Get-FileName $workingDirectory
 $inputfilename = Split-Path $inputfile -leaf
-$content = get-content $inputfile
+$content = Get-Content $inputfile
 
 
 
 
 #region Validate input values
 
-$content = Get-Content "$WAFReport"
 $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template.pptx"
 $descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
 
@@ -118,10 +117,10 @@ for($i=3; $i -le 8; $i++)
 
 
 #region Instantiate PowerPoint variables
-Add-type -AssemblyName office
+#Add-type -AssemblyName office
 $application = New-Object -ComObject powerpoint.application
-$application.visible = [Microsoft.Office.Core.MsoTriState]::msoTrue
-$slideType = “microsoft.office.interop.powerpoint.ppSlideLayout” -as [type]
+#$application.visible = [Microsoft.Office.Core.MsoTriState]::msoTrue
+#$slideType = “microsoft.office.interop.powerpoint.ppSlideLayout” -as [type]
 $presentation = $application.Presentations.open($templatePresentation)
 $titleSlide = $presentation.Slides[8]
 $summarySlide = $presentation.Slides[9]
