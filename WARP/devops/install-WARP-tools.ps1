@@ -1,7 +1,7 @@
 #This script will download a list of files from the proper location to the directory it is running from
 
 #This is the base URL for downloads. Base URL cannot end with a /
-$baseURL = "https://rspott.com/WARP"
+$baseURL = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops"
 
 $workingDirectory = $PSScriptRoot
 Write-Host $workingDirectory
