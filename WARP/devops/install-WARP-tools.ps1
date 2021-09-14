@@ -3,10 +3,9 @@
 #This is the base URL for downloads. Base URL cannot end with a /
 $baseURL = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops"
 
-$workingDirectory = $PSScriptRoot
+$workingDirectory = Get-Location
 Write-Host $workingDirectory
-#wget $baseURL/files-list.txt -O $workingDirectory/files-list.txt
-invoke-WebRequest $baseURL/files-list.txt -OutFile $workingDirectory/files-list.txt
+Invoke-WebRequest $baseURL/files-list.txt -OutFile $workingDirectory/files-list.txt
 
 
 Write-Host "Downloading from: $baseURL"
