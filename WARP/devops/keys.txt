@@ -9,4 +9,5 @@ AzureDevOpsPAT=CHANGE_ME
 ## https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 
 owner=CHANGE_ME
+repository=CHANGE_ME
 GitHubUserToken=CHANGE_ME

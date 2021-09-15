@@ -1,26 +1,35 @@
+#date-2021-09-09
 <# Instructions to use this script
-
-1. If you don't already have one, create a GitHub account - https://github.com/
-2. Create a new Github Repository if one does not exist - https://docs.github.com/en/github/getting-started-with-github/create-a-repo
-3. Add the Github username of the person whose token is being used under $owner
-4. Replace the $repository value with the Github repository name that was created in step 2
-5. Acquire a personal access token with write access to create issues (Full control of private repositories) - https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
-6. Replace the variable $GitHubUserToken with the personal access token generated in step 5
-7. Download the csv file generated from PnP and replace the file path to the csv for $CSVInput
-8. Set the workingDirectory value in the script to a folder path that includes the scripts, templates and the downloaded csv file from PnP
-9. Set the right csv file name on $content value and point it to the downloaded csv file path
-10. Ensure the Category Descriptions file exists in the paths shown below before attempting to run 
-11. Seeing some exceptions while running the script is expected. Please validate GitHub - As long as milestones and Issues are populated, you should be good to proceed
-
+1. double click this script to run it.
 #>
 
-$GitHubUserToken = ""
-$workingDirectory = ""
-$content = Get-Content ""
-$descriptionsFile = Import-Csv "$workingDirectory\"
-$owner = ""
-$repository = ""
-$AllMilestones = $null
+#Get PAT, owner and github repo from a keys.txt file
+Get-Content keys.txt | Where-Object {$_.length -gt 0} | Where-Object {!$_.StartsWith("#")} | ForEach-Object {
+    $var = $_.Split('=',2).Trim()
+    New-Variable -Scope Script -Name $var[0] -Value $var[1]
+}
+
+#Get the working directory from the script
+$workingDirectory = (Get-Location).Path
+
+#Get the WAF report via a system dialog
+Function Get-FileName($initialDirectory)
+{
+    [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
+    
+    $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+    $OpenFileDialog.initialDirectory = $initialDirectory
+    $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
+    $OpenFileDialog.ShowDialog() | Out-Null
+    $OpenFileDialog.filename
+}
+
+$inputfile = Get-FileName $workingDirectory
+$inputfilename = Split-Path $inputfile -leaf
+$content = get-content $inputfile
+
+$descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
+
 #region Variable Instantiation
 
 $reportDate = Get-Date -Format "MM-dd-yyyy HH.mm.s"
