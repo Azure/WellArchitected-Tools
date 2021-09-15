@@ -35,7 +35,8 @@ There are four sections to this document:
 
 ### Download and prepare your environment for all the scripts
 
-1. Download and install [PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1)
+1. Download and install [PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell)
+
 1. Open a PowerShell terminal and run the following commands
 
     ```powershell
@@ -63,8 +64,7 @@ There are four sections to this document:
 
 1. Copy the exported CSV from a [Microsoft Azure Well-Architected Review](https://docs.microsoft.com/assessments/?mode=pre-assessment) into the working directory.
 
-    > [!NOTE]
-    > A sample export has been included with this tooling: _Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv_
+    **NOTE:** A sample export has been included with this tooling: _Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv_
 
 1. Run the following command in the PowerShell terminal and select the CSV file you wish to use:
 
@@ -84,30 +84,26 @@ There are four sections to this document:
 
     - If an organization does not exist, follow these steps in this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/create-organization?view=azure-devops&preserve-view=true).
 
-    > [!IMPORTANT]
-    > In **Organization Settings - Overview**, verify that your organization is using the new URL format.
-    > 
-    >[Learn more about Organization URLs](https://docs.microsoft.com/en-us/azure/devops/release-notes/2018/sep-10-azure-devops-launch#administration)
+    **IMPORTANT:** In **Organization Settings - Overview**, verify that your organization is using the new URL format.
+    [Learn more about Organization URLs](https://docs.microsoft.com/en-us/azure/devops/release-notes/2018/sep-10-azure-devops-launch#administration)
 
 
 1. Navigate to the **Project** where you want to import the recommendations:
     - If a project does not exist in the Azure DevOps Organization, then create a new project using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page&preserve-view=true).
 
-    > [!IMPORTANT]
-    > When you create a new project, ensure that the **Work item process** is set to **Agile** under **Advanced**.
-    >
-    > ![New Project](_images\new_project.png)
+        **IMPORTANT:** When you create a new project, ensure that the **Work item process** is set to **Agile** under **Advanced**.
+
+        ![New Project](_images/new_project.png)
 
 1. Make note of the **Project** URL in the address bar
 
-    ![Project URL](_images\project_url.png)
+    ![Project URL](_images/project_url.png)
 
 1. Create or acquire a **Personal Access Token** using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page&preserve-view=true).
 
-    > [!IMPORTANT]
-    > The **Personal Access Token** that you use or create must have **Reed, write, & manage** access to **Work Items**
-    >
-    > ![Personal Access Token](_images\pat.png)
+    **IMPORTANT:** The **Personal Access Token** that you use or create must have **Reed, write, & manage** access to **Work Items**
+
+    ![Personal Access Token](_images/pat.png)
 
 1. Update **AzureDevOpsPAT** key in the `keys.txt` file with the **Personal Access Token** that you plan to use.
 
@@ -126,7 +122,6 @@ There are four sections to this document:
     Attempting DevOps Import for all Issues
     Fetching existing DevOps Work Items
     There are no work items of type Issue in DevOps yet
-
     Import Complete!
     ```
 
