@@ -35,6 +35,8 @@ There are four sections to this document:
 
 ### Download and prepare your environment for all the scripts
 
+**IMPORTANT:**  **These instructions only work in a Windows environment at this time.**
+
 1. Download and install [PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell)
 
 1. Open a PowerShell terminal and run the following commands
@@ -89,9 +91,9 @@ There are four sections to this document:
 1. Navigate to the **Project** where you want to import the recommendations:
     - If a project does not exist in the Azure DevOps Organization, then create a new project using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page&preserve-view=true).
 
-        **IMPORTANT:** When you create a new project, ensure that the **Work item process** is set to **Agile** under **Advanced**.
+    **IMPORTANT:** When you create a new project, ensure that the **Work item process** is set to **Agile** under **Advanced**.
 
-        ![New Project](_images/new_project.png)
+    ![New Project](_images/new_project.png)
 
 1. Make note of the **Project** URL in the address bar
 
