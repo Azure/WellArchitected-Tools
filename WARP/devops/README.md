@@ -72,7 +72,7 @@ There are four sections to this document:
     PS C:\Users\cae\warp> .\GenerateWAFReport.ps1 
     ```
 
-1. A new PowerPoint file will be created in the directory with name in the format of: `PnP_PowerPointReport_Template_mmm-dd-yyyy hh.mm.ss.pptx`
+    **NOTE:** A new PowerPoint file will be created in the directory with name in the format of: `PnP_PowerPointReport_Template_mmm-dd-yyyy hh.mm.ss.pptx`
 
 1. Examine this PowerPoint file for auto-generated slides after slide 8.
 
@@ -80,13 +80,11 @@ There are four sections to this document:
 
 ## Place findings into an Azure DevOps project
 
-1. Create or log into an Azure DevOps Organization:
+1. Create or log into an Azure DevOps **Organization**:
 
     - If an organization does not exist, follow these steps in this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/create-organization?view=azure-devops&preserve-view=true).
 
-    **IMPORTANT:** In **Organization Settings - Overview**, verify that your organization is using the new URL format.
-    [Learn more about Organization URLs](https://docs.microsoft.com/en-us/azure/devops/release-notes/2018/sep-10-azure-devops-launch#administration)
-
+    **IMPORTANT:** In Azure DevOps, under **Organization Settings - Overview**, verify that your organization is using the [new URL format](https://docs.microsoft.com/en-us/azure/devops/release-notes/2018/sep-10-azure-devops-launch#administration).
 
 1. Navigate to the **Project** where you want to import the recommendations:
     - If a project does not exist in the Azure DevOps Organization, then create a new project using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page&preserve-view=true).
