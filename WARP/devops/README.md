@@ -33,6 +33,14 @@ There are four sections to this document:
 
 ## Preparation
 
+### Prerequisites
+
+A DevOps project using an agile framework. Instructions to create this project are below
+
+or
+
+A new GitHub repo to receive these items.
+
 ### Download and prepare your environment for all the scripts
 
 **IMPORTANT:**  **These instructions only work in a Windows environment at this time.**
