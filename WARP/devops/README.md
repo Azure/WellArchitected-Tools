@@ -35,43 +35,48 @@ There are four sections to this document:
 
 ### Download and prepare your environment for all the scripts
 
-1. Create a new directory on your computer for the scripts to run in.
+1. Download and install [PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.1)
+1. Open a PowerShell terminal and run the following commands
 
-1. Right-click on this [link](https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/install-WARP-tools.ps1) and save the installation script in the directory you created in _Step 1_.
-
-1. Run the script file to download the rest of the required files.
-
-1. Copy the `.csv` file exported from the [Microsoft Azure Well-Architected Review](https://docs.microsoft.com/assessments/?mode=pre-assessment) into the directory you created in _Step 1_.
-
-### Test your environment and the script
-
-1. Right-click and run the `.\GenerateWAFReport.ps1` script.
-
-1. Choose the saved demo WAF file:
-
-    `Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv`
-
-1. A PowerPoint file will be created in the same directory with this name:
-
-    `PnP\_PowerPointReport\_Template_mmm-dd-yyyy hh.mm.ss.pptx`
-
-1. Examine this PowerPoint file for auto-generated slides after slide 8.
-
-1. If these slides are created in this deck, then your environment is properly set up and you may move on.
+    ```powershell
+    PS C:\Users\cae> mkdir warp
+    PS C:\Users\cae> cd warp
+    PS C:\Users\cae\warp> $installUri = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/install-WARP-tools.ps1"
+    PS C:\Users\cae\warp> Invoke-WebRequest $installUri -OutFile "install-WARP-tools.ps1"
+    PS C:\Users\cae\warp> .\install-WARP-tools.ps1
+    Working Directory: C:\Users\cae\warp
+    Downloading from: https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops
+    We will get these files:
+       Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv
+       GenerateWAFReport.ps1
+       PnP-DevOps.ps1
+       PnP-Github.ps1
+       PnP_PowerPointReport_Template.pptx
+       WAF Category Descriptions.csv
+       WASA.json
+       keys.txt
+    ```
 
 ## Reporting
 
 ### Create a customer presentation PowerPoint deck using PowerShell
 
-1. Right-click and run the `.\GenerateWAFReport.ps1` script.
+1. Copy the exported CSV from a [Microsoft Azure Well-Architected Review](https://docs.microsoft.com/assessments/?mode=pre-assessment) into the working directory.
 
-1. Choose the WAF file saved from the earlier assessment.
+    > [!NOTE]
+    > A sample export has been included with this tooling: _Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv_
 
-1. A PowerPoint file will be created in the same directory with this name:
+1. Run the following command in the PowerShell terminal and select the CSV file you wish to use:
 
-    `PnP\_PowerPointReport\_Template_mm-dd-yyyy hh.mm.ss.pptx`
+    ```powershell
+    PS C:\Users\cae\warp> .\GenerateWAFReport.ps1 
+    ```
+
+1. A new PowerPoint file will be created in the directory with name in the format of: `PnP_PowerPointReport_Template_mmm-dd-yyyy hh.mm.ss.pptx`
 
 1. Examine this PowerPoint file for auto-generated slides after slide 8.
+
+1. If these slides are created in this deck, then your environment is properly set up and you may move on.
 
 ## Place findings into an Azure DevOps project
 
@@ -79,50 +84,63 @@ There are four sections to this document:
 
     - If an organization does not exist, follow these steps in this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/create-organization?view=azure-devops&preserve-view=true).
 
-1. Note the Organization URI:
+    > [!IMPORTANT]
+    > In **Organization Settings - Overview**, verify that your organization is using the new URL format.
+    > 
+    >[Learn more about Organization URLs](https://docs.microsoft.com/en-us/azure/devops/release-notes/2018/sep-10-azure-devops-launch#administration)
 
-    Example: `https://dev.azure.com/contoso/`
 
-1. Go to the project used for this effort:
-
+1. Navigate to the **Project** where you want to import the recommendations:
     - If a project does not exist in the Azure DevOps Organization, then create a new project using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page&preserve-view=true).
-    - When you create this project, ensure you select **Agile Process** under **Advanced**.
 
-1. Note the URI created by this action:
+    > [!IMPORTANT]
+    > When you create a new project, ensure that the **Work item process** is set to **Agile** under **Advanced**.
+    >
+    > ![New Project](_images\new_project.png)
 
-    Example: `https://dev.azure.com/contoso/WARP-work`
+1. Make note of the **Project** URL in the address bar
 
-1. Create or acquire a personal access token with read-write access to create DevOps work items using this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page&preserve-view=true).
+    ![Project URL](_images\project_url.png)
 
-1. Place this token into the `keys.txt` file in the proper location.
+1. Create or acquire a **Personal Access Token** using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page&preserve-view=true).
 
-1. Open a command prompt to your PowerShell environment and run the following command:
+    > [!IMPORTANT]
+    > The **Personal Access Token** that you use or create must have **Reed, write, & manage** access to **Work Items**
+    >
+    > ![Personal Access Token](_images\pat.png)
 
-    `PnP-DevOps.ps1 <url to project in Azure Devops>`
+1. Update **AzureDevOpsPAT** key in the `keys.txt` file with the **Personal Access Token** that you plan to use.
 
-    Example: `PnP-DevOps.ps1 https://dev.azure.com/demo-org/demo-project`
+1. Run the following command in the PowerShell terminal, using the URL for your **Project** and the export CSV file from a [Microsoft Azure Well-Architected Review](https://docs.microsoft.com/assessments/?mode=pre-assessment):
 
-    - When prompted, choose the WAF file saved from the earlier assessment.
-    - The PowerShell script will present a prompt to make sure you are ready to perform the import.
-    - Choose **Y** to continue.
+    ```powershell
+    PS C:\Users\cae\warp> .\PnP-DevOps.ps1  https://dev.azure.com/contoso/WARP_Import
+    This script is using the WAF report:
+    Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv
+    This script will insert data into Azure DevOps org: https://dev.azure.com/contoso .
+    This will insert 176 items into the WARP_Import project.
+    We are using the Azure DevOps token that starts with  6penw
+    Ready? [y/n]: y
+    Checking for existing categories in DevOps and adding the missing ones as Epics
+    There are 11 Epics in DevOps. Mapping these to create parent child links between Issues
+    Attempting DevOps Import for all Issues
+    Fetching existing DevOps Work Items
+    There are no work items of type Issue in DevOps yet
 
-        ```powershell
-        This script is using the WAF report: Azure\_Well\_Architected\_Review mmm-dd-yyyy hh.mm.ss_AM.csv
-        This script will insert data into Azure DevOps org: <orgname>
-        This will insert XXX items into the <projectname> project.
-        We are using the Azure DevOps token that starts with abcde
-        Ready? [y/n]
-        ```
+    Import Complete!
+    ```
 
-1. The script will then import the items into Azure DevOps.
+1. When the script finishes, navigate to the **Backlogs** in your Azure DevOps Projects, enable **Epics** in the settings, and then set the navigation level to **Epics**.
 
-1. After running the script, navigate to **Backlogs** in DevOps and select the **Epics** filter on the top right to view the categorized list of items.
+    ![Backlogs](_images/backlog_settings1.png)
 
-1. Seeing some exceptions while running the script is expected.
+    ![Backlogs Settings](_images/backlog_settings2.png)
 
-1. Please validate DevOps:
+    ![Backlogs Scope](_images/backlog_settings3.png)
 
-    - As long as **Epics** and **Features** are populated, you can proceed.
+1. You should now see the **Backlogs** populated with **Epics** and **Features**:
+
+    ![Backlogs](_images/backlog_settings4.png)
 
 ## Place findings into a GitHub repository
 
@@ -146,6 +164,6 @@ There are four sections to this document:
 
     - Seeing some exceptions while running the script are expected.
 
-1. Please validate GitHub:
+1. Once you **Save and close* switch the :
 
     - You should see **Milestones** and **Issues** populated with data.

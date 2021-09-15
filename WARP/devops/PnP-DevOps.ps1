@@ -19,7 +19,7 @@ $projectname = $uri.segments[-1].Trim("/")
 $projectname = $projectname +"/"
 
 #Get the working directory from the script
-$workingDirectory = $PSScriptRoot
+$workingDirectory = (Get-Location).Path
 
 #Get the WAF report via a system dialog
 Function Get-FileName($initialDirectory)
@@ -43,8 +43,9 @@ $result = $null
 
 $reportDate = Get-Date -Format "MM-dd-yyyy HH.mm.s"
 $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
-$tableEnd = $content.IndexOf("-----------,,,,,") - 1
-$csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
+$EndStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
+$tableEnd = $content.IndexOf($EndStringIdentifier) - 1
+$csv = $content[$tableStart..$tableEnd] | Out-File "$workingDirectory\$reportDate.csv"
 $DevOpsList = Import-Csv -Path "$workingDirectory\$reportDate.csv"
 
 #we ask the end user if they are ready to put data into their ticket system.
@@ -63,7 +64,7 @@ while($confirmation -ne "y")
 List of allowed values for Categories
 General
 Application Design
-Health Modelling & Monitoring
+Health Modeling & Monitoring
 Capacity & Service Availability Planning
 Application Platform Availability
 Data Platform Availability
@@ -85,7 +86,8 @@ Troubleshooting
 SAP
 Efficiency and Sizing
 Governance
-
+Application Performance Management
+Azure Advisor
 
 $data = Get-Content -Path "C:\categories.json" | ConvertFrom-Json
 foreach($category in $data)
@@ -105,7 +107,7 @@ $EpicRelationshipStringBuilder = @'
 $EpicRelations = [pscustomobject]@{
 "General" = "";
 "Application Design" = "";
-"Health Modelling & Monitoring" = "";
+"Health Modeling & Monitoring" = "";
 "Capacity & Service Availability Planning" = "";
 "Application Platform Availability" = "";
 "Data Platform Availability" = "";
@@ -127,18 +129,27 @@ $EpicRelations = [pscustomobject]@{
 "SAP" = "";
 "Efficiency and Sizing" = "";
 "Governance" = "";
+"Application Performance Management" = "";
+"Azure Advisor" = "";
 "Uncategorized" = "";
 }
 
 #endregion
 
-#region Clean the uncategorized data
+#region Clean the Reporting Category
 
 foreach($lineData in $DevOpsList)
 {
     if(!$lineData.ReportingCategory)
     {
-        $lineData.ReportingCategory = "Uncategorized"
+        if ($lineData.Link -eq "https://aka.ms/azure-advisor-portal") {
+            $lineData.ReportingCategory = "Azure Advisor"
+        } else {
+            $lineData.ReportingCategory = "Uncategorized"
+        }
+    }
+    elseif ($lineData.ReportingCategory -eq "Health Modelling & Monitoring") {
+        $lineData.ReportingCategory = "Health Modeling & Monitoring"
     }
 }
 
@@ -224,7 +235,7 @@ $AllEpics = Invoke-RestMethod -Uri $getQueryUri -Method POST -ContentType "appli
 $ExistingFocusAreas = [pscustomobject]@{
 "General" = $false;
 "Application Design" = $false;
-"Health Modelling & Monitoring" = $false;
+"Health Modeling & Monitoring" = $false;
 "Capacity & Service Availability Planning" = $false;
 "Application Platform Availability" = $false;
 "Data Platform Availability" = $false;
@@ -246,6 +257,8 @@ $ExistingFocusAreas = [pscustomobject]@{
 "SAP" = $false;
 "Efficiency and Sizing" = $false;
 "Governance" = $false;
+"Application Performance Management" = $false;
+"Azure Advisor" = $false;
 "Uncategorized" = $false;
 }
 
@@ -269,10 +282,10 @@ if($AllEpics.workItems.Count -gt 0)
             $ExistingFocusAreas.'Application Design' = $true
             $EpicRelations.'Application Design' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
         }
-        elseif($EpicworkItem.fields.'System.Title' -eq "Health Modelling & Monitoring")
+        elseif($EpicworkItem.fields.'System.Title' -eq "Health Modeling & Monitoring")
         {
-            $ExistingFocusAreas.'Health Modelling & Monitoring' = $true
-            $EpicRelations.'Health Modelling & Monitoring' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
+            $ExistingFocusAreas.'Health Modeling & Monitoring' = $true
+            $EpicRelations.'Health Modeling & Monitoring' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
         }
         elseif($EpicworkItem.fields.'System.Title' -eq "Capacity & Service Availability Planning")
         {
@@ -374,11 +387,21 @@ if($AllEpics.workItems.Count -gt 0)
             $ExistingFocusAreas.'Efficiency and Sizing' = $true
             $EpicRelations.'Efficiency and Sizing' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
         }
-        elseif($EpicworkItem.fields.'System.Title' -eq "Governance")
+        elseif($EpicworkItem.fields.'System.Title' -eq "Governance")        
         {
             $ExistingFocusAreas.Governance = $true
             $EpicRelations.Governance = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
+        }            
+        elseif($EpicworkItem.fields.'System.Title' -eq "Application Performance Management")
+        {
+            $ExistingFocusAreas.'Application Performance Management' = $true
+            $EpicRelations.'Application Performance Management' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
         }
+        elseif($EpicworkItem.fields.'System.Title' -eq "Azure Advisor")
+        {
+            $ExistingFocusAreas.'Azure Advisor' = $true
+            $EpicRelations.'Azure Advisor' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
+        }              
         elseif($EpicworkItem.fields.'System.Title' -eq "Uncategorized")
         {
             $ExistingFocusAreas.Uncategorized = $true
@@ -395,9 +418,9 @@ if($AllEpics.workItems.Count -gt 0)
     {
         Create-EpicInDevOps -FocusAreaToCreate "Application Design"
     }
-    if(!$ExistingFocusAreas.'Health Modelling & Monitoring')
+    if(!$ExistingFocusAreas.'Health Modeling & Monitoring')
     {
-        Create-EpicInDevOps -FocusAreaToCreate "Health Modelling & Monitoring"
+        Create-EpicInDevOps -FocusAreaToCreate "Health Modeling & Monitoring"
     }
     if(!$ExistingFocusAreas.'Capacity & Service Availability Planning')
     {
@@ -483,6 +506,14 @@ if($AllEpics.workItems.Count -gt 0)
     {
         Create-EpicInDevOps -FocusAreaToCreate "Governance"
     }
+    if(!$ExistingFocusAreas.'Application Performance Management')
+    {
+        Create-EpicInDevOps -FocusAreaToCreate "Application Performance Management"
+    }
+    if(!$ExistingFocusAreas.'Azure Advisor')
+    {
+        Create-EpicInDevOps -FocusAreaToCreate "Azure Advisor"
+    }   
     if(!$ExistingFocusAreas.'Uncategorized')
     {
         Create-EpicInDevOps -FocusAreaToCreate "Uncategorized"
@@ -523,7 +554,7 @@ $AllEpics = Invoke-RestMethod -Uri $getQueryUri -Method POST -ContentType "appli
 $ExistingFocusAreas = [pscustomobject]@{
 "General" = $false;
 "Application Design" = $false;
-"Health Modelling & Monitoring" = $false;
+"Health Modeling & Monitoring" = $false;
 "Capacity & Service Availability Planning" = $false;
 "Application Platform Availability" = $false;
 "Data Platform Availability" = $false;
@@ -545,6 +576,8 @@ $ExistingFocusAreas = [pscustomobject]@{
 "SAP" = $false;
 "Efficiency and Sizing" = $false;
 "Governance" = $false;
+"Application Performance Management" = $false;
+"Azure Advisor" = $false;
 "Uncategorized" = $false;
 }
 if($AllEpics.workItems.Count -gt 0)
@@ -564,10 +597,10 @@ if($AllEpics.workItems.Count -gt 0)
             $ExistingFocusAreas.'Application Design' = $true
             $EpicRelations.'Application Design' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
         }
-        elseif($EpicworkItem.fields.'System.Title' -eq "Health Modelling & Monitoring")
+        elseif($EpicworkItem.fields.'System.Title' -eq "Health Modeling & Monitoring")
         {
-            $ExistingFocusAreas.'Health Modelling & Monitoring' = $true
-            $EpicRelations.'Health Modelling & Monitoring' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
+            $ExistingFocusAreas.'Health Modeling & Monitoring' = $true
+            $EpicRelations.'Health Modeling & Monitoring' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
         }
         elseif($EpicworkItem.fields.'System.Title' -eq "Capacity & Service Availability Planning")
         {
@@ -674,6 +707,16 @@ if($AllEpics.workItems.Count -gt 0)
             $ExistingFocusAreas.Governance = $true
             $EpicRelations.Governance = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
         }
+        elseif($EpicworkItem.fields.'System.Title' -eq "Application Performance Management")
+        {
+            $ExistingFocusAreas.'Application Performance Management' = $true
+            $EpicRelations.'Application Performance Management' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
+        }        
+        elseif($EpicworkItem.fields.'System.Title' -eq "Azure Advisor")
+        {
+            $ExistingFocusAreas.'Azure Advisor' = $true
+            $EpicRelations.'Azure Advisor' = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$EpicworkItem.url)
+        }               
         elseif($EpicworkItem.fields.'System.Title' -eq "Uncategorized")
         {
             $ExistingFocusAreas.Uncategorized = $true
@@ -740,10 +783,10 @@ if($DevOpsList)
                 {
                     $linkedItem = $EpicRelations.'Application Design'
                 }
-                elseif($devopsItem.ReportingCategory -eq "Health Modelling & Monitoring")
+                elseif($devopsItem.ReportingCategory -eq "Health Modeling & Monitoring")
                 {
-                    $linkedItem = $EpicRelations.'Health Modelling & Monitoring'
-                }
+                    $linkedItem = $EpicRelations.'Health Modeling & Monitoring'
+                }             
                 elseif($devopsItem.ReportingCategory -eq "Capacity & Service Availability Planning")
                 {
                     $linkedItem = $EpicRelations.'Capacity & Service Availability Planning'
@@ -828,6 +871,14 @@ if($DevOpsList)
                 {
                     $linkedItem = $EpicRelations.Governance
                 }
+                elseif($devopsItem.ReportingCategory -eq "Application Performance Management")
+                {
+                    $linkedItem = $EpicRelations.'Application Performance Management'
+                }
+                elseif($devopsItem.ReportingCategory -eq "Azure Advisor")
+                {
+                    $linkedItem = $EpicRelations.'Azure Advisor'
+                }                        
                 elseif($devopsItem.ReportingCategory -eq "Uncategorized")
                 {
                     $linkedItem = $EpicRelations.Uncategorized
@@ -1013,5 +1064,8 @@ Create-EpicsforFocusArea
 
 Write-Output "Attempting DevOps Import for all Issues"
 Insert-DevOpsList
+
+Write-Output ""
+Write-Output "Import Complete!"
 
 #endregion
