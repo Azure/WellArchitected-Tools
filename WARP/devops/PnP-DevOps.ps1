@@ -4,13 +4,15 @@ PnP-DevOps.ps1 <url to project in Azure Devops>
 example: PnP-DevOps.ps1 https://dev.azure.com/demo-org/demo-project
 
 #>
+
 #Get PAT from a keys.txt file
 Get-Content keys.txt | Where-Object {$_.length -gt 0} | Where-Object {!$_.StartsWith("#")} | ForEach-Object {
     $var = $_.Split('=',2).Trim()
     New-Variable -Scope Script -Name $var[0] -Value $var[1]
 }
+$AzureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($AzureDevOpsPAT)")) }
 
-#get the Azure Devops project URL and re-create it here.
+#Get the Azure Devops project URL and re-create it here.
 $uri=[uri]$args[0]
 $UriOrganization = $uri.scheme +"://" + $uri.Host +"/" + $uri.segments[1]
 
@@ -35,23 +37,25 @@ Function Get-FileName($initialDirectory)
 
 $inputfile = Get-FileName $workingDirectory
 $inputfilename = Split-Path $inputfile -leaf
-$content = get-content $inputfile
+$content = Get-Content $inputfile
+
+$firstLine = ConvertFrom-Csv $content[0] -Delimiter ',' -Header "Name" | Select-Object -Index 0
+$assessmentName = $firstLine.Name -replace ',' -replace ';'
+    
 
 $ExistingDevopsWI = New-Object System.Collections.ArrayList
 $AzureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($AzureDevOpsPAT)")) }
 $result = $null
 
-$reportDate = Get-Date -Format "MM-dd-yyyy HH.mm.s"
 $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
 $EndStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
 $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
-$csv = $content[$tableStart..$tableEnd] | Out-File "$workingDirectory\$reportDate.csv"
-$DevOpsList = Import-Csv -Path "$workingDirectory\$reportDate.csv"
+$DevOpsList = ConvertFrom-Csv $content[$tableStart..$tableEnd] -Delimiter ','
 
 #we ask the end user if they are ready to put data into their ticket system.
 Write-Output "This script is using the WAF report:" $inputfilename
 Write-Host "This script will insert data into Azure DevOps org:" $UriOrganization.Trim("/")"."
-Write-Host "This will insert" (Get-Content "$workingDirectory\$reportDate.csv").Length "items into the" $projectname.Trim("/") "project."
+Write-Host "This will insert" $DevOpsList.Length "items into the" $projectname.Trim("/") "project."
 Write-Host "We are using the Azure DevOps token that starts with "$AzureDevOpsPAT.substring(0, 5)
 $confirmation = Read-Host "Ready? [y/n]"
 while($confirmation -ne "y")
@@ -990,12 +994,19 @@ function Insert-NewIssueToDevOps($Title,$Effort,$Tags,$Priority,$BusinessValue,$
    
     if($Title -eq "" -or $Title -eq $null){$Title="NA"}
     if($Effort -eq "" -or $Effort -eq $null){$Effort="0"}
-    if($Tags -eq "" -or $Tags -eq $null){$Tags="NA"}
+    #if($Tags -eq "" -or $Tags -eq $null){$Tags="NA"}
     if($Priority -eq "" -or $Priority -eq $null){$Priority="4"}
     if($BusinessValue -eq "" -or $BusinessValue -eq $null){$BusinessValue="0"}
     if($TimeCriticality -eq "" -or $TimeCriticality -eq $null){$TimeCriticality="0"}
     if($Risk -eq "" -or $Risk -eq $null){$Risk="3 - Low"}
     if($Description -eq "" -or $Description -eq $null){$Description="NA"}
+
+    
+    if($Tags -eq "" -or $Tags -eq $null) {
+        $Tags = $assessmentName
+    } else {
+        $Tags = @($Tags, $assessmentName) -join ";"
+    }
 
     $Issuebody = "[
   {
