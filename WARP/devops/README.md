@@ -35,19 +35,27 @@ There are four sections to this document:
 
 ### Prerequisites
 
-A DevOps project using an agile framework. Instructions to create this project are below
+- A DevOps project using an agile framework. Instructions to create this project are below
 
-or
+    **or**
 
-A new GitHub repo to receive these items.
-
-### Download and prepare your environment for all the scripts
+- A new GitHub repo to receive these items.
 
 **IMPORTANT:**  **These instructions only work in a Windows environment at this time.**
 
+### Download and prepare your environment for all the scripts
+
 1. Download and install [PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell)
 
-1. Open a PowerShell terminal and run the following commands
+1. Open a PowerShell terminal and run the following commands from withing a new or existing directory:
+
+    ```powershell
+    $installUri = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/install-WARP-tools.ps1"
+    Invoke-WebRequest $installUri -OutFile "install-WARP-tools.ps1"
+    .\install-WARP-tools.ps1
+    ```
+
+    Example output:
 
     ```powershell
     PS C:\Users\cae> mkdir warp
@@ -79,7 +87,7 @@ A new GitHub repo to receive these items.
 1. Run the following command in the PowerShell terminal and select the CSV file you wish to use:
 
     ```powershell
-    PS C:\Users\cae\warp> .\GenerateWAFReport.ps1 
+    .\GenerateWAFReport.ps1 
     ```
 
     **NOTE:** A new PowerPoint file will be created in the directory with name in the format of: `PnP_PowerPointReport_Template_mmm-dd-yyyy hh.mm.ss.pptx`
@@ -115,7 +123,13 @@ A new GitHub repo to receive these items.
 
 1. Update **AzureDevOpsPAT** key in the `keys.txt` file with the **Personal Access Token** that you plan to use.
 
-1. Run the following command in the PowerShell terminal, using the URL for your **Project** and the export CSV file from a [Microsoft Azure Well-Architected Review](https://docs.microsoft.com/assessments/?mode=pre-assessment):
+1. Run the following command in the PowerShell terminal, using the URL for your **Project** and select the exported CSV file from a [Microsoft Azure Well-Architected Review](https://docs.microsoft.com/assessments/?mode=pre-assessment):
+
+    ```powershell
+    .\PnP-DevOps.ps1 "<Project URL>"
+    ```
+
+    Example Output:
 
     ```powershell
     PS C:\Users\cae\warp> .\PnP-DevOps.ps1 "https://dev.azure.com/contoso/WARP_Import"
