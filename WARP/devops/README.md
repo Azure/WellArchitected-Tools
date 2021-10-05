@@ -164,19 +164,26 @@ There are four sections to this document:
 
 ## Place findings into a GitHub repository
 
+1. Create or log into an existing Github repository.
+
+    - If an organization does not exist, follow these steps in this [link](https://docs.github.com/en/get-started/quickstart/create-a-repo).
+
 1. Acquire a [personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with write access to create issues:
 
     - Permissions should be *Full control of private repositories*.
+    ![](_images/github_repo_perms.png)
 
-1. Add this personal access token to the `keys.txt` file as *GitHubUserToken*.
+1. Update the keys.txt file
 
-1. Add the GitHub username of the person whose token is being used to the `keys.txt` file as `$owner`.
+    - Add this personal access token to the `keys.txt` file as *GitHubUserToken*.
 
-1. Replace the `$repository` value with the GitHub repository name:
+    - Add the GitHub username of the person whose token is being used to the `keys.txt` file as `$owner`.
 
-    - `Example: https://github.com/contoso/WAF-repository`
+    - Replace the `$repository` value with the GitHub repository name:
 
-    - The value would be `WAF-repository`.
+       - `Example: https://github.com/contoso/WAF-repository`
+
+       - The value would be `WAF-repository`.
 
 1. Right-click and run the `PnP-Github.ps1` script.
 
