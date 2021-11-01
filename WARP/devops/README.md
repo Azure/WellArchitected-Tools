@@ -43,6 +43,8 @@ There are four sections to this document:
 - Windows 10 or greater.
 - PowerShell v7
 - Microsoft PowerPoint 2019
+ - PowerPoint is not required for importing findings into Azure DevOps or Github.
+ - Only required for creating PowerPoint slideshows outlining the issues found.
 
 ---
 
