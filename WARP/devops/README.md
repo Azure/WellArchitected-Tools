@@ -35,15 +35,20 @@ There are four sections to this document:
 
 ### Prerequisites
 
-- A DevOps project using an agile framework. Instructions to create this project are below
+- A DevOps project using an agile framework. Instructions to create this project are below.
 
     **or**
 
-- A new GitHub repo to receive these items.
+- A *new or empty* GitHub repo to receive these items.
+- Windows 10 or greater.
+- PowerShell v7
+- Microsoft PowerPoint 2019
+
+---
 
 **IMPORTANT:**  **These instructions only work in a Windows environment at this time.**
 
-### Download and prepare your environment for all the scripts
+### Download scripts and prepare your environment to run them.
 
 1. Download and install [PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell)
 
@@ -192,3 +197,4 @@ There are four sections to this document:
     - Seeing some exceptions while running the script are expected.
 
 1.  You should see **Milestones** and **Issues** populated with data.
+![](_images/github_repo_backlog.png)
