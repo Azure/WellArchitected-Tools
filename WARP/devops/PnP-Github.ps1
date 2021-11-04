@@ -1,5 +1,5 @@
-#date-2021-09-09
-<# Instructions to use this script
+<#
+Instructions to use this script
 1. double click this script to run it.
 #>
 

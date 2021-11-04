@@ -1,171 +1,123 @@
-<#
-Instructions to use this script
-PnP-DevOps.ps1 <url to project in Azure Devops>
+#This is a test file. Do not use this file for any purpose.
 
-example: PnP-DevOps.ps1 https://dev.azure.com/demo-org/demo-project
+#Debug below - remove from release
+function PrettyPrint-Array {
+    param(
+            [string[]]$array = @()
+    )
 
-#>
+    write-host ("| {0,15} |" -f "Names")
+    (0..18) | % { write-host -nonewline "#" }
+    write-host ""
 
-#Get PAT from a keys.txt file
-Get-Content keys.txt | Where-Object {$_.length -gt 0} | Where-Object {!$_.StartsWith("#")} | ForEach-Object {
-    $var = $_.Split('=',2).Trim()
-    New-Variable -Scope Script -Name $var[0] -Value $var[1]
+    foreach ($element in $array) {
+        write-host ("| {0,15} |" -f $element)
+    }
 }
-$AzureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($AzureDevOpsPAT)")) }
+#Debug above - remove from release
 
-#Get the Azure Devops project URL and re-create it here.
-$uri=[uri]$args[0]
-$UriOrganization = $uri.scheme +"://" + $uri.Host +"/" + $uri.segments[1]
 
-#Grab the project name from the dev-ops url given in the command line.
-$projectname = $uri.segments[-1].Trim("/")
-$projectname = $projectname +"/"
+
+
 
 #Get the working directory from the script
 $workingDirectory = (Get-Location).Path
 
-#Get the WAF report via a system dialog
-Function Get-FileName($initialDirectory)
-{
-    [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
-    
-    $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
-    $OpenFileDialog.initialDirectory = $initialDirectory
-    $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
-    $OpenFileDialog.ShowDialog() | Out-Null
-    $OpenFileDialog.filename
-}
+#debug
+Write-Host "workingDirectory=" $workingDirectory
+#debug
 
-$inputfile = Get-FileName $workingDirectory
-$inputfilename = Split-Path $inputfile -leaf
-$content = Get-Content $inputfile
+$content = Get-Content "Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv"
 
+#This pulls out the first line of the .csv and pulls out the assessment name and does some minor character cleanup.
+#cleanup based on https://docs.microsoft.com/en-us/azure/devops/organizations/settings/naming-restrictions?view=azure-devops#tags-work-items
 $firstLine = ConvertFrom-Csv $content[0] -Delimiter ',' -Header "Name" | Select-Object -Index 0
 $assessmentName = $firstLine.Name -replace ',' -replace ';'
-    
+#debug
+Write-Host "assessmentName=" $assessmentName
+#debug
 
-$ExistingDevopsWI = New-Object System.Collections.ArrayList
-$AzureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($AzureDevOpsPAT)")) }
-$result = $null
-
+#find the start of the CSV section to import.
+#We look for this string to identify the start and then we look for a series of dashes to define the end of the imported section.
+#we then convert the CSV to an array for powershell
 $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
 $EndStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
 $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
 $DevOpsList = ConvertFrom-Csv $content[$tableStart..$tableEnd] -Delimiter ','
 
-#we ask the end user if they are ready to put data into their ticket system.
-Write-Output "This script is using the WAF report:" $inputfilename
-Write-Host "This script will insert data into Azure DevOps org:" $UriOrganization.Trim("/")"."
-Write-Host "This will insert" $DevOpsList.Length "items into the" $projectname.Trim("/") "project."
-Write-Host "We are using the Azure DevOps token that starts with "$AzureDevOpsPAT.substring(0, 5)
-$confirmation = Read-Host "Ready? [y/n]"
-while($confirmation -ne "y")
-{
-    if ($confirmation -eq 'n') {exit}
-    $confirmation = Read-Host "Ready? [y/n]"
-}
+#debug
+#Write-Host "DevOpsList=" $DevOpsList
+#debug
 
-<#
-List of allowed values for Categories
-General
-Application Design
-Health Modeling & Monitoring
-Capacity & Service Availability Planning
-Application Platform Availability
-Data Platform Availability
-Networking & Connectivity
-Scalability & Performance
-Security & Compliance
-Operational Procedures
-Deployment & Testing
-Operational Model & DevOps
-Compute
-Data
-Hybrid
-Storage
-Messaging
-Networking
-Identity & Access Control
-Performance Testing
-Troubleshooting
-SAP
-Efficiency and Sizing
-Governance
-Application Performance Management
-Azure Advisor
-
-$data = Get-Content -Path "C:\categories.json" | ConvertFrom-Json
-foreach($category in $data)
-{
-    Write-Host "CATEGORY: $($category.title)" -ForegroundColor Green
-    foreach($subcategory in $category.subCategories)
-    {
-        $($subcategory.title)
-    }
-}
-#>
-
+#Create a mostly empty array for insertion of data later on,
 $EpicRelationshipStringBuilder = @'
-{"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "EPICURLPLACEHOLDER", "attributes": {"comment": "Making a new link for the dependency"}}
+{
+    "rel": "System.LinkTypes.Hierarchy-Reverse", "url": "EPICURLPLACEHOLDER", "attributes": {"comment": "Making a new link for the dependency"}
+}
 '@
 
-$EpicRelations = [pscustomobject]@{
-"General" = "";
-"Application Design" = "";
-"Health Modeling & Monitoring" = "";
-"Capacity & Service Availability Planning" = "";
-"Application Platform Availability" = "";
-"Data Platform Availability" = "";
-"Networking & Connectivity" = "";
-"Scalability & Performance" = "";
-"Security & Compliance" = "";
-"Operational Procedures" = "";
-"Deployment & Testing" = "";
-"Operational Model & DevOps" = "";
-"Compute" = "";
-"Data" = "";
-"Hybrid" = "";
-"Storage" = "";
-"Messaging" = "";
-"Networking" = "";
-"Identity & Access Control" = "";
-"Performance Testing" = "";
-"Troubleshooting" = "";
-"SAP" = "";
-"Efficiency and Sizing" = "";
-"Governance" = "";
-"Application Performance Management" = "";
-"Azure Advisor" = "";
-"Uncategorized" = "";
-}
+#debug
+#Write-Host "EpicRelationshipStringBuilder=" $EpicRelationshipStringBuilder
+#debug
 
-#endregion
+$EpicRelations = [pscustomobject]@{
+    "General" = "";
+    "Application Design" = "";
+    "Health Modeling & Monitoring" = "";
+    "Capacity & Service Availability Planning" = "";
+    "Application Platform Availability" = "";
+    "Data Platform Availability" = "";
+    "Networking & Connectivity" = "";
+    "Scalability & Performance" = "";
+    "Security & Compliance" = "";
+    "Operational Procedures" = "";
+    "Deployment & Testing" = "";
+    "Operational Model & DevOps" = "";
+    "Compute" = "";
+    "Data" = "";
+    "Hybrid" = "";
+    "Storage" = "";
+    "Messaging" = "";
+    "Networking" = "";
+    "Identity & Access Control" = "";
+    "Performance Testing" = "";
+    "Troubleshooting" = "";
+    "SAP" = "";
+    "Efficiency and Sizing" = "";
+    "Governance" = "";
+    "Application Performance Management" = "";
+    "Azure Advisor" = "";
+    "Uncategorized" = "";
+}
+#debug
+#Write-Host "EpicRelations=" $EpicRelations
+#debug
 
 #region Clean the Reporting Category
-
 foreach($lineData in $DevOpsList)
 {
     if(!$lineData.ReportingCategory)
     {
+#We move anything from Azure Advisor to the proper category. Anything that is blank goes to uncategorized.
         if ($lineData.Link -eq "https://aka.ms/azure-advisor-portal") {
             $lineData.ReportingCategory = "Azure Advisor"
         } else {
             $lineData.ReportingCategory = "Uncategorized"
         }
     }
+#We Americanize the spelling of Modelling to Modeling
     elseif ($lineData.ReportingCategory -eq "Health Modelling & Monitoring") {
         $lineData.ReportingCategory = "Health Modeling & Monitoring"
     }
 }
-
 #endregion
 
-function Get-RecommendationsFromContentService
-{
-param(
-[parameter (Mandatory=$true, position=1)]
-[string]$contentservice
-)
+<#I have commented out this function as it does not look like it is in use.
+function Get-RecommendationsFromContentService{
+    param(
+        [parameter (Mandatory=$true, position=1)]
+        [string]$contentservice
+    )
     try
     {            
         $ContentServiceResult = Invoke-RestMethod -Method Get -uri $($ContentServiceUri + "$contentservice\") -Headers $ContentServiceHeader
@@ -204,8 +156,10 @@ param(
 #$ContentServiceUri = "https://serviceshub-api-prod.azure-api.net/content/contentdefinition/v1.0/"
 #$RecommendationHash = New-Object System.Collections.ArrayList
 #Get-RecommendationsFromContentService -contentservice "ASOCA"
-$RecommendationHash = Get-Content "$workingDirectory\WASA.json" | ConvertFrom-Json
+#>
 
+#What is this WASA file for?
+$RecommendationHash = Get-Content "$workingDirectory\WASA.json" | ConvertFrom-Json
 
 #Search DevOps for existing Epics for each WAF Category & Create a relationship mapping to link these epics to work items
 function Create-EpicsforFocusArea
