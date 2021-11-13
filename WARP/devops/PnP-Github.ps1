@@ -13,6 +13,7 @@ Get-Content keys.txt | Where-Object {$_.length -gt 0} | Where-Object {!$_.Starts
 $workingDirectory = (Get-Location).Path
 
 #Get the WAF report via a system dialog
+<#
 Function Get-FileName($initialDirectory)
 {
     [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
@@ -26,6 +27,9 @@ Function Get-FileName($initialDirectory)
 
 $inputfile = Get-FileName $workingDirectory
 $inputfilename = Split-Path $inputfile -leaf
+#>
+$inputfile = "Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv"
+$inputfilename = Split-Path $inputfile -leaf
 $content = get-content $inputfile
 
 $descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
@@ -38,10 +42,18 @@ $tableEnd = $content.IndexOf("-----------,,,,,") - 1
 $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
 $CSVInput = Import-Csv -Path "$workingDirectory\$reportDate.csv"
 
+$firstLine = ConvertFrom-Csv $content[0] -Delimiter ',' -Header "Name" | Select-Object -Index 0
+$assessmentName = $firstLine.Name
+#we are truncating the default name if it is used.
+$assessmentName = $assessmentName -replace 'Azure Well-Architected Review -','AzWAR'
+$assessmentName = $assessmentName -replace ':','-'
+$assessmentName = $assessmentName -replace '[^a-zA-Z0-9 -]',''
+
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $Headers = @{
 Authorization='token '+$GitHubUserToken
 }
+
 $AllMilestones = Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/$owner/$repository/milestones" -Headers $Headers -ContentType "application/json"
 $AllIssues = Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/$owner/$repository/issues?per_page=100&page=1" -Headers $Headers -ContentType "application/json"
 
@@ -201,7 +213,6 @@ function New-GithubIssue
                 labels = $Label
                 milestone = "$MilestoneID"
             } | ConvertTo-Json
-
         try 
         {
             if($AllIssues.title -notcontains $Title)
@@ -244,6 +255,7 @@ Write-Output "Attempting Github Import for all Issues"
 foreach($Issue in $CSVInput)
 {   
     $labels = New-Object System.Collections.ArrayList
+    $labels.Add("$assessmentName")
     if($Issue.category)
     {
         $labels.Add($Issue.category) | Out-Null
@@ -283,3 +295,6 @@ foreach($Issue in $CSVInput)
 
 
 #endregion
+
+#cleanup
+remove-item $workingDirectory\$reportDate.csv
