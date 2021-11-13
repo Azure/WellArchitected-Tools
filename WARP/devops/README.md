@@ -35,15 +35,28 @@ There are four sections to this document:
 
 ### Prerequisites
 
-- A DevOps project using an agile framework. Instructions to create this project are below.
+- A ***new or empty*** DevOps project using an agile framework. Instructions to create this project are below.
+
+ - We encourage users of this example script to test on a non-production DevOps project to better understand how recommendations are presented in Azure DevOps.
+
+ - After testing, users of this example script are encouraged to import recommendations into an appropriate Azure DevOps project for work planning and execution. 
 
     **or**
 
-- A *new or empty* GitHub repo to receive these items.
+- A ***new or empty*** GitHub repo to receive these items.
+
+ - We encourage users of this example script to test on a non-production Github project to better understand how recommendations are presented in Github.
+
+ - After testing, users of this example script are encouraged to import recommendations into an appropriate GitHub project for work planning and execution. 
+
 - Windows 10 or greater.
+
 - PowerShell v7
+
 - Microsoft PowerPoint 2019
+
  - PowerPoint is not required for importing findings into Azure DevOps or Github.
+
  - Only required for creating PowerPoint slideshows outlining the issues found.
 
 ---
