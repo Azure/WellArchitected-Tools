@@ -13,7 +13,7 @@ Get-Content keys.txt | Where-Object {$_.length -gt 0} | Where-Object {!$_.Starts
 $workingDirectory = (Get-Location).Path
 
 #Get the WAF report via a system dialog
-<#
+
 Function Get-FileName($initialDirectory)
 {
     [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
@@ -26,9 +26,6 @@ Function Get-FileName($initialDirectory)
 }
 
 $inputfile = Get-FileName $workingDirectory
-$inputfilename = Split-Path $inputfile -leaf
-#>
-$inputfile = "Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv"
 $inputfilename = Split-Path $inputfile -leaf
 $content = get-content $inputfile
 
