@@ -156,8 +156,8 @@ foreach($pillar in $pillars)
  #Add logic to get overall score
  $newSummarySlide = $summarySlide.Duplicate()
  $newSummarySlide.MoveTo($presentation.Slides.Count)
- $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Score
- $newSummarySlide.Shapes[5].TextFrame.TextRange.Text = $pillarInfo.Description
+ $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
+ $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
 
  $CategoriesList = New-Object System.Collections.ArrayList
  $categories = ($pillarData | Sort-Object -Property "Weight" -Descending).ReportingCategory | Select-Object -Unique
@@ -170,7 +170,7 @@ foreach($pillar in $pillars)
 
  $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
 
- $counter = 9 #Shape count for the slide to start adding scores
+ $counter = 13 #Shape count for the slide to start adding scores
  foreach($category in $CategoriesList)
  {
     if($category.Category -ne "Uncategorized")
@@ -221,20 +221,20 @@ foreach($pillar in $pillars)
     $newDetailSlide.MoveTo($presentation.Slides.Count)
 
     $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $category
-    $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryScore.ToString("#")
-    $newDetailSlide.Shapes[5].TextFrame.TextRange.Text = $categoryDescription
-    $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
-    $newDetailSlide.Shapes[9].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
-    $sentenceCount = $newDetailSlide.Shapes[9].TextFrame.TextRange.Sentences().count
+    $newDetailSlide.Shapes[3].TextFrame.TextRange.Text = $categoryScore.ToString("#")
+    $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
+    $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
+    $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
+    $sentenceCount = $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences().count
     
     for($k=1; $k -le $sentenceCount; $k++)
      {
-         if($newDetailSlide.Shapes[9].TextFrame.TextRange.Sentences($k).Text)
+         if($newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text)
          {
             try
             {
-                $recommendationObject = $categoryData | Where-Object{$newDetailSlide.Shapes[9].TextFrame.TextRange.Sentences($k).Text.Contains($_.'Link-Text')}
-                $newDetailSlide.Shapes[9].TextFrame.TextRange.Sentences($k).ActionSettings(1).HyperLink.Address = $recommendationObject.Link
+                $recommendationObject = $categoryData | Where-Object{$newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text.Contains($_.'Link-Text')}
+                $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).ActionSettings(1).HyperLink.Address = $recommendationObject.Link
             }
             catch{}
          }
