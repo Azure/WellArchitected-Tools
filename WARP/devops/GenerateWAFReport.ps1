@@ -158,6 +158,8 @@ foreach($pillar in $pillars)
  $newSummarySlide.MoveTo($presentation.Slides.Count)
  $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
  $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
+ [Single]$summBarScore = [int]$pillarInfo.Score*2.47+56
+ $newSummarySlide.Shapes[11].Left = $summBarScore
 
  $CategoriesList = New-Object System.Collections.ArrayList
  $categories = ($pillarData | Sort-Object -Property "Weight" -Descending).ReportingCategory | Select-Object -Unique
@@ -222,6 +224,8 @@ foreach($pillar in $pillars)
 
     $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $category
     $newDetailSlide.Shapes[3].TextFrame.TextRange.Text = $categoryScore.ToString("#")
+    [Single]$detailBarScore = $categoryScore*2.48+38
+    $newDetailSlide.Shapes[12].Left = $detailBarScore
     $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
     $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
     $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
