@@ -140,118 +140,140 @@ foreach($lineData in $data)
 
 #endregion
 
-foreach($pillar in $pillars)
+foreach($pillar in $pillars) 
 {
- $pillarData = $data | Where-Object{$_.Category -eq $pillar}
- $pillarInfo = Get-PillarInfo -pillar $pillar
- # Edit title & date on slide 1
- $slideTitle = $title.Replace("[pillar]",$pillar.substring(0,1).toupper()+$pillar.substring(1).tolower())
- $newTitleSlide = $titleSlide.Duplicate()
- $newTitleSlide.MoveTo($presentation.Slides.Count)
- $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
- $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]",$reportDate)
+    $pillarData = $data | Where-Object{$_.Category -eq $pillar}
+    $pillarInfo = Get-PillarInfo -pillar $pillar
+    # Edit title & date on slide 1
+    $slideTitle = $title.Replace("[pillar]",$pillar.substring(0,1).toupper()+$pillar.substring(1).tolower())
+    $newTitleSlide = $titleSlide.Duplicate()
+    $newTitleSlide.MoveTo($presentation.Slides.Count)
+    $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
+    $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]",$reportDate)
 
- # Edit Executive Summary Slide
+    # Edit Executive Summary Slide
 
- #Add logic to get overall score
- $newSummarySlide = $summarySlide.Duplicate()
- $newSummarySlide.MoveTo($presentation.Slides.Count)
- $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
- $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
- [Single]$summBarScore = [int]$pillarInfo.Score*2.47+56
- $newSummarySlide.Shapes[11].Left = $summBarScore
+    #Add logic to get overall score
+    $newSummarySlide = $summarySlide.Duplicate()
+    $newSummarySlide.MoveTo($presentation.Slides.Count)
+    $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
+    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
+    [Single]$summBarScore = [int]$pillarInfo.Score*2.47+56
+    $newSummarySlide.Shapes[11].Left = $summBarScore
 
- $CategoriesList = New-Object System.Collections.ArrayList
- $categories = ($pillarData | Sort-Object -Property "Weight" -Descending).ReportingCategory | Select-Object -Unique
- foreach($category in $categories)
- {
-    $categoryWeight = ($pillarData | Where-Object{$_.ReportingCategory -eq $category}).Weight | Measure-Object -Sum
-    $categoryScore = $categoryWeight.Sum/$categoryWeight.Count
-    $CategoriesList.Add([pscustomobject]@{"Category" = $category; "CategoryScore" = $categoryScore}) | Out-Null
- }
-
- $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
-
- $counter = 13 #Shape count for the slide to start adding scores
- foreach($category in $CategoriesList)
- {
-    if($category.Category -ne "Uncategorized")
+    $CategoriesList = New-Object System.Collections.ArrayList
+    $categories = ($pillarData | Sort-Object -Property "Weight" -Descending).ReportingCategory | Select-Object -Unique
+    foreach($category in $categories)
     {
-        try
-        {
-            #$newSummarySlide.Shapes[8] #Domain 1 Icon
-            $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryScore.ToString("#")
-            $newSummarySlide.Shapes[$counter+1].TextFrame.TextRange.Text = $category.Category
-            $counter = $counter + 3
-        }
-        catch{}
-    }
- }
-
- #Remove the boilerplate placeholder text if categories < 8
- if($categories.Count -lt 8)
- {
-     for($k=$newSummarySlide.Shapes.count; $k -gt $counter-1; $k--)
-     {
-        try
-        {
-         $newSummarySlide.Shapes[$k].Delete()
-         <#$newSummarySlide.Shapes[$k].Delete()
-         $newSummarySlide.Shapes[$k+1].Delete()#>
-         }
-         catch{}
-     }
- }
-
- # Edit new category summary slide
-
- foreach($category in $CategoriesList.Category)
- {
-    $categoryData = $pillarData | Where-Object{$_.ReportingCategory -eq $category -and $_.Category -eq $pillar}
-    $categoryDataCount = ($categoryData | measure).Count
-    $categoryWeight = ($pillarData | Where-Object{$_.ReportingCategory -eq $category}).Weight | Measure-Object -Sum
-    $categoryScore = $categoryWeight.Sum/$categoryWeight.Count
-    $categoryDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq $pillar -and $categoryData.ReportingCategory.Contains($_.Category)}).Description
-    $y = $categoryDataCount
-    $x = 5
-    if($categoryDataCount -lt 5)
-    {
-        $x = $categoryDataCount
+        $categoryWeight = ($pillarData | Where-Object{$_.ReportingCategory -eq $category}).Weight | Measure-Object -Sum
+        $categoryScore = $categoryWeight.Sum/$categoryWeight.Count
+        $CategoriesList.Add([pscustomobject]@{"Category" = $category; "CategoryScore" = $categoryScore}) | Out-Null
     }
 
-    $newDetailSlide = $detailSlide.Duplicate()
-    $newDetailSlide.MoveTo($presentation.Slides.Count)
+    $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
 
-    $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $category
-    $newDetailSlide.Shapes[3].TextFrame.TextRange.Text = $categoryScore.ToString("#")
-    [Single]$detailBarScore = $categoryScore*2.48+38
-    $newDetailSlide.Shapes[12].Left = $detailBarScore
-    $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
-    $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
-    $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
-    $sentenceCount = $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences().count
-    
-    for($k=1; $k -le $sentenceCount; $k++)
-     {
-         if($newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text)
-         {
+    $counter = 13 #Shape count for the slide to start adding scores
+    $categoryCounter = 0
+    $areaIconX = 378.1129
+    $areaIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
+    foreach($category in $CategoriesList)
+    {
+        if($category.Category -ne "Uncategorized")
+        {
             try
             {
-                $recommendationObject = $categoryData | Where-Object{$newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text.Contains($_.'Link-Text')}
-                $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).ActionSettings(1).HyperLink.Address = $recommendationObject.Link
+                #$newSummarySlide.Shapes[8] #Domain 1 Icon
+                $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryScore.ToString("#")
+                $newSummarySlide.Shapes[$counter+1].TextFrame.TextRange.Text = $category.Category
+                $counter = $counter + 3
+                switch ($category.CategoryScore) {
+                    { $_ -lt 33 } { 
+                        $categoryShape = $newSummarySlide.Shapes[39]
+                    }
+                    { $_ -gt 33 -and $_ -lt 67 } { 
+                        $categoryShape = $newSummarySlide.Shapes[38] 
+                    }
+                    { $_ -gt 67 } { 
+                        $categoryShape = $newSummarySlide.Shapes[37] 
+                    }
+                    Default { 
+                        $categoryShape = $newSummarySlide.Shapes[38] 
+                    }
+                }
+                $categoryShape.Duplicate() | Out-Null
+                $newShape = $newSummarySlide.Shapes.Count
+                $newSummarySlide.Shapes[$newShape].Left = $areaIconX
+                $newSummarySlide.Shapes[$newShape].top = $areaIcony[$categoryCounter] 
+                $categoryCounter = $categoryCounter + 1
             }
             catch{}
-         }
-     }    
- }
+        }
+    }
 
- }
+    #Remove the boilerplate placeholder text if categories < 8
+    if($categories.Count -lt 8)
+    {
+        $skipLastShape = $newSummarySlide.Shapes.count - $categoryCounter
+        for($k=$skipLastShape; $k -gt $counter-1; $k--)
+        {
+            try
+            {
+                $newSummarySlide.Shapes[$k].Delete()
+                <#$newSummarySlide.Shapes[$k].Delete()
+                $newSummarySlide.Shapes[$k+1].Delete()#>
+            }
+            catch{}
+        }
+    }
 
- $titleSlide.Delete()
- $summarySlide.Delete()
- $detailSlide.Delete()
- $presentation.SavecopyAs(“$workingDirectory\PnP_PowerPointReport_Template_$reportDate.pptx”)
- $presentation.Close()
+    # Edit new category summary slide
+
+    foreach($category in $CategoriesList.Category)
+    {
+        $categoryData = $pillarData | Where-Object{$_.ReportingCategory -eq $category -and $_.Category -eq $pillar}
+        $categoryDataCount = ($categoryData | measure).Count
+        $categoryWeight = ($pillarData | Where-Object{$_.ReportingCategory -eq $category}).Weight | Measure-Object -Sum
+        $categoryScore = $categoryWeight.Sum/$categoryWeight.Count
+        $categoryDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq $pillar -and $categoryData.ReportingCategory.Contains($_.Category)}).Description
+        $y = $categoryDataCount
+        $x = 5
+        if($categoryDataCount -lt 5)
+        {
+            $x = $categoryDataCount
+        }
+
+        $newDetailSlide = $detailSlide.Duplicate()
+        $newDetailSlide.MoveTo($presentation.Slides.Count)
+
+        $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $category
+        $newDetailSlide.Shapes[3].TextFrame.TextRange.Text = $categoryScore.ToString("#")
+        [Single]$detailBarScore = $categoryScore*2.48+38
+        $newDetailSlide.Shapes[12].Left = $detailBarScore
+        $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
+        $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
+        $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
+        $sentenceCount = $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences().count
+
+        for($k=1; $k -le $sentenceCount; $k++)
+        {
+            if($newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text)
+            {
+                try
+                {
+                    $recommendationObject = $categoryData | Where-Object{$newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text.Contains($_.'Link-Text')}
+                    $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).ActionSettings(1).HyperLink.Address = $recommendationObject.Link
+                }
+                catch{}
+            }
+        }    
+    }
+}
+
+$titleSlide.Delete()
+$summarySlide.Delete()
+$detailSlide.Delete()
+$presentation.SavecopyAs(“$workingDirectory\PnP_PowerPointReport_Template_$reportDate.pptx”)
+$presentation.Close()
 
 
 $application.quit()
