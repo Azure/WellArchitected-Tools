@@ -1,8 +1,10 @@
 param (
     [string]$pat, 
-    [string]$csv, 
-    [uri]$uri
+    [uri]$uri,
+    [string]$csv
 )
+
+#region Usage
 
 if (!$pat -or !$csv -or !$uri) {
     Write-Host "Example Usage: "
@@ -11,129 +13,114 @@ if (!$pat -or !$csv -or !$uri) {
     exit
 }
 
-$AzureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)")) }
+#endregion
 
-#Get the Azure Devops project URL and re-create it here.
-$UriOrganization = $uri.scheme +"://" + $uri.Host +"/" + $uri.segments[1]
+#region Functions
 
-#Grab the project name from the dev-ops url given in the command line.
-$projectname = $uri.segments[-1].Trim("/")
-$projectname = $projectname +"/"
+# Get settings for either Azure DevOps
+function Get-AdoSettings {
+    param (
+        [string]$pat, 
+        [uri]$uri
+    )
 
-#Get the working directory from the script
-$workingDirectory = (Get-Location).Path
-
-$inputfilename = Split-Path $csv -leaf
-$content = Get-Content $csv
-
-$firstLine = ConvertFrom-Csv $content[0] -Delimiter ',' -Header "Name" | Select-Object -Index 0
-$assessmentName = $firstLine.Name -replace ',' -replace ';'
+    $authHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)")) }
     
-$ExistingDevopsWI = New-Object System.Collections.ArrayList
-$AzureDevOpsAuthenicationHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)")) }
+    $uriBase = $uri.ToString().Trim("/") + "/"
 
-$tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
-$EndStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
-$tableEnd = $content.IndexOf($EndStringIdentifier) - 1
-$DevOpsList = ConvertFrom-Csv $content[$tableStart..$tableEnd] -Delimiter ','
+    $settings = @{
+        authHeader = $authHeader
+        uriBase = $uriBase
+    }
 
-# Hack to change blank reporting category to Azure Advisor
-$DevOpsList | 
-    Where-Object -Property ReportingCategory -eq "" | 
-    ForEach-Object {$_.ReportingCategory = "Azure Advisor"}
-
-#we ask the end user if they are ready to put data into their ticket system.
-Write-Output "This script is using the WAF report:" $inputfilename
-Write-Host "This script will insert data into Azure DevOps org:" $UriOrganization.Trim("/")"."
-Write-Host "This will insert" $DevOpsList.Length "items into the" $projectname.Trim("/") "project."
-Write-Host "We are using the Azure DevOps token that starts with "$pat.substring(0, 5)
-$confirmation = Read-Host "Ready? [y/n]"
-while($confirmation -ne "y")
-{
-    if ($confirmation -eq 'n') {exit}
-    $confirmation = Read-Host "Ready? [y/n]"
+    return $settings
 }
 
-# Get unique list of ReportCategory column
-$ReportingCategories = $DevOpsList | 
-    Select-Object -Property ReportingCategory -Unique | 
-    Sort-Object  -Property ReportingCategory
+function Import-Assessment {
+    param (
+        [string]$csv
+    )
 
-$EpicRelationshipStringBuilder = @'
-{"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "EPICURLPLACEHOLDER", "attributes": {"comment": "Making a new link for the dependency"}}
-'@
+    $content = Get-Content $csv
 
-$EpicRelations = @{}
-$ReportingCategories | 
-    ForEach-Object { $EpicRelations[$_.ReportingCategory] = "" }
+    $firstLine = ConvertFrom-Csv $content[0] -Delimiter ',' -Header "Name" | Select-Object -Index 0
+    $assessmentName = $firstLine.Name -replace ',' -replace ';'
+        
+    $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
+    $endStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
+    $tableEnd = $content.IndexOf($endStringIdentifier) - 1
+    $devOpsList = ConvertFrom-Csv $content[$tableStart..$tableEnd] -Delimiter ','
 
-$RecommendationHash = Get-Content "$workingDirectory\WASA.json" | ConvertFrom-Json
+    # Hack to change blank reporting category to Azure Advisor
+    $devOpsList | 
+        Where-Object -Property ReportingCategory -eq "" | 
+        ForEach-Object {$_.ReportingCategory = "Azure Advisor"}
 
-#Search DevOps for existing Epics for each WAF Category & Create a relationship mapping to link these epics to work items
-function Update-EpicsforFocusArea
-{
+    $workingDirectory = (Get-Location).Path
+    $recommendationHash = Get-Content "$workingDirectory\WASA.json" | ConvertFrom-Json
+
+    # Get unique list of ReportCategory column
+    $reportingCategories = @{}
+    $devOpsList | 
+        Select-Object -Property ReportingCategory -Unique | 
+        Sort-Object  -Property ReportingCategory |
+        ForEach-Object { $reportingCategories[$_.ReportingCategory] = "" }
+
+    $assessment = @{
+        name = $assessmentName
+        reportingCategories = $reportingCategories
+        recommendations = $devOpsList
+        hash = $recommendationHash
+    }
+
+    return $assessment
+}
+
+function Search-EpicsAdo {
+    param (
+        $settings,
+        $assessment
+    )
 
     $body = "{
-    `"query`": `"SELECT
-        [System.Id],
-        [System.WorkItemType],
-        [System.Title],
-        [System.AssignedTo],
-        [System.State],
-        [System.Tags]
-    FROM workitems
-    WHERE
-        [System.TeamProject] = @project
-        AND [System.WorkItemType] = 'Epic'
-        AND [System.State] <> ''`"}"
-
-    $getQueryUri = $UriOrganization + $projectname + "_apis/wit/wiql?api-version=6.0-preview.2"
-    $allEpics = Invoke-RestMethod -Uri $getQueryUri -Method POST -ContentType "application/json" -Headers $AzureDevOpsAuthenicationHeader -Body $body
-
-    $ExistingFocusAreas = @{}
-    $ReportingCategories | 
-        ForEach-Object { $ExistingFocusAreas[$_.ReportingCategory] = $false }
-
+        `"query`": `"SELECT
+            [System.Id]
+        FROM workitems
+        WHERE
+            [System.TeamProject] = @project
+            AND [System.WorkItemType] = 'Epic'
+            AND [System.State] <> ''`"}"
+     
     try {
-        #Gather details per devops item
-        Write-Output "There are $($allEpics.workItems.Count) Epics in DevOps"
-
-        if($allEpics.workItems.Count -gt 0)
+        $getQueryUri = $settings.uriBase + "_apis/wit/wiql?api-version=6.0-preview.2"
+        $results = Invoke-RestMethod -Uri $getQueryUri -Method POST -ContentType "application/json" -Headers $settings.authHeader -Body $body
+        
+        if($results.workItems.Count -gt 0)
         {
-            foreach($epic in $allEpics.workItems.id)
+            foreach($epic in $results.workItems.id)
             {
-                $getEpicQueryUri = $UriOrganization + $projectname + "_apis/wit/workitems/" + $epic + "?api-version=6.0-preview.2"
-                $epicWorkItem = Invoke-RestMethod -Uri $getEpicQueryUri -Method GET -ContentType "application/json" -Headers $AzureDevOpsAuthenicationHeader
+                $getEpicQueryUri = $settings.uriBase + "_apis/wit/workitems/" + $epic + "?api-version=6.0-preview.2"
+                $epicWorkItem = Invoke-RestMethod -Uri $getEpicQueryUri -Method GET -ContentType "application/json" -Headers $settings.authHeader
                 
-                $epicTitle = $epicWorkItem.fields.'System.Title'
-                if ($ExistingFocusAreas.ContainsKey($epicTitle)) {
-                    $ExistingFocusAreas[$epicTitle] = $true;
-                    $EpicRelations[$epicTitle] = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$epicWorkItem.url);
+                $epicName = $epicWorkItem.fields.'System.Title'
+                if ($assessment.reportingCategories.ContainsKey($epicName)) {
+                    $assessment.reportingCategories[$epicName] = $epicWorkItem.url
                 }
             }
         }
-
-        foreach($key in $ExistingFocusAreas.Keys)
-        {
-            if (!$ExistingFocusAreas[$key]) {
-                Write-Host "Adding Epic: $key"
-                $epicWorkItem = Add-EpicInDevOps -FocusArea $key
-                $EpicRelations[$key] = $EpicRelationshipStringBuilder.Replace("EPICURLPLACEHOLDER",$epicWorkItem.url);
-            }
-        }
-
     } catch {
-        Write-Output "Error while querying devops for work items: " + $Error[0].Exception.ToString()
+        Write-Output "Error while querying Azure DevOps for Epics: " + $Error[0].Exception.ToString()
         exit
-    }
+    }     
 }
 
 #Create the Epic in DevOps per category/focus area
-function Add-EpicInDevOps
+function Add-EpicAdo
 {
-    param(
-        [parameter (Mandatory=$true)]
-        [string]$FocusArea
+    param (
+        $settings,
+        $assessment,
+        $epicName
     )
 
     try {
@@ -142,117 +129,46 @@ function Add-EpicInDevOps
             {
                 `"op`": `"add`",
                 `"path`": `"/fields/System.Title`",
-                `"value`": `"$($FocusArea)`"
+                `"value`": `"$($epicName)`"
             }
         ]"
-
-        $postIssueUri = $Uriorganization + $projectname + "_apis/wit/workitems/$" + "Epic" + "?api-version=5.1"
-        $epicWorkItem = Invoke-RestMethod -Uri $postIssueUri -Method POST -ContentType "application/json-patch+json" -Headers $AzureDevOpsAuthenicationHeader -Body $body
-        return $epicWorkItem
-             
+        
+        Write-Host "Adding Epic to ADO: $epicName"
+        $postIssueUri = $settings.uriBase + "_apis/wit/workitems/$" + "Epic" + "?api-version=5.1"
+        $epicWorkItem = Invoke-RestMethod -Uri $postIssueUri -Method POST -ContentType "application/json-patch+json" -Headers $settings.authHeader -Body $body
+        $assessment.reportingCategories[$epicName] = $epicWorkItem.url
     } catch {
         Write-Output "Error creating Epic in DevOps: " + $Error[0].Exception.ToString()
         exit
     }
 }
 
-#Loop through DevOps and add Features for every recommendation in the csv
-function Add-DevOpsList
-{
-    if($DevOpsList)
-    {
-        Write-Output "Fetching existing DevOps Work Items"
-
-        Get-AllDevOpsWorkItems
-
-        $AllRecommendations = $ExistingDevopsWI.fields.'System.Title'
-        foreach($devopsItem in $DevOpsList)
-        {
-            try
-            {
-                #Check if exists by ID or Title Name
-                if($null -ne $AllRecommendations -and $AllRecommendations.Contains($devopsItem.'Link-Text'))
-                {
-                    Write-Host "Skipping Duplicate Work Item: $($devopsItem.'Link-Text')"
-                }
-                else
-                {
-                    #IF NOT EXISTS
-                    #Add Relationship
-                    $linkedItem = $EpicRelations[$devopsItem.ReportingCategory];
-                    
-                    $Priority = "4"
-                    $Risk = "1 - High"
-                    if($devopsItem.Weight -gt 80)
-                    {
-                        $Priority = "1"
-                        $Risk = "1 - High"
-                    }
-                    elseif($devopsItem.Weight -gt 60)
-                    {
-                        $Priority = "2"
-                        $Risk = "1 - High"
-                    }
-                    elseif($devopsItem.Weight -gt 30)
-                    {
-                        $Priority = "3"
-                        $Risk = "2 - Medium"
-                    }
-                    else
-                    {
-                        $Priority = "4"
-                        $Risk = "3 - Low"
-                    }
-
-                    $recAdded = $false
-                    foreach($recom in $RecommendationHash)
-                    {
-                        if($recom.Name.Trim('.').Contains($devopsItem.'Link-Text'.Trim('.')))
-                        {
-                            $recDescription = "<a href=`"$($devopsItem.Link)`">$($devopsItem.'Link-Text')</a>" + "`r`n`r`n" + "<p><b>Why Consider This?</b></p>" + "`r`n`r`n" + $recom.WhyConsiderThis + "`r`n`r`n" + "<p><b>Context</b></p>" + "`r`n`r`n" + $recom.Context + "`r`n`r`n" + "<p><b>Suggested Actions</b></p>" + "`r`n`r`n" + $recom.SuggestedActions + "`r`n`r`n" + "<p><b>Learn More</b></p>" + "`r`n`r`n" + $recom.LearnMore
-                            $recDescription = $recDescription -replace ' ',' '
-                            $recDescription = $recDescription -replace '“','"' -replace '”','"'
-                            Add-NewIssueToDevOps -Title $devopsItem.'Link-Text' -Effort "" -Tags $devopsItem.Category -Priority $Priority -BusinessValue $devopsItem.Weight -TimeCriticality $devopsItem.Weight -Risk $Risk -Description $($recDescription | Out-String | ConvertTo-Json) -linkedItem $linkedItem
-                            $recAdded = $true
-                        }
-                    }
-
-                    if(!$recAdded)
-                    {
-                        $recDescription = "<a href=`"$($devopsItem.Link)`">$($devopsItem.'Link-Text')</a>"
-                        Add-NewIssueToDevOps -Title $devopsItem.'Link-Text' -Effort $devopsItem.Weight -Tags $devopsItem.Category -Priority $Priority -BusinessValue $devopsItem.Weight -TimeCriticality $devopsItem.Weight -Risk $Risk -Description $($recDescription | Out-String | ConvertTo-Json) -linkedItem $linkedItem
-                    }
-                }
-            }
-            catch
-            {
-            Write-Output "Could not insert item to devops: " + $Error[0].Exception.ToString()
-            }
-        }
-    }
-}
-
 #Retrieve all work items from DevOps
-function Get-AllDevOpsWorkItems
+function Get-WorkItemsAdo
 {
+    param (
+        $settings
+    )
 
     #Iterate entire devops issues
     $body = "{
     `"query`": `"Select * From WorkItems Where [Work Item Type] = 'Feature' AND [State] <> 'Closed' AND [State] <> 'Removed' AND [System.TeamProject] = @project order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc`"
     }"
 
-    $getQueryUri = $UriOrganization + $projectname + "_apis/wit/wiql?api-version=6.0-preview.2"
-    $AllWI = Invoke-RestMethod -Uri $getQueryUri -Method POST -ContentType "application/json" -Headers $AzureDevOpsAuthenicationHeader -Body $body
+    $getQueryUri = $settings.uriBase + "_apis/wit/wiql?api-version=6.0-preview.2"
+    $results = Invoke-RestMethod -Uri $getQueryUri -Method POST -ContentType "application/json" -Headers $settings.authHeader -Body $body
 
+
+    $workItemsAdo = @()
     try {
         #Gather details per devops item
-        if($AllWI.workItems.Count -gt 0)
+        if($results.workItems.Count -gt 0)
         {
-            foreach($wi in $AllWI.workItems.id)
+            foreach($wi in $results.workItems.id)
             {
-                $getWIQueryUri = $UriOrganization + $projectname + "_apis/wit/workitems/" + $wi + "?api-version=6.0-preview.2"
-                $workItem = Invoke-RestMethod -Uri $getWIQueryUri -Method GET -ContentType "application/json" -Headers $AzureDevOpsAuthenicationHeader
-                $ExistingDevopsWI.Add($workItem) | Out-Null
+                $getWIQueryUri = $settings.uriBase + "_apis/wit/workitems/" + $wi + "?api-version=6.0-preview.2"
+                $workItem = Invoke-RestMethod -Uri $getWIQueryUri -Method GET -ContentType "application/json" -Headers $settings.authHeader
+                $workItemsAdo += $workItem
             }
         }
         else
@@ -262,11 +178,25 @@ function Get-AllDevOpsWorkItems
     } catch {
         Write-Output "Error while querying devops for work items: " + $Error[0].Exception.ToString()
     }
+
+    return $workItemsAdo
 }
 
 #Insert Feature into DevOps
-function Add-NewIssueToDevOps($Title,$Effort,$Tags,$Priority,$BusinessValue,$TimeCriticality,$Risk,$Description,$linkedItem)
+function Add-NewIssueToDevOps
 {
+    param (
+        $settings,
+        $Title,
+        $Effort,
+        $Tags,
+        $Priority,
+        $BusinessValue,
+        $TimeCriticality,
+        $Risk,
+        $Description,
+        $linkedItem
+    )
    
     if($Title -eq "" -or $null -eq $Title){$Title="NA"}
     if($Effort -eq "" -or $null -eq $Effort){$Effort="0"}
@@ -333,26 +263,158 @@ function Add-NewIssueToDevOps($Title,$Effort,$Tags,$Priority,$BusinessValue,$Tim
     ]"
 
     try {
+        
         Write-Host "Adding Work Item: $Title"
-        $postIssueUri = $UriOrganization + $projectname + "_apis/wit/workitems/$" + "Feature?api-version=5.1"
-        Invoke-RestMethod -Uri $postIssueUri -Method POST -ContentType "application/json-patch+json" -Headers $AzureDevOpsAuthenicationHeader -Body $Issuebody
+        $postIssueUri = $settings.uriBase + "_apis/wit/workitems/$" + "Feature?api-version=5.1"
+        $result = Invoke-RestMethod -Uri $postIssueUri -Method POST -ContentType "application/json-patch+json" -Headers $settings.authHeader -Body $Issuebody
 
     } catch {
 
         Write-Output "Exception while creating work item: $($Issuebody)" + $Error[0].Exception.ToString() 
-        
+        exit
+
     }
 }
 
+#Loop through DevOps and add Features for every recommendation in the csv
+function Add-WorkItemsAdo
+{
+    param (
+        $settings,
+        $assessment
+    )
+
+    if($assessment.recommendations)
+    {
+        Write-Output "Fetching existing DevOps Work Items"
+
+        $existingWorkItems = Get-WorkItemsAdo -settings $settings
+        $existingWorkItemsTitles = $existingWorkItems.fields.'System.Title'
+
+        foreach($item in $assessment.recommendations)
+        {
+            try
+            {
+                #Check if exists by ID or Title Name
+                if($null -ne $existingWorkItemsTitles -and $existingWorkItemsTitles.Contains($item.'Link-Text'))
+                {
+                    Write-Host "Skipping Duplicate Work Item: $($item.'Link-Text')"
+                }
+                else
+                {
+                    #IF NOT EXISTS
+                    #Add Relationship
+                    $url = $assessment.reportingCategories[$item.RePortingCategory]
+                    $linkedItem = '{"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "EPICURLPLACEHOLDER", "attributes": {"comment": "Making a new link for the dependency"}}'
+                    $linkedItem = $linkedItem.Replace("EPICURLPLACEHOLDER", $url)
+
+                    $Priority = "4"
+                    $Risk = "1 - High"
+                    if($item.Weight -gt 80)
+                    {
+                        $Priority = "1"
+                        $Risk = "1 - High"
+                    }
+                    elseif($item.Weight -gt 60)
+                    {
+                        $Priority = "2"
+                        $Risk = "1 - High"
+                    }
+                    elseif($item.Weight -gt 30)
+                    {
+                        $Priority = "3"
+                        $Risk = "2 - Medium"
+                    }
+                    else
+                    {
+                        $Priority = "4"
+                        $Risk = "3 - Low"
+                    }
+
+                    $recAdded = $false
+                    foreach($recom in $assessment.hash)
+                    {
+                        if($recom.Name.Trim('.').Contains($item.'Link-Text'.Trim('.')))
+                        {
+                            $recDescription = "<a href=`"$($item.Link)`">$($item.'Link-Text')</a>" + "`r`n`r`n" + "<p><b>Why Consider This?</b></p>" + "`r`n`r`n" + $recom.WhyConsiderThis + "`r`n`r`n" + "<p><b>Context</b></p>" + "`r`n`r`n" + $recom.Context + "`r`n`r`n" + "<p><b>Suggested Actions</b></p>" + "`r`n`r`n" + $recom.SuggestedActions + "`r`n`r`n" + "<p><b>Learn More</b></p>" + "`r`n`r`n" + $recom.LearnMore
+                            $recDescription = $recDescription -replace ' ',' '
+                            $recDescription = $recDescription -replace '“','"' -replace '”','"'
+
+                            Add-NewIssueToDevOps -settings $settings `
+                                -Title $item.'Link-Text' `
+                                -Effort "" -Tags $item.Category `
+                                -Priority $Priority `
+                                -BusinessValue $item.Weight `
+                                -TimeCriticality $item.Weight `
+                                -Risk $Risk `
+                                -Description $($recDescription | Out-String | ConvertTo-Json) `
+                                -linkedItem $linkedItem
+                            $recAdded = $true
+                        }
+                    }
+
+                    if(!$recAdded)
+                    {
+                        $recDescription = "<a href=`"$($item.Link)`">$($item.'Link-Text')</a>"
+                        Add-NewIssueToDevOps `
+                            -settings $settings `
+                            -Title $item.'Link-Text' `
+                            -Effort $item.Weight `
+                            -Tags $item.Category `
+                            -Priority $Priority `
+                            -BusinessValue $item.Weight `
+                            -TimeCriticality $item.Weight `
+                            -Risk $Risk `
+                            -Description $($recDescription | Out-String | ConvertTo-Json) `
+                            -linkedItem $linkedItem
+                    }
+                }
+            }
+            catch
+            {
+                Write-Output "Could not insert item to devops: " + $Error[0].Exception.ToString()
+                exit
+            }
+        }
+    }
+}
+
+#endregion
 
 
-#region DevOps Management
+#region Script Main
 
-Write-Output "Checking for existing categories in DevOps and adding the missing ones as Epics"
-Update-EpicsforFocusArea
+$adoSettings = Get-AdoSettings -pat $pat -uri $uri
+
+$assessment = Import-Assessment -csv $csv
+
+# We ask the end user if they are ready to put data into their ticket system.
+Write-Host "Assessment Name:" $assessment.name
+Write-Host "URI Base:" $adoSettings.uriBase
+Write-Host "Number of Recommendations to import": $assessment.recommendations.Count
+$confirmation = Read-Host "Ready? [y/n]"
+while($confirmation -ne "y")
+{
+    if ($confirmation -eq 'n') {exit}
+    $confirmation = Read-Host "Ready? [y/n]"
+}
+
+# Search for existing Epics in ADO
+Search-EpicsAdo -settings $adoSettings -assessment $assessment
+
+# Create new Epics in ADO
+$newEpics = $assessment.reportingCategories.GetEnumerator() | 
+    Where-Object { $_.Value -eq "" } 
+
+if ($newEpics.Count -gt 0) {
+    $newEpics.Key | 
+        ForEach-Object {
+            Add-EpicAdo -settings $adoSettings -assessment $assessment -epicName $_
+        }
+}
 
 Write-Output "Attempting DevOps Import for all Issues"
-Add-DevOpsList
+Add-WorkItemsAdo -settings $adoSettings -assessment $assessment
 
 Write-Output ""
 Write-Output "Import Complete!"
