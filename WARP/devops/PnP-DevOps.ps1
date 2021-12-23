@@ -56,8 +56,10 @@ function Import-Assessment {
         Where-Object -Property ReportingCategory -eq "" | 
         ForEach-Object {$_.ReportingCategory = "Azure Advisor"}
 
+    # get the WASA,json file in an xplat form.
     $workingDirectory = (Get-Location).Path
-    $recommendationHash = Get-Content "$workingDirectory\WASA.json" | ConvertFrom-Json
+    $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WASA.json'
+    $recommendationHash = Get-Content $WASAFile | ConvertFrom-Json
 
     # Get unique list of ReportCategory column
     $reportingCategories = @{}
