@@ -1,3 +1,9 @@
+Threat Analysis
+Operational Excellence
+Security
+Uncategorized
+Cost Optimization
+Performance Efficiency
 Application Design
 Application Performance Management
 Capacity & Service Availability Planning
