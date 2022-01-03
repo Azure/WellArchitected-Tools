@@ -1,3 +1,6 @@
+#This script will delete the github repo you choose and then re-create a fresh one with the same name.
+#usage: bash  <scriptname> <PAT Token>
+
 GITHUB_OWNER=rspott
 GITHUB_TOKEN=$1
 GITHUB_PROJECT=WAF-test02
