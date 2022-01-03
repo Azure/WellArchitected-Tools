@@ -5,4 +5,3 @@ PnP-Github.ps1
 PnP_PowerPointReport_Template.pptx
 WAF Category Descriptions.csv
 WASA.json
-keys.txt
