@@ -193,23 +193,15 @@ There are four sections to this document:
     - Permissions should be *Full control of private repositories*.
     ![](_images/github_repo_perms.png)
 
-1. Update the keys.txt file
+1. Run the `PnP-Github.ps1` script from a command prompt: `./PnP-Github.ps1 -pat \`
+   `"GITHUB-PAT-TOKEN" -csv PATH-TO-CSV -uri "URI-FOR-GITHUB-DEPOT" -name "REPORTNAME"`
 
-    - Add this personal access token to the `keys.txt` file as *GitHubUserToken*.
-
-    - Add the GitHub username of the person whose token is being used to the `keys.txt` file as `$owner`.
-
-    - Replace the `$repository` value with the GitHub repository name:
-
-       - `Example: https://github.com/contoso/WAF-repository`
-
-       - The value would be `WAF-repository`.
-
-1. Right-click and run the `PnP-Github.ps1` script.
-
-1. Choose the WAF file saved from the earlier assessment:
-
-    - Seeing some exceptions while running the script are expected.
+1. Example: `./PnP-Github.ps1 -pat "ghp_TjDjgAKBNK0R1VPDm1234567890" \`
+`-csv .\test-assessmentsmall.csv -uri "https://github.com/WAF-USER/contoso" \`
+` -name "WAF FEB 2010"`
+ - note the name will be used as a label for any issues created during this import. Future imports may have labels to differentiate them.
+ - Example: **WAF FEB 2010** vs **WAF MAR 2010** would inform you of new items between those months.
+ - Be sure to follow your companies label guidelines if you have them.
 
 1.  You should see **Milestones** and **Issues** populated with data.
 ![](_images/github_repo_backlog.png)
