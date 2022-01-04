@@ -1,4 +1,4 @@
-Azure_Well_Architected_Review_Feb_01_2010_8_00_00_AM.csv
+Azure_Well_Architected_Review_Sample.csv
 GenerateWAFReport.ps1
 PnP-DevOps.ps1
 PnP-Github.ps1
