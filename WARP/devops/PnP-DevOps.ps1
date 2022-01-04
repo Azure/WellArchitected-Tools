@@ -1,14 +1,21 @@
+#region Parameters
+# Command line paramaters required.
+# pat = Personal Access Token from Github or ADO
+# URI = the URL for the ADO Project or the Github repo
+# CSV = The exported CSV file from the WAF Assesment
+
 param (
     [string]$pat, 
     [uri]$uri,
-    [string]$csv
+    [string]$csv,
+    [string]$name
 )
 
 #region Usage
 
-if (!$pat -or !$csv -or !$uri) {
+if (!$pat -or !$csv -or !$uri -or !$name) {
     Write-Host "Example Usage: "
-    Write-Host "  PnP-DevOps.ps1 -pat PAT_FROM_ADO -csv ./waf_review.csv -uri https://dev.azure.com/demo-org/demo-project"
+    Write-Host "  PnP-DevOps.ps1 -pat PAT_FROM_ADO -csv ./waf_review.csv -uri https://dev.azure.com/demo-org/demo-project -name WAF-Assessment-x"
     Write-Host ""
     exit
 }
@@ -38,13 +45,11 @@ function Get-AdoSettings {
 
 function Import-Assessment {
     param (
-        [string]$csv
+        [string]$csv,
+        [string]$name
     )
 
     $content = Get-Content $csv
-
-    $firstLine = ConvertFrom-Csv $content[0] -Delimiter ',' -Header "Name" | Select-Object -Index 0
-    $assessmentName = $firstLine.Name -replace ',' -replace ';'
         
     $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
     $endStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
@@ -69,7 +74,7 @@ function Import-Assessment {
         ForEach-Object { $reportingCategories[$_.ReportingCategory] = "" }
 
     $assessment = @{
-        name = $assessmentName
+        name = $name
         reportingCategories = $reportingCategories
         recommendations = $devOpsList
         hash = $recommendationHash
@@ -189,6 +194,7 @@ function Add-NewIssueToDevOps
 {
     param (
         $settings,
+        $assessment,
         $Title,
         $Effort,
         $Tags,
@@ -211,9 +217,9 @@ function Add-NewIssueToDevOps
 
     
     if($Tags -eq "" -or $null -eq $Tags) {
-        $Tags = $assessmentName
+        $Tags = $assessment.name
     } else {
-        $Tags = @($Tags, $assessmentName) -join ";"
+        $Tags = @($Tags, $assessment.name) -join ";"
     }
 
     $Issuebody = "[
@@ -343,8 +349,10 @@ function Add-WorkItemsAdo
                             $recDescription = $recDescription -replace '“','"' -replace '”','"'
 
                             Add-NewIssueToDevOps -settings $settings `
+                                -assessment $assessment `
                                 -Title $item.'Link-Text' `
-                                -Effort "" -Tags $item.Category `
+                                -Effort "0" `
+                                -Tags $item.Category `
                                 -Priority $Priority `
                                 -BusinessValue $item.Weight `
                                 -TimeCriticality $item.Weight `
@@ -360,8 +368,9 @@ function Add-WorkItemsAdo
                         $recDescription = "<a href=`"$($item.Link)`">$($item.'Link-Text')</a>"
                         Add-NewIssueToDevOps `
                             -settings $settings `
+                            -assessment $assessment `
                             -Title $item.'Link-Text' `
-                            -Effort $item.Weight `
+                            -Effort "0" `
                             -Tags $item.Category `
                             -Priority $Priority `
                             -BusinessValue $item.Weight `
@@ -388,7 +397,7 @@ function Add-WorkItemsAdo
 
 $adoSettings = Get-AdoSettings -pat $pat -uri $uri
 
-$assessment = Import-Assessment -csv $csv
+$assessment = Import-Assessment -csv $csv -name $name
 
 # We ask the end user if they are ready to put data into their ticket system.
 Write-Host "Assessment Name:" $assessment.name
