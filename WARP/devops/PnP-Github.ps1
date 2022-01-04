@@ -335,12 +335,12 @@ $assessment = Import-Assessment -csv $csv
 Write-Host "Assessment Name:" $name
 Write-Host "Repository:" $uri
 Write-Host "Number of Recommendations to import": $assessment.recommendations.Count
-# $confirmation = Read-Host "Ready? [y/n]"
-# while($confirmation -ne "y")
-# {
-#     if ($confirmation -eq 'n') {exit}
-#     $confirmation = Read-Host "Ready? [y/n]"
-# }
+$confirmation = Read-Host "Ready? [y/n]"
+while($confirmation -ne "y")
+{
+    if ($confirmation -eq 'n') {exit}
+    $confirmation = Read-Host "Ready? [y/n]"
+}
 Write-Host ""
 #endregion
 
