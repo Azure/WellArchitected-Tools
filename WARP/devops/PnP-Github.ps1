@@ -108,10 +108,10 @@ function Import-Assessment {
         Where-Object -Property ReportingCategory -eq "" | 
         ForEach-Object {$_.ReportingCategory = "Azure Advisor"}
 
-    # We need to know what WASA.json does and where to get a fresh copy.
+    # We need to know what WAF.json does and where to get a fresh copy.
     # get the WASA,json file in an xplat form.
     $workingDirectory = (Get-Location).Path
-    $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WASA.json'
+    $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WAF.json'
     $recommendationHash = Get-Content $WASAFile | ConvertFrom-Json
     
     # Get unique list of ReportCategory column
@@ -391,7 +391,7 @@ foreach($item in $assessment.recommendations){
         }
     }
 
-    # start gathering labels from the the assesment items and the WASA.json
+    # start gathering labels from the the assesment items and the WAF.json
     $labels = New-Object System.Collections.ArrayList
     $labels.Add("WARP-Import $name") | Out-Null
     if($item.category){

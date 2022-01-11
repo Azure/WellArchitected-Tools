@@ -63,7 +63,7 @@ function Import-Assessment {
 
     # get the WASA,json file in an xplat form.
     $workingDirectory = (Get-Location).Path
-    $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WASA.json'
+    $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WAF.json'
     $recommendationHash = Get-Content $WASAFile | ConvertFrom-Json
 
     # Get unique list of ReportCategory column
