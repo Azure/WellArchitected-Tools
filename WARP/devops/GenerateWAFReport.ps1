@@ -140,10 +140,10 @@ for($i=3; $i -le 8; $i++)
 
 
 #region Instantiate PowerPoint variables
-Add-type -AssemblyName office
+#Add-type -AssemblyName office
 $application = New-Object -ComObject powerpoint.application
-$application.visible = [Microsoft.Office.Core.MsoTriState]::msoTrue
-$slideType = "microsoft.office.interop.powerpoint.ppSlideLayout" -as [type]
+#$application.visible = [Microsoft.Office.Core.MsoTriState]::msoTrue
+#$slideType = "microsoft.office.interop.powerpoint.ppSlideLayout" -as [type]
 $presentation = $application.Presentations.open($templatePresentation)
 $titleSlide = $presentation.Slides[8]
 $summarySlide = $presentation.Slides[9]
