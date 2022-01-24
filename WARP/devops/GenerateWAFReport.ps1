@@ -152,11 +152,14 @@ $detailSlide = $presentation.Slides[10]
 
 #region Clean the uncategorized data
 
-foreach($lineData in $data)
-{
-    if(!$lineData.ReportingCategory)
+if($data.PSobject.Properties.Name -contains "ReportingCategory"){
+    foreach($lineData in $data)
     {
-        $lineData.ReportingCategory = "Uncategorized"
+        
+        if(!$lineData.ReportingCategory)
+        {
+            $lineData.ReportingCategory = "Uncategorized"
+        }
     }
 }
 
