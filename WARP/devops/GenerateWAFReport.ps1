@@ -72,7 +72,7 @@ $pillars = $data.Category | Select-Object -Unique
 $costDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Cost Optimization" -and $_.Category -eq "Survey Level Group"}).Description
 $operationsDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Operational Excellence" -and $_.Category -eq "Survey Level Group"}).Description
 $performanceDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Performance Efficiency" -and $_.Category -eq "Survey Level Group"}).Description
-$reliabiltyDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Reliability" -and $_.Category -eq "Survey Level Group"}).Description
+$reliabilityDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Reliability" -and $_.Category -eq "Survey Level Group"}).Description
 $securityDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Security" -and $_.Category -eq "Survey Level Group"}).Description
 
 function Get-PillarInfo($pillar)
@@ -83,7 +83,7 @@ function Get-PillarInfo($pillar)
     }
     if($pillar.Contains("Reliability"))
     {
-        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $reliabiltyScore; "Description" = $reliabiltyDescription}
+        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $reliabilityScore; "Description" = $reliabilityDescription}
     }
     if($pillar.Contains("Operational Excellence"))
     {
@@ -103,7 +103,7 @@ $overallScore = ""
 $costScore = ""
 $operationsScore = ""
 $performanceScore = ""
-$reliabiltyScore = ""
+$reliabilityScore = ""
 $securityScore = ""
 
 for($i=3; $i -le 8; $i++)
@@ -118,7 +118,7 @@ for($i=3; $i -le 8; $i++)
     }
     if($Content[$i].Contains("Reliability"))
     {
-        $reliabiltyScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+        $reliabilityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
     }
     if($Content[$i].Contains("Operational Excellence"))
     {
