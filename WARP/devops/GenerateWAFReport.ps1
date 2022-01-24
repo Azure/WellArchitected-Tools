@@ -56,7 +56,7 @@ $descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
 #endregion
 
 $title = "Well-Architected [pillar] Assessment"
-$reportDate = Get-Date -Format "MM-dd-yyyy HH.mm.s"
+$reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
 #$tableStart = $content.IndexOf("Title,Description,Link-Text,Link,Priority,Category,Subcategory,Weight")
 $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
 $EndStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
