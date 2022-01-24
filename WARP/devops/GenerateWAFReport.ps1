@@ -1,6 +1,12 @@
-﻿<# Instructions to use this script
+﻿[CmdletBinding()]
+param (
+    # Indicates CSV file for input
+        [Parameter()][string]
+    $ContentFile
+)
+<#  Instructions to use this script:
 
-double click the script'
+    Run the script!
 #>
 
 
@@ -15,16 +21,32 @@ Function Get-FileName($initialDirectory)
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenFileDialog.initialDirectory = $initialDirectory
     $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
+    $OpenFileDialog.Title = "Select Well-Architected Review file export"
     $OpenFileDialog.ShowDialog() | Out-Null
     $OpenFileDialog.filename
 }
 
-$inputfile = Get-FileName $workingDirectory
+if([String]::IsNullOrEmpty($ContentFile))
+{
+    $inputfile = Get-FileName $workingDirectory
+}
+else 
+{
+    if(!(Resolve-Path $ContentFile)){
+        $inputfile = Get-FileName $workingDirectory
+    }else{
+        $inputFile = $ContentFile
+    }
+}
+# validate our file is OK
+try{
+    $content = Get-Content $inputfile
+}
+catch{
+    Write-Error -Message "Unable to open selected Content file."
+    exit
+}
 $inputfilename = Split-Path $inputfile -leaf
-$content = Get-Content $inputfile
-
-
-
 
 #region Validate input values
 
