@@ -1,6 +1,12 @@
-﻿<# Instructions to use this script
+﻿[CmdletBinding()]
+param (
+    # Indicates CSV file for input
+        [Parameter()][string]
+    $ContentFile
+)
+<#  Instructions to use this script:
 
-double click the script'
+    Run the script!
 #>
 
 
@@ -15,16 +21,32 @@ Function Get-FileName($initialDirectory)
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenFileDialog.initialDirectory = $initialDirectory
     $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
+    $OpenFileDialog.Title = "Select Well-Architected Review file export"
     $OpenFileDialog.ShowDialog() | Out-Null
     $OpenFileDialog.filename
 }
 
-$inputfile = Get-FileName $workingDirectory
+if([String]::IsNullOrEmpty($ContentFile))
+{
+    $inputfile = Get-FileName $workingDirectory
+}
+else 
+{
+    if(!(Resolve-Path $ContentFile)){
+        $inputfile = Get-FileName $workingDirectory
+    }else{
+        $inputFile = $ContentFile
+    }
+}
+# validate our file is OK
+try{
+    $content = Get-Content $inputfile
+}
+catch{
+    Write-Error -Message "Unable to open selected Content file."
+    exit
+}
 $inputfilename = Split-Path $inputfile -leaf
-$content = Get-Content $inputfile
-
-
-
 
 #region Validate input values
 
@@ -34,7 +56,8 @@ $descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
 #endregion
 
 $title = "Well-Architected [pillar] Assessment"
-$reportDate = Get-Date -Format "MM-dd-yyyy HH.mm.s"
+$reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
+$localReportDate = Get-Date -Format g
 #$tableStart = $content.IndexOf("Title,Description,Link-Text,Link,Priority,Category,Subcategory,Weight")
 $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
 $EndStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
@@ -50,7 +73,7 @@ $pillars = $data.Category | Select-Object -Unique
 $costDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Cost Optimization" -and $_.Category -eq "Survey Level Group"}).Description
 $operationsDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Operational Excellence" -and $_.Category -eq "Survey Level Group"}).Description
 $performanceDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Performance Efficiency" -and $_.Category -eq "Survey Level Group"}).Description
-$reliabiltyDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Reliability" -and $_.Category -eq "Survey Level Group"}).Description
+$reliabilityDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Reliability" -and $_.Category -eq "Survey Level Group"}).Description
 $securityDescription = ($descriptionsFile | Where-Object{$_.Pillar -eq "Security" -and $_.Category -eq "Survey Level Group"}).Description
 
 function Get-PillarInfo($pillar)
@@ -61,7 +84,7 @@ function Get-PillarInfo($pillar)
     }
     if($pillar.Contains("Reliability"))
     {
-        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $reliabiltyScore; "Description" = $reliabiltyDescription}
+        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $reliabilityScore; "Description" = $reliabilityDescription}
     }
     if($pillar.Contains("Operational Excellence"))
     {
@@ -81,7 +104,7 @@ $overallScore = ""
 $costScore = ""
 $operationsScore = ""
 $performanceScore = ""
-$reliabiltyScore = ""
+$reliabilityScore = ""
 $securityScore = ""
 
 for($i=3; $i -le 8; $i++)
@@ -96,7 +119,7 @@ for($i=3; $i -le 8; $i++)
     }
     if($Content[$i].Contains("Reliability"))
     {
-        $reliabiltyScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+        $reliabilityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
     }
     if($Content[$i].Contains("Operational Excellence"))
     {
@@ -130,11 +153,14 @@ $detailSlide = $presentation.Slides[10]
 
 #region Clean the uncategorized data
 
-foreach($lineData in $data)
-{
-    if(!$lineData.ReportingCategory)
+if($data.PSobject.Properties.Name -contains "ReportingCategory"){
+    foreach($lineData in $data)
     {
-        $lineData.ReportingCategory = "Uncategorized"
+        
+        if(!$lineData.ReportingCategory)
+        {
+            $lineData.ReportingCategory = "Uncategorized"
+        }
     }
 }
 
@@ -149,7 +175,7 @@ foreach($pillar in $pillars)
     $newTitleSlide = $titleSlide.Duplicate()
     $newTitleSlide.MoveTo($presentation.Slides.Count)
     $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
-    $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]",$reportDate)
+    $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]",$localReportDate)
 
     # Edit Executive Summary Slide
 
