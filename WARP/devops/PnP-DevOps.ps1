@@ -5,10 +5,10 @@
 # CSV = The exported CSV file from the WAF Assesment
 
 param (
-    [string]$pat, 
+    [string]$pat,
     [uri]$uri,
     [string]$csv,
-    [string]$name
+    [string]$name = "WAF-Review"
 )
 
 #region Usage
@@ -63,7 +63,7 @@ function Import-Assessment {
 
     # get the WASA,json file in an xplat form.
     $workingDirectory = (Get-Location).Path
-    $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WASA.json'
+    $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WAF.json'
     $recommendationHash = Get-Content $WASAFile | ConvertFrom-Json
 
     # Get unique list of ReportCategory column
@@ -226,7 +226,7 @@ function Add-NewIssueToDevOps
         {
             `"op`": `"add`",
             `"path`": `"/fields/System.Title`",
-            `"value`": `"$($Title)`"
+            `"value`": `"$(CleanText $Title)`"
         },
         {
             `"op`": `"add`",
@@ -261,7 +261,7 @@ function Add-NewIssueToDevOps
         {
             `"op`": `"add`",
             `"path`": `"/fields/System.Description`",
-            `"value`": $Description
+            `"value`": $(CleanText $Description)
         },
         {
             `"op`": `"add`",
@@ -279,9 +279,23 @@ function Add-NewIssueToDevOps
     } catch {
 
         Write-Output "Exception while creating work item: $($Issuebody)" + $Error[0].Exception.ToString() 
-        exit
+        #exit
 
     }
+}
+
+Function CleanText{
+param (
+    $TextToClean
+)
+ 
+        #Write-host -ForegroundColor Yellow $textToClean
+
+        $outputText = $textToClean -replace     "’","'"
+
+        $outputText = $outputText -replace     """root""", "'root'" #aws
+
+        $outputText
 }
 
 #Loop through DevOps and add Features for every recommendation in the csv
