@@ -279,7 +279,7 @@ function Add-NewIssueToDevOps
     } catch {
 
         Write-Output "Exception while creating work item: $($Issuebody)" + $Error[0].Exception.ToString() 
-        exit
+        #exit
 
     }
 }
