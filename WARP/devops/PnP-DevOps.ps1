@@ -14,9 +14,9 @@ param (
 #region Usage
 
 if (!$pat -or !$csv -or !$uri -or !$name) {
-    Write-Host "Example Usage: "
-    Write-Host "  PnP-DevOps.ps1 -pat PAT_FROM_ADO -csv ./waf_review.csv -uri https://dev.azure.com/demo-org/demo-project -name WAF-Assessment-x"
-    Write-Host ""
+    Write-Output "Example Usage: "
+    Write-Output "  PnP-DevOps.ps1 -pat PAT_FROM_ADO -csv ./waf_review.csv -uri https://dev.azure.com/demo-org/demo-project -name WAF-Assessment-x"
+    Write-Output ""
     exit
 }
 
@@ -64,20 +64,52 @@ function Import-Assessment {
     # get the WASA,json file in an xplat form.
     $workingDirectory = (Get-Location).Path
     $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WAF.json'
-    $recommendationHash = Get-Content $WASAFile | ConvertFrom-Json
+    $recommendationDetail = Get-Content $WASAFile | ConvertFrom-Json
 
     # Get unique list of ReportCategory column
     $reportingCategories = @{}
     $devOpsList | 
         Select-Object -Property ReportingCategory -Unique | 
         Sort-Object  -Property ReportingCategory |
-        ForEach-Object { $reportingCategories[$_.ReportingCategory] = "" }
+        ForEach-Object { 
+            $reportingCategories[$_.ReportingCategory] = ""       
+        }
+
+    # Add Decription and augment it using WAF.json data (if exists)
+    $devOpsList | Add-Member -Name Description -MemberType NoteProperty -Value ""
+
+    $devOpsList | 
+        ForEach-Object { 
+
+            $_.Description = "<a href=`"$($_.Link)`">$($_.'Link-Text')</a>"
+
+            foreach($detail in $recommendationDetail)
+            {
+                $detailName = $detail.Name.Trim('.')
+                $linkText = $_.'Link-Text'.Trim('.')
+
+                if(($detailName.Contains($linkText)))
+                {
+                    $recDescription = "<a href=`"$($_.Link)`">$($_.'Link-Text')</a>" + "`r`n`r`n" `
+                    + "<p><b>Why Consider This?</b></p>" + "`r`n`r`n" + $detail.WhyConsiderThis + "`r`n`r`n" `
+                    + "<p><b>Context</b></p>" + "`r`n`r`n" + $detail.Context + "`r`n`r`n" `
+                    + "<p><b>Suggested Actions</b></p>" + "`r`n`r`n" + $detail.SuggestedActions + "`r`n`r`n" `
+                    + "<p><b>Learn More</b></p>" + "`r`n`r`n" + $detail.LearnMore
+                    
+                    $recDescription = $recDescription -replace ' ',' '
+                    $recDescription = $recDescription -replace '“','"' -replace '”','"'
+
+                    $_.Description = $recDescription
+
+                    break
+                }
+            }           
+        }
 
     $assessment = @{
         name = $name
         reportingCategories = $reportingCategories
         recommendations = $devOpsList
-        hash = $recommendationHash
     }
 
     return $assessment
@@ -116,7 +148,7 @@ function Search-EpicsAdo {
             }
         }
     } catch {
-        Write-Output "Error while querying Azure DevOps for Epics: " + $Error[0].Exception.ToString()
+        Write-Error "Error while querying Azure DevOps for Epics: " + $Error[0].Exception.ToString()
         exit
     }     
 }
@@ -140,12 +172,12 @@ function Add-EpicAdo
             }
         ]"
         
-        Write-Host "Adding Epic to ADO: $epicName"
+        Write-Output "Adding Epic to ADO: $epicName"
         $postIssueUri = $settings.uriBase + "_apis/wit/workitems/$" + "Epic" + "?api-version=5.1"
         $epicWorkItem = Invoke-RestMethod -Uri $postIssueUri -Method POST -ContentType "application/json-patch+json" -Headers $settings.authHeader -Body $body
         $assessment.reportingCategories[$epicName] = $epicWorkItem.url
     } catch {
-        Write-Output "Error creating Epic in DevOps: " + $Error[0].Exception.ToString()
+        Write-Error "Error creating Epic in DevOps: " + $Error[0].Exception.ToString()
         exit
     }
 }
@@ -180,10 +212,10 @@ function Get-WorkItemsAdo
         }
         else
         {
-            Write-Output "There are no work items of type Issue in DevOps yet"
+            Write-Verbose "There are no work items of type Issue in DevOps yet"
         }
     } catch {
-        Write-Output "Error while querying devops for work items: " + $Error[0].Exception.ToString()
+        Write-Error "Error while querying devops for work items: " + $Error[0].Exception.ToString()
     }
 
     return $workItemsAdo
@@ -278,7 +310,7 @@ function Add-NewIssueToDevOps
 
     } catch {
 
-        Write-Output "Exception while creating work item: $($Issuebody)" + $Error[0].Exception.ToString() 
+        Write-Error "Exception while creating work item: $($Issuebody)" + $Error[0].Exception.ToString() 
         #exit
 
     }
@@ -289,8 +321,6 @@ param (
     $TextToClean
 )
  
-        #Write-host -ForegroundColor Yellow $textToClean
-
         $outputText = $textToClean -replace     "’","'"
 
         $outputText = $outputText -replace     """root""", "'root'" #aws
@@ -308,25 +338,41 @@ function Add-WorkItemsAdo
 
     if($assessment.recommendations)
     {
-        Write-Output "Fetching existing DevOps Work Items"
+        Write-Host "Fetching existing DevOps Work Items"
 
-        $existingWorkItems = Get-WorkItemsAdo -settings $settings
-        $existingWorkItemsTitles = $existingWorkItems.fields.'System.Title'
+        $existingWorkItems = Get-WorkItemsAdo -settings $settings |
+            ForEach-Object {
+                @{Title = $_.fields.'System.Title'; Tags = $_.fields.'System.Tags'.Split(';')}
+            }
 
         foreach($item in $assessment.recommendations)
         {
             try
             {
+                $duplicate = $false
+
                 #Check if exists by ID or Title Name
-                if($null -ne $existingWorkItemsTitles -and $existingWorkItemsTitles.Contains($item.'Link-Text'))
+                if($null -ne $existingWorkItems)
                 {
+                    $duplicateItem = $existingWorkItems | Where-Object {$_.Title -eq $item.'Link-Text'}
+
+                    if ($null -ne $duplicateItem) {
+                        if ($duplicateItem.Tags.Contains($item.Category)) {
+                            $duplicate = $true                            
+                        }
+                    }
+                }
+
+                if ($duplicate -eq $true)
+                {
+                    
                     Write-Host "Skipping Duplicate Work Item: $($item.'Link-Text')"
                 }
                 else
                 {
                     #IF NOT EXISTS
                     #Add Relationship
-                    $url = $assessment.reportingCategories[$item.RePortingCategory]
+                    $url = $assessment.reportingCategories[$item.ReportingCategory]
                     $linkedItem = '{"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "EPICURLPLACEHOLDER", "attributes": {"comment": "Making a new link for the dependency"}}'
                     $linkedItem = $linkedItem.Replace("EPICURLPLACEHOLDER", $url)
 
@@ -353,51 +399,23 @@ function Add-WorkItemsAdo
                         $Risk = "3 - Low"
                     }
 
-                    $recAdded = $false
-                    foreach($recom in $assessment.hash)
-                    {
-                        if($recom.Name.Trim('.').Contains($item.'Link-Text'.Trim('.')))
-                        {
-                            $recDescription = "<a href=`"$($item.Link)`">$($item.'Link-Text')</a>" + "`r`n`r`n" + "<p><b>Why Consider This?</b></p>" + "`r`n`r`n" + $recom.WhyConsiderThis + "`r`n`r`n" + "<p><b>Context</b></p>" + "`r`n`r`n" + $recom.Context + "`r`n`r`n" + "<p><b>Suggested Actions</b></p>" + "`r`n`r`n" + $recom.SuggestedActions + "`r`n`r`n" + "<p><b>Learn More</b></p>" + "`r`n`r`n" + $recom.LearnMore
-                            $recDescription = $recDescription -replace ' ',' '
-                            $recDescription = $recDescription -replace '“','"' -replace '”','"'
-
-                            Add-NewIssueToDevOps -settings $settings `
-                                -assessment $assessment `
-                                -Title $item.'Link-Text' `
-                                -Effort "0" `
-                                -Tags $item.Category `
-                                -Priority $Priority `
-                                -BusinessValue $item.Weight `
-                                -TimeCriticality $item.Weight `
-                                -Risk $Risk `
-                                -Description $($recDescription | Out-String | ConvertTo-Json) `
-                                -linkedItem $linkedItem
-                            $recAdded = $true
-                        }
-                    }
-
-                    if(!$recAdded)
-                    {
-                        $recDescription = "<a href=`"$($item.Link)`">$($item.'Link-Text')</a>"
-                        Add-NewIssueToDevOps `
-                            -settings $settings `
-                            -assessment $assessment `
-                            -Title $item.'Link-Text' `
-                            -Effort "0" `
-                            -Tags $item.Category `
-                            -Priority $Priority `
-                            -BusinessValue $item.Weight `
-                            -TimeCriticality $item.Weight `
-                            -Risk $Risk `
-                            -Description $($recDescription | Out-String | ConvertTo-Json) `
-                            -linkedItem $linkedItem
-                    }
+                    Add-NewIssueToDevOps `
+                        -settings $settings `
+                        -assessment $assessment `
+                        -Title $item.'Link-Text' `
+                        -Effort "0" `
+                        -Tags $item.Category `
+                        -Priority $Priority `
+                        -BusinessValue $item.Weight `
+                        -TimeCriticality $item.Weight `
+                        -Risk $Risk `
+                        -Description $($item.Description | Out-String | ConvertTo-Json) `
+                        -linkedItem $linkedItem
                 }
             }
             catch
             {
-                Write-Output "Could not insert item to devops: " + $Error[0].Exception.ToString()
+                Write-Error "Could not insert item to devops: " + $Error[0].Exception.ToString()
                 exit
             }
         }
@@ -414,9 +432,9 @@ $adoSettings = Get-AdoSettings -pat $pat -uri $uri
 $assessment = Import-Assessment -csv $csv -name $name
 
 # We ask the end user if they are ready to put data into their ticket system.
-Write-Host "Assessment Name:" $assessment.name
-Write-Host "URI Base:" $adoSettings.uriBase
-Write-Host "Number of Recommendations to import": $assessment.recommendations.Count
+Write-Output "Assessment Name: $($assessment.name)" 
+Write-Output "URI Base: $($adoSettings.uriBase)"
+Write-Output "Number of Recommendations to import: $($assessment.recommendations.Count)" 
 $confirmation = Read-Host "Ready? [y/n]"
 while($confirmation -ne "y")
 {
