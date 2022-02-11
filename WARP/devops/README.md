@@ -67,7 +67,7 @@ There are four sections to this document:
 
 1. Download and install [PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell)
 
-1. Open a PowerShell terminal and run the following commands from withing a new or existing directory:
+1. Open a PowerShell terminal and run the following commands from within a new or existing directory:
 
     ```powershell
     $installUri = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/install-WARP-tools.ps1"
