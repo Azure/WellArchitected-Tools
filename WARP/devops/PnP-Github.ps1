@@ -390,6 +390,8 @@ foreach($item in $assessment.recommendations){
             $body+=$WASAbody
         }
     }
+    #Add $issuebodytext variable for pushing information into GitHub Issue description from the json file as this is called during the addition of issues
+    $issuebodytext = $body
 
     # start gathering labels from the the assesment items and the WASA.json
     $labels = New-Object System.Collections.ArrayList
