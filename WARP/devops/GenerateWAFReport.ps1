@@ -148,6 +148,7 @@ $presentation = $application.Presentations.open($templatePresentation)
 $titleSlide = $presentation.Slides[8]
 $summarySlide = $presentation.Slides[9]
 $detailSlide = $presentation.Slides[10]
+$endSlide = $presentation.Slides[11]
 
 #endregion
 
@@ -295,9 +296,13 @@ foreach($pillar in $pillars)
     }
 }
 
+$newEndSlide = $endSlide.Duplicate()
+$newEndSlide.MoveTo($presentation.Slides.Count)
+
 $titleSlide.Delete()
 $summarySlide.Delete()
 $detailSlide.Delete()
+$endSlide.Delete()
 $presentation.SavecopyAs(“$workingDirectory\PnP_PowerPointReport_Template_$reportDate.pptx”)
 $presentation.Close()
 
