@@ -1,11 +1,12 @@
 #region Parameters
 # Command line paramaters required.
 # pat = Personal Access Token from Github or ADO
-# URI = the URL for the ADO Project or the Github repo
-# CSV = The exported CSV file from the WAF Assesment
+# uri = the URL for the ADO Project or the Github repo
+# csv = The exported CSV file from the WAF Assesment
+# name = The exported name of the WAF assessment
 
 param (
-    [string]$pat, 
+    [string]$pat,
     [uri]$uri,
     [string]$csv,
     [string]$name
@@ -16,13 +17,14 @@ param (
 #endregion
 
 #region Usage
-# How to use the script.
+
 if (!$pat -or !$csv -or !$uri -or !$name) {
-    Write-Host "Example Usage: "
-    Write-Host "  PnP-Github.ps1 -pat PAT_FROM_GITHUB -csv ./waf_review.csv -uri https://dev.github.com/demo-org/demo-repo" -name "WAF-Assessment-x"
-    Write-Host ""
+    Write-Output "Example Usage: "
+    Write-Output "  PnP-Github.ps1 -pat PAT_FROM_GITHUB -csv ./waf_review.csv -uri https://dev.github.com/demo-org/demo-repo" -name "WAF-Assessment-x"
+    Write-Output ""
     exit
 }
+
 #endregion
 
 #region Get-GithubRateLimit
@@ -92,11 +94,12 @@ function Get-GithubSettings {
 # We import the .csv file into memory after making a few housekeeping changes.
 function Import-Assessment {
     param (
-        [string]$csv
+        [string]$csv,
+        [string]$name
     )
+
     $content = Get-Content $csv
-    $firstLine = ConvertFrom-Csv $content[0] -Delimiter ',' -Header "Name" | Select-Object -Index 0
- 
+
     # the table starts at a line of text that looks like the text below and ends with a "--"
     $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
     $endStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
@@ -108,19 +111,50 @@ function Import-Assessment {
         Where-Object -Property ReportingCategory -eq "" | 
         ForEach-Object {$_.ReportingCategory = "Azure Advisor"}
 
-    # We need to know what WASA.json does and where to get a fresh copy.
-    # get the WASA,json file in an xplat form.
+    # get the WASA.json file in an xplat method.
     $workingDirectory = (Get-Location).Path
     $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WAF.json'
-    $recommendationHash = Get-Content $WASAFile | ConvertFrom-Json
-    
+    $recommendationDetail = Get-Content $WASAFile | ConvertFrom-Json
+
     # Get unique list of ReportCategory column
     # we will use these values as epics and milestones
     $reportingCategories = @{}
     $devOpsList | 
         Select-Object -Property ReportingCategory -Unique | 
-        ForEach-Object {
-            $reportingCategories[$_.ReportingCategory] = ""
+        Sort-Object  -Property ReportingCategory |
+        ForEach-Object { 
+            $reportingCategories[$_.ReportingCategory] = ""       
+        }
+
+    # Add Decription and augment it using WAF.json data (if exists)
+    $devOpsList | Add-Member -Name Description -MemberType NoteProperty -Value ""
+
+    $devOpsList | 
+        ForEach-Object { 
+
+            $_.Description = "<a href=`"$($_.Link)`">$($_.'Link-Text')</a>"
+
+            foreach($detail in $recommendationDetail)
+            {
+                $detailName = $detail.Name.Trim('.')
+                $linkText = $_.'Link-Text'.Trim('.')
+
+                if(($detailName.Contains($linkText)))
+                {
+                    $recDescription = "<a href=`"$($_.Link)`">$($_.'Link-Text')</a>" + "`r`n`r`n" `
+                    + "<p><b>Why Consider This?</b></p>" + "`r`n`r`n" + $detail.WhyConsiderThis + "`r`n`r`n" `
+                    + "<p><b>Context</b></p>" + "`r`n`r`n" + $detail.Context + "`r`n`r`n" `
+                    + "<p><b>Suggested Actions</b></p>" + "`r`n`r`n" + $detail.SuggestedActions + "`r`n`r`n" `
+                    + "<p><b>Learn More</b></p>" + "`r`n`r`n" + $detail.LearnMore
+                    
+                    $recDescription = $recDescription -replace ' ',' '
+                    $recDescription = $recDescription -replace '“','"' -replace '”','"'
+
+                    $_.Description = $recDescription
+
+                    break
+                }
+            }           
         }
 
     $githubMilestones = [Ordered]@{}
@@ -131,9 +165,9 @@ function Import-Assessment {
         }
 
         $assessment = @{
+        name = $name
         reportingCategories = $reportingCategories
         recommendations = $devOpsList
-        hash = $recommendationHash
         milestones = $githubMilestones
     }
     return $assessment
@@ -254,7 +288,6 @@ function Add-MilestoneGithub {
         } else {
             $NewMilestone = Invoke-RestMethod -Method Post -Uri $uri -Verbose:$false -Body $Body -Headers $settings.Headers -ContentType "application/json" -ResponseHeadersVariable responseHeaders
             Write-Output " :) We created a new Github milestone: $milestone"
-
             $ratelimit = ($responseHeaders.'X-RateLimit-Remaining')
             # Write-Output "Rate $ratelimit"
             Get-GithubRateLimit -ratelimit $ratelimit
@@ -262,9 +295,7 @@ function Add-MilestoneGithub {
     }
     Catch {
         $ErrorMessage = $_.Exception.Message
-        Write-Output " :( There was an error creating new Github milestone: $milestone"
-        Write-Output "    The $ErrorMessage"
-        Write-Output $responseHeaders
+        Write-Output " :( Failure: $milestone $ErrorMessage $responseHeaders"
     }
 }
 
@@ -287,7 +318,7 @@ function Create-GithubIssue {
  
         $Body = @{
             title  = $title
-            body   = $issuebodytext
+            body   = $bodytext
             labels = $Labels
             # milestone = "$MilestoneID"
         } | ConvertTo-Json
@@ -297,7 +328,7 @@ function Create-GithubIssue {
         
         try {
             $NewIssue = Invoke-RestMethod -Method Post -Uri $uri -Verbose:$false -Body $Body -Headers $settings.Headers -ContentType "application/json" -ResponseHeadersVariable responseHeaders -MaximumRetryCount 6 -RetryIntervalSec 10
-            Write-Output " :)       We created a new Github Issue: $issuetitle"
+            Write-Output " :) Success"
     
             $ratelimit = ($responseHeaders.'X-RateLimit-Remaining')
             Get-GithubRateLimit -ratelimit $ratelimit
@@ -310,14 +341,14 @@ function Create-GithubIssue {
                 # Try again just for fun!
                 try {
                     $NewIssue = Invoke-RestMethod -Method Post -Uri $uri -Verbose:$false -Body $Body -Headers $settings.Headers -ContentType "application/json" -ResponseHeadersVariable responseHeaders -MaximumRetryCount 6 -RetryIntervalSec 10
-                    Write-Output " :)       We created a new Github Issue: $issuetitle"
+                    Write-Output " :) Success"
                 } Catch {
                     if ($_.Exception.Response.StatusCode.value__ -eq "403") {
                         Github-Wait-Timer -seconds 300
                     }
                 }
             } elseif ($_.Exception.Response.StatusCode.value__ -eq "422") {
-                Write-Output " :|       This may be a duplicate Issue: $issuetitle"
+                Write-Output " :|       This may be a duplicate issue"
             }
         }    
     }
@@ -326,8 +357,8 @@ function Create-GithubIssue {
 #endregion
 
 #region Script Main
-
 $settings = Get-GithubSettings -pat $pat -uri $uri
+
 $assessment = Import-Assessment -csv $csv
 
 #region Ask End User
@@ -371,28 +402,17 @@ Write-Output ""
 $AllMilestones = Get-GithubMilestones -settings $settings
 $AllGithubIssues = Get-GithubIssues -settings $settings
 
-Write-Output "Creating Issues in Github... (take 1)"
+Write-Output "Creating Issues in Github..."
 Write-Output ""
 
 # loop through all the assesment items and build the output needed for the function.
 
 foreach($item in $assessment.recommendations){
     $issuetitle=$item.'Link-Text'
-    $body="<a href=`"$($item.Link)`">$($issuetitle)</a>`r`n`r`n"
+    # $body="<a href=`"$($item.Link)`">$($issuetitle)</a>`r`n`r`n"
+    $bodytext=$item.Description
     $MilestoneName=($item.category + " - " + $item.ReportingCategory)
-
-    foreach($WASA in $assessment.hash){
-        if ($WASA.Name -eq $issuetitle){
-            $WASAbody="`r`n`r`n<p><b>Why Consider This?</b></p>" + "`r`n" + $WASA.WhyConsiderThis + "`r`n`r`n"
-            $WASAbody+="<p><b>Context</b></p>" + "`r`n" + $WASA.Context + "`r`n`r`n"
-            $WASAbody+="<p><b>Suggested Actions</b></p>" + "`r`n" + $WASA.SuggestedActions + "`r`n`r`n"
-            $WASAbody+="<p><b>Learn More</b></p>" + "`r`n" + $WASA.LearnMore
-            $body+=$WASAbody
-        }
-    }
-    #Add $issuebodytext variable for pushing information into GitHub Issue description from the json file as this is called during the addition of issues
-    $issuebodytext = $body
-
+ 
     # start gathering labels from the the assesment items and the WASA.json
     $labels = New-Object System.Collections.ArrayList
     $labels.Add("WARP-Import $name") | Out-Null
@@ -412,7 +432,7 @@ foreach($item in $assessment.recommendations){
         $labels.Add($WASA.ActionArea) | Out-Null
     }
 
-    # toss all info 
+    # put all info into github
     Create-GithubIssue -settings $settings -title $issuetitle -bodytext $bodytext -labels $labels -milestoneid $milestoneid -AllGithubIssues $AllGithubIssues
 
 }
