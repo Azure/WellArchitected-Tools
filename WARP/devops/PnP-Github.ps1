@@ -320,7 +320,7 @@ function Create-GithubIssue {
             title  = $title
             body   = $bodytext
             labels = $Labels
-            # milestone = "$MilestoneID"
+            milestone = "$MilestoneID"
         } | ConvertTo-Json
 
         $uri = "https://api.github.com/repos/" + $settings.owner + "/" + $settings.repository + "/issues"
@@ -412,6 +412,7 @@ foreach($item in $assessment.recommendations){
     # $body="<a href=`"$($item.Link)`">$($issuetitle)</a>`r`n`r`n"
     $bodytext=$item.Description
     $MilestoneName=($item.category + " - " + $item.ReportingCategory)
+    $MilestoneID = ($AllMilestones | Where-Object{$_.Title -eq $MilestoneName}).Number
  
     # start gathering labels from the the assesment items and the WASA.json
     $labels = New-Object System.Collections.ArrayList
