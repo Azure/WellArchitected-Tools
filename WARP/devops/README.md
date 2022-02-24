@@ -140,13 +140,29 @@ There are four sections to this document:
 
     ![Personal Access Token](_images/pat.png)
 
-1. Run the following command in the PowerShell terminal, using the **Personal Access Token** (**-pat**) from ADO, the URL for your **Project** (**-uri**) and the exported CSV file (**-csv**)  from a [Microsoft Azure Well-Architected Review](https://docs.microsoft.com/assessments/?mode=pre-assessment). The **-name** parameter is used to tag the imported work items in ADO in order to help organize the work items across multiple assessment milestones.
+1. Run the following command in the PowerShell terminal.
 
     ```powershell
     .\PnP-DevOps.ps1 -csv PATH_TO_CSV -pat PAT_FROM_ADO -uri "PROJECT_URL" -name "ASSESSMENT_NAME"
     ```
 
-    Example Output:
+    The flags are:
+
+    * **-pat** The **Personal Access Token** from ADO
+    * **-uri** The URL for your **Project**
+    * **-csv** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://docs.microsoft.com/assessments/?mode=pre-assessment).
+    * **-name** is used is used to tag the imported work items in ADO.
+        * Organizations and teams can use these tags as  milestones to organize the work items across multiple assessments. 
+        * For example:
+
+            A team performs a Well-Architected Review and imports the resultant CSV into their DevOps tooling. The team names this import "Milestone 1" and all work items imported are tagged with the name "Milestone 1"
+            
+            After a few sprints, the team can perform another Well-Architected Review. The import the resultant CSV into their DevOps tooling. This import would be named "Milestone 2".
+
+            Note: Assessments and imports should focus only on a single workload. There is no method to differentiate between workloads with these tools.
+    
+
+    Example command output:
 
     ```powershell
     PS C:\Users\cae\warp>.\PnP-DevOps.ps1 -csv .\Azure_Well_Architected_Review_Sample.csv `
@@ -195,14 +211,28 @@ There are four sections to this document:
     ![](_images/github_repo_perms.png)
 
 1. Run the `PnP-Github.ps1` script from a command prompt: `./PnP-Github.ps1 -pat \`
-   `"GITHUB-PAT-TOKEN" -csv PATH-TO-CSV -uri "URI-FOR-GITHUB-DEPOT" -name "REPORTNAME"`
+   `"GITHUB-PAT-TOKEN" -csv PATH-TO-CSV -uri "URI-FOR-GITHUB-DEPOT" -name "ASSESSMENT_NAME"`
 
+    The flags are:
+
+    * **-pat** The **Personal Access Token** from Github
+    * **-uri** The URL for your **Project**
+    * **-csv** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://docs.microsoft.com/assessments/?mode=pre-assessment).
+    * **-name** is used is used to tag the imported work items in ADO.
+        * Organizations and teams can use these tags as  milestones to organize the work items across multiple assessments. 
+        * For example:
+
+            A team performs a Well-Architected Review and imports the resultant CSV into their DevOps tooling. The team names this import "Milestone 1" and all work items imported are tagged with the name "Milestone 1"
+            
+            After a few sprints, the team can perform another Well-Architected Review. The import the resultant CSV into their DevOps tooling. This import would be named "Milestone 2".
+
+            Note: Assessments and imports should focus only on a single workload. There is no method to differentiate between workloads with these tools.
+    
+
+    Example command output:
 1. Example: `./PnP-Github.ps1 -pat "ghp_TjDjgAKBNK0R1VPDm1234567890" \`
 `-csv .\test-assessmentsmall.csv -uri "https://github.com/WAF-USER/contoso" \`
 ` -name "WAF FEB 2021"`
- - note the name will be used as a label for any issues created during this import. Future imports may have labels to differentiate them.
- - Example: **WAF FEB 2021** vs **WAF MAR 2021** would inform you of new items between those months.
- - Be sure to follow your companies label guidelines if you have them.
 
 1.  You should see **Milestones** and **Issues** populated with data.
 ![](_images/github_repo_backlog.png)
