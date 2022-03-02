@@ -10,7 +10,7 @@ Scripts (and supporting documentation) provided within this Repo are provided fo
 
 ## Community Support Policy  
 
-Project maintainers will review issues, bugs filedand PR's on a best endeavours basis with no guaranteed timelines regarding providing a response.
+Project maintainers will review issues, bugs filed and PR's on a best endeavours basis with no guaranteed timelines regarding providing a response.
 
 ## Contributing 
 
