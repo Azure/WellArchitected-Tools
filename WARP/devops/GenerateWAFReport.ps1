@@ -171,13 +171,14 @@ foreach($pillar in $pillars)
 {
     $pillarData = $data | Where-Object{$_.Category -eq $pillar}
     $pillarInfo = Get-PillarInfo -pillar $pillar
+    
     # Edit title & date on slide 1
     $slideTitle = $title.Replace("[pillar]",$pillar.substring(0,1).toupper()+$pillar.substring(1).tolower())
     $newTitleSlide = $titleSlide.Duplicate()
     $newTitleSlide.MoveTo($presentation.Slides.Count)
     $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
     $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]",$localReportDate)
-
+   
     # Edit Executive Summary Slide
 
     #Add logic to get overall score
@@ -194,7 +195,8 @@ foreach($pillar in $pillars)
     {
         $categoryWeight = ($pillarData | Where-Object{$_.ReportingCategory -eq $category}).Weight | Measure-Object -Sum
         $categoryScore = $categoryWeight.Sum/$categoryWeight.Count
-        $CategoriesList.Add([pscustomobject]@{"Category" = $category; "CategoryScore" = $categoryScore}) | Out-Null
+        $categoryWeightiestCount = ($pillarData | Where-Object{$_.ReportingCategory -eq $category}).Weight -ge $MinimumReportLevel | Measure-Object
+        $CategoriesList.Add([pscustomobject]@{"Category" = $category; "CategoryScore" = $categoryScore; "CategoryWeightiestCount" = $categoryWeightiestCount.Count}) | Out-Null
     }
 
     $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
@@ -210,18 +212,18 @@ foreach($pillar in $pillars)
             try
             {
                 #$newSummarySlide.Shapes[8] #Domain 1 Icon
-                $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryScore.ToString("#")
+                $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryWeightiestCount.ToString("#")
                 $newSummarySlide.Shapes[$counter+1].TextFrame.TextRange.Text = $category.Category
                 $counter = $counter + 3
                 switch ($category.CategoryScore) {
                     { $_ -lt 33 } { 
-                        $categoryShape = $newSummarySlide.Shapes[39]
+                        $categoryShape = $newSummarySlide.Shapes[37]
                     }
                     { $_ -gt 33 -and $_ -lt 67 } { 
                         $categoryShape = $newSummarySlide.Shapes[38] 
                     }
                     { $_ -gt 67 } { 
-                        $categoryShape = $newSummarySlide.Shapes[37] 
+                        $categoryShape = $newSummarySlide.Shapes[39] 
                     }
                     Default { 
                         $categoryShape = $newSummarySlide.Shapes[38] 
