@@ -133,6 +133,11 @@ for($i=3; $i -le 8; $i++)
     {
         $securityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
     }
+    if($Content[$i].Equals(",,,,,"))
+    {
+        #End early if not all pillars assessed
+        Break
+    }
 }
 
 #endregion
