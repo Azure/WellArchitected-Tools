@@ -151,7 +151,7 @@ There are four sections to this document:
     * **-pat** The **Personal Access Token** from ADO
     * **-uri** The URL for your **Project**
     * **-csv** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://docs.microsoft.com/assessments/?mode=pre-assessment).
-    * **-name** is used is used to tag the imported work items in ADO.
+    * **-name** is used to tag the imported work items in ADO.
         * Organizations and teams can use these tags as  milestones to organize the work items across multiple assessments. 
         * For example:
 
