@@ -26,6 +26,17 @@ Function Get-FileName($initialDirectory)
     $OpenFileDialog.filename
 }
 
+Function FindIndexBeginningWith($stringset, $searchterm){
+    $i=0
+    foreach ($line in $stringset){
+        if($line.StartsWith($searchterm)){
+            return $i
+        }
+        $i++
+    }
+    return false
+}
+
 if([String]::IsNullOrEmpty($ContentFile))
 {
     $inputfile = Get-FileName $workingDirectory
@@ -51,21 +62,38 @@ $inputfilename = Split-Path $inputfile -leaf
 #region Validate input values
 
 $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template.pptx"
-$descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
+
+try{
+    $descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
+}
+catch{
+    Write-Error -Message "Unable to open $($workingDirectory)\WAF Category Descriptions.csv"
+    exit
+}
 
 #endregion
 
 $title = "Well-Architected [pillar] Assessment"
 $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
 $localReportDate = Get-Date -Format g
-#$tableStart = $content.IndexOf("Title,Description,Link-Text,Link,Priority,Category,Subcategory,Weight")
-$tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
-$EndStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
-$tableEnd = $content.IndexOf($EndStringIdentifier) - 1
-$csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
-$data = Import-Csv -Path "$workingDirectory\$reportDate.csv"
-$data | % { $_.Weight = [int]$_.Weight }
-$pillars = $data.Category | Select-Object -Unique
+try{
+    $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context"
+    #Write-Debug "Tablestart: $tablestart"
+    $EndStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
+    #Write-Debug "EndStringIdentifier: $EndStringIdentifier"
+    $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
+    #Write-Debug "Tableend: $tableend"
+    $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
+    $data = Import-Csv -Path "$workingDirectory\$reportDate.csv"
+    $data | % { $_.Weight = [int]$_.Weight }
+    $pillars = $data.Category | Select-Object -Unique
+}
+catch{
+    Write-Host "Unable to parse the content file."
+    Write-Host "Please ensure all input files are in the correct format and aren't open in Excel or another editor which locks the file."
+    Write-Error -Message "There was a problem opening or parsing the content file ($inputfile)."
+    exit
+}
 
 
 #region CSV Calculations
@@ -144,11 +172,7 @@ for($i=3; $i -le 8; $i++)
 
 
 
-#region Instantiate PowerPoint variables
-#Add-type -AssemblyName office
 $application = New-Object -ComObject powerpoint.application
-#$application.visible = [Microsoft.Office.Core.MsoTriState]::msoTrue
-#$slideType = “microsoft.office.interop.powerpoint.ppSlideLayout” -as [type]
 $presentation = $application.Presentations.open($templatePresentation)
 $titleSlide = $presentation.Slides[8]
 $summarySlide = $presentation.Slides[9]
@@ -310,7 +334,7 @@ $titleSlide.Delete()
 $summarySlide.Delete()
 $detailSlide.Delete()
 $endSlide.Delete()
-$presentation.SavecopyAs(“$workingDirectory\PnP_PowerPointReport_Template_$reportDate.pptx”)
+$presentation.SavecopyAs("$workingDirectory\PnP_PowerPointReport_Template_$reportDate.pptx")
 $presentation.Close()
 
 
