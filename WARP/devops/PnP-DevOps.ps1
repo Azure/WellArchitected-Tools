@@ -133,14 +133,12 @@ function Search-EpicsAdo {
     try {
         $getQueryUri = $settings.uriBase + "_apis/wit/wiql?api-version=6.0-preview.2"
         $results = Invoke-RestMethod -Uri $getQueryUri -Method POST -ContentType "application/json" -Headers $settings.authHeader -Body $body
-        
         if($results.workItems.Count -gt 0)
         {
             foreach($epic in $results.workItems.id)
             {
                 $getEpicQueryUri = $settings.uriBase + "_apis/wit/workitems/" + $epic + "?api-version=6.0-preview.2"
                 $epicWorkItem = Invoke-RestMethod -Uri $getEpicQueryUri -Method GET -ContentType "application/json" -Headers $settings.authHeader
-                
                 $epicName = $epicWorkItem.fields.'System.Title'
                 if ($assessment.reportingCategories.ContainsKey($epicName)) {
                     $assessment.reportingCategories[$epicName] = $epicWorkItem.url
@@ -148,7 +146,7 @@ function Search-EpicsAdo {
             }
         }
     } catch {
-        Write-Error "Error while querying Azure DevOps for Epics: " + $Error[0].Exception.ToString()
+        Write-Error "Error while querying Azure DevOps for Epics: $($Error[0].Exception.ToString())"
         exit
     }     
 }
@@ -175,9 +173,10 @@ function Add-EpicAdo
         Write-Output "Adding Epic to ADO: $epicName"
         $postIssueUri = $settings.uriBase + "_apis/wit/workitems/$" + "Epic" + "?api-version=5.1"
         $epicWorkItem = Invoke-RestMethod -Uri $postIssueUri -Method POST -ContentType "application/json-patch+json" -Headers $settings.authHeader -Body $body
+        write-debug "    Output: $epicworkitem"
         $assessment.reportingCategories[$epicName] = $epicWorkItem.url
     } catch {
-        Write-Error "Error creating Epic in DevOps: " + $Error[0].Exception.ToString()
+        Write-Error "Error creating Epic in DevOps: $($Error[0].Exception.ToString())"
         exit
     }
 }
@@ -215,7 +214,7 @@ function Get-WorkItemsAdo
             Write-Verbose "There are no work items of type Issue in DevOps yet"
         }
     } catch {
-        Write-Error "Error while querying devops for work items: " + $Error[0].Exception.ToString()
+        Write-Error "Error while querying devops for work items: $($Error[0].Exception.ToString())"
     }
 
     return $workItemsAdo
@@ -310,7 +309,8 @@ function Add-NewIssueToDevOps
 
     } catch {
 
-        Write-Error "Exception while creating work item: $($Issuebody)" + $Error[0].Exception.ToString() 
+        Write-Error "Exception while creating work item: $($Issuebody)" 
+        Write-Error "$($Error[0].Exception.ToString())"
         #exit
 
     }
@@ -415,7 +415,7 @@ function Add-WorkItemsAdo
             }
             catch
             {
-                Write-Error "Could not insert item to devops: " + $Error[0].Exception.ToString()
+                Write-Error "Could not insert item to devops: $($Error[0].Exception.ToString())"
                 exit
             }
         }
