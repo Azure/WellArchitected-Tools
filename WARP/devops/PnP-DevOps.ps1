@@ -1,39 +1,51 @@
-#region Parameters
-# Command line paramaters required.
-# pat = Personal Access Token from Github or ADO
-# URI = the URL for the ADO Project or the Github repo
-# CSV = The exported CSV file from the WAF Assesment
+<#
+.SYNOPSIS
+    Creates epics and issues in an Azure DevOps project based on Well-Architected assessment findings .csv file.
+    
+.DESCRIPTION
+    Creates epics and issues in an Azure DevOps project based on Well-Architected assessment findings .csv file.
 
+.PARAM DevOpsPersonalAccessToken
+    Personal Access Token from Azure DevOps
+
+.PARAM DevOpsProjectUri
+    URI fo the Azure DevOps project
+    
+.PARAM AssessmentCsvPath
+    .csv file from WAF assessment
+
+.PARAM DevOpsTagName
+    Name of assessment
+
+.PARAM DevOpsWorkItemType
+    The type of DevOps work item to create and link to the Epics. Certain project types support certain work items. SCRUM(Feature), Agile(Feature & Issue), Basic(Issue)
+#>
+
+[CmdletBinding()]
 param (
-    [string]$pat,
-    [uri]$uri,
-    [string]$csv,
-    [string]$name = "WAF-Review"
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$DevOpsPersonalAccessToken,
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][uri]$DevOpsProjectUri,
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$DevOpsTagName,
+    [parameter(Mandatory=$true)][ValidateSet("Feature","Issue")][string]$DevOpsWorkItemType,
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$AssessmentCsvPath
 )
 
-#region Usage
+$DevOpsPersonalAccessToken
+$DevOpsProjectUri.AbsolutePath
+$DevOpsTagName
+$DevOpsWorkItemType
+$AssessmentCsvPath.FullName
 
-if (!$pat -or !$csv -or !$uri -or !$name) {
-    Write-Output "Example Usage: "
-    Write-Output "  PnP-DevOps.ps1 -pat PAT_FROM_ADO -csv ./waf_review.csv -uri https://dev.azure.com/demo-org/demo-project -name WAF-Assessment-x"
-    Write-Output ""
-    exit
-}
-
-#endregion
+$ErrorActionPreference = "Break"
 
 #region Functions
 
 # Get settings for either Azure DevOps
 function Get-AdoSettings {
-    param (
-        [string]$pat, 
-        [uri]$uri
-    )
 
-    $authHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)")) }
+    $authHeader = @{Authorization = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($DevOpsPersonalAccessToken)")) }
     
-    $uriBase = $uri.ToString().Trim("/") + "/"
+    $uriBase = $DevOpsProjectUri.ToString().Trim("/") + "/"
 
     $settings = @{
         authHeader = $authHeader
@@ -44,13 +56,9 @@ function Get-AdoSettings {
 }
 
 function Import-Assessment {
-    param (
-        [string]$csv,
-        [string]$name
-    )
 
-    $content = Get-Content $csv
-        
+    $content = Get-Content $AssessmentCsvPath
+    
     $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
     $endStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
     $tableEnd = $content.IndexOf($endStringIdentifier) - 1
@@ -62,7 +70,8 @@ function Import-Assessment {
         ForEach-Object {$_.ReportingCategory = "Azure Advisor"}
 
     # get the WASA,json file in an xplat form.
-    $workingDirectory = (Get-Location).Path
+    [System.IO.FileInfo]$sourceScript = $PSCmdlet.MyInvocation.MyCommand.Source
+    $workingDirectory = $sourceScript.DirectoryName
     $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WAF.json'
     $recommendationDetail = Get-Content $WASAFile | ConvertFrom-Json
 
@@ -107,7 +116,7 @@ function Import-Assessment {
         }
 
     $assessment = @{
-        name = $name
+        name = $DevOpsTagName
         reportingCategories = $reportingCategories
         recommendations = $devOpsList
     }
@@ -190,7 +199,7 @@ function Get-WorkItemsAdo
 
     #Iterate entire devops issues
     $body = "{
-    `"query`": `"Select * From WorkItems Where [Work Item Type] = 'Feature' AND [State] <> 'Closed' AND [State] <> 'Removed' AND [System.TeamProject] = @project order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc`"
+    `"query`": `"Select * From WorkItems Where [Work Item Type] = '$DevOpsWorkItemType' AND [State] <> 'Closed' AND [State] <> 'Removed' AND [System.TeamProject] = @project order by [Microsoft.VSTS.Common.Priority] asc, [System.CreatedDate] desc`"
     }"
 
     $getQueryUri = $settings.uriBase + "_apis/wit/wiql?api-version=6.0-preview.2"
@@ -304,7 +313,7 @@ function Add-NewIssueToDevOps
     try {
         
         Write-Host "Adding Work Item: $Title"
-        $postIssueUri = $settings.uriBase + "_apis/wit/workitems/$" + "Feature?api-version=5.1"
+        $postIssueUri = $settings.uriBase + '_apis/wit/workitems/$' + $workitemtype +  '?api-version=5.1'
         $result = Invoke-RestMethod -Uri $postIssueUri -Method POST -ContentType "application/json-patch+json" -Headers $settings.authHeader -Body $Issuebody
 
     } catch {
@@ -427,9 +436,9 @@ function Add-WorkItemsAdo
 
 #region Script Main
 
-$adoSettings = Get-AdoSettings -pat $pat -uri $uri
+$adoSettings = Get-AdoSettings
 
-$assessment = Import-Assessment -csv $csv -name $name
+$assessment = Import-Assessment
 
 # We ask the end user if they are ready to put data into their ticket system.
 Write-Output "Assessment Name: $($assessment.name)" 
