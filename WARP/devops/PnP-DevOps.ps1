@@ -12,13 +12,26 @@
     URI fo the Azure DevOps project
     
 .PARAM AssessmentCsvPath
-    .csv file from WAF assessment
+    .csv file from Well-Architected assessment export
 
 .PARAM DevOpsTagName
     Name of assessment
 
 .PARAM DevOpsWorkItemType
     The type of DevOps work item to create and link to the Epics. Certain project types support certain work items. SCRUM(Feature), Agile(Feature & Issue), Basic(Issue)
+
+.OUTPUTS
+        Status message text
+
+.EXAMPLE
+    PnP-DevOps -DevOpsPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -DevOpsProjectUri https://dev.azure.com/organization/project -DevOpsTagName WAF -DevOpsWorkItemType Feature -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
+    Adds the items from the Well-Architected assessment .csv export to a DevOps project as work itmes.
+
+.NOTES
+    Needs to be ran from local Github repo path so that the WAF.json file is available to merge into the assessment .csv export file.
+
+.LINK
+
 #>
 
 [CmdletBinding()]
@@ -29,12 +42,6 @@ param (
     [parameter(Mandatory=$true)][ValidateSet("Feature","Issue")][string]$DevOpsWorkItemType,
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$AssessmentCsvPath
 )
-
-$DevOpsPersonalAccessToken
-$DevOpsProjectUri.AbsolutePath
-$DevOpsTagName
-$DevOpsWorkItemType
-$AssessmentCsvPath.FullName
 
 $ErrorActionPreference = "Break"
 
@@ -313,7 +320,7 @@ function Add-NewIssueToDevOps
     try {
         
         Write-Host "Adding Work Item: $Title"
-        $postIssueUri = $settings.uriBase + '_apis/wit/workitems/$' + $workitemtype +  '?api-version=5.1'
+        $postIssueUri = $settings.uriBase + '_apis/wit/workitems/$' + $DevOpsWorkItemType +  '?api-version=5.1'
         $result = Invoke-RestMethod -Uri $postIssueUri -Method POST -ContentType "application/json-patch+json" -Headers $settings.authHeader -Body $Issuebody
 
     } catch {
