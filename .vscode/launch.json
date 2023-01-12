@@ -9,7 +9,7 @@
             "type": "PowerShell",
             "request": "launch",
             "script": "${file}",
-            "args": ["4lv3jojayz4tgd7yakmpxjyz2dynvue7rkkghaxjqk5q4cl7i6oq","https://dev.azure.com/cschult-WAFTst/relitemstst_scrum_2","WAF-Assessment","Feature"]
+            "args": ["PAT","https://dev.azure.com/org/project","WAF-Assessment","Feature"]
         }
     ]
 }
