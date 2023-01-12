@@ -43,7 +43,7 @@ param (
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$AssessmentCsvPath
 )
 
-$ErrorActionPreference = "Break"
+$ErrorActionPreference = "Continue"
 
 #region Functions
 
@@ -66,7 +66,8 @@ function Import-Assessment {
 
     $content = Get-Content $AssessmentCsvPath
     
-    $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
+    $tableStartPattern = ($content | Select-String "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context" | Select-Object * -First 1)
+    $tableStart = ( $tableStartPattern.LineNumber ) - 1
     $endStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
     $tableEnd = $content.IndexOf($endStringIdentifier) - 1
     $devOpsList = ConvertFrom-Csv $content[$tableStart..$tableEnd] -Delimiter ','
