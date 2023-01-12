@@ -43,7 +43,7 @@ param (
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$AssessmentCsvPath
 )
 
-$ErrorActionPreference = "Continue"
+$ErrorActionPreference = "break"
 
 #region Functions
 
