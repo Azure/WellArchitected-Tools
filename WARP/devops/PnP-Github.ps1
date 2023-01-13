@@ -39,7 +39,7 @@ param (
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$AssessmentCsvPath
 )
 
-$ErrorActionPreference = "continue"
+$ErrorActionPreference = "break"
 
 # We need to communicate using TLS 1.2 against GitHub.
 [Net.ServicePointManager]::SecurityProtocol = 'tls12'
