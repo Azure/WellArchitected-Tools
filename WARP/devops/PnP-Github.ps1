@@ -1,30 +1,48 @@
-#region Parameters
-# Command line paramaters required.
-# pat = Personal Access Token from Github or ADO
-# uri = the URL for the ADO Project or the Github repo
-# csv = The exported CSV file from the WAF Assesment
-# name = The exported name of the WAF assessment
+<#
+.SYNOPSIS
+    Creates epics and issues in a Github repository based on Well-Architected assessment findings .csv file.
+    
+.DESCRIPTION
+    Creates epics and issues in a Github repository based on Well-Architected assessment findings .csv file.
 
+.PARAMETER GithubPersonalAccessToken
+    Personal Access Token from Azure DevOps
+
+.PARAMETER GithubrepoUri
+    URI fo the Azure DevOps project
+    
+.PARAMETER AssessmentCsvPath
+    .csv file from Well-Architected assessment export
+
+.PARAMETER GithubTagName
+    Name of assessment
+
+.OUTPUTS
+    Status message text
+
+.EXAMPLE
+    PnP-Github -GithubPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -GithubrepoUri https://github.com/user/repo -GithubTagName WAF -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
+    Adds the items from the Well-Architected assessment .csv export to a Github repository as issues.
+
+.NOTES
+    Needs to be ran from local Github repo path so that the WAF.json file is available to merge into the assessment .csv export file.
+
+.LINK
+
+#>
+
+[CmdletBinding()]
 param (
-    [string]$pat,
-    [uri]$uri,
-    [string]$csv,
-    [string]$name
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$GithubPersonalAccessToken,
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][uri]$GithubrepoUri,
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$GithubTagName,
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$AssessmentCsvPath
 )
+
+$ErrorActionPreference = "continue"
 
 # We need to communicate using TLS 1.2 against GitHub.
 [Net.ServicePointManager]::SecurityProtocol = 'tls12'
-#endregion
-
-#region Usage
-
-if (!$pat -or !$csv -or !$uri -or !$name) {
-    Write-Output "Example Usage: "
-    Write-Output "  PnP-Github.ps1 -pat PAT_FROM_GITHUB -csv ./waf_review.csv -uri https://dev.github.com/demo-org/demo-repo" -name "WAF-Assessment-x"
-    Write-Output ""
-    exit
-}
-
 #endregion
 
 #region Get-GithubRateLimit
@@ -39,7 +57,7 @@ function Get-GithubRateLimit {
 
     if ($ratelimit -ge 1 -and $ratelimit -le 2000) {
         Write-Output "Pausing 10 seconds for Github rate-limiting"
-        sleep 10
+        Start-Sleep -Seconds 10
     }
 }
 #endregion
@@ -64,44 +82,36 @@ function Github-Wait-Timer {
 # Github expects to see an authorization token to perform anything interesting. Here we setup the authorization token as a header.
 # Example "Authorization: token ghp_16C7e42F292c6912E7710c838347Ae178B4a"
 function Get-GithubSettings {
-     param (
-         [string]$pat, 
-         [uri]$uri
-     )
 
     #To reduce the amount of data entry our customers need to do at the command we derive the owner and repository from the URI given.
-    $uriBase = $uri.ToString().Trim("/") + "/"
+    $uriBase = $GithubrepoUri.ToString().Trim("/") + "/"
 
-    $owner = $uri.Segments[1].replace('/','')
-    $repository = $uri.Segments[2].replace('/','')
+    $owner = $GithubrepoUri.Segments[1].replace('/','')
+    $repository = $GithubrepoUri.Segments[2].replace('/','')
 
     $Headers = @{
-        Authorization='token '+$pat
+        Authorization='token '+$GithubPersonalAccessToken
         }
     $settings = @{
         uriBase = $uriBase
         owner = $owner
         repository = $repository
-        pat = $pat
+        pat = $GithubPersonalAccessToken
         Headers = $Headers
     }
     return $settings
 }
 #endregion
-# $settings = Get-GithubSettings -pat $pat -uri $uri
 
 #region function Import-Assessment
 # We import the .csv file into memory after making a few housekeeping changes.
 function Import-Assessment {
-    param (
-        [string]$csv,
-        [string]$name
-    )
 
-    $content = Get-Content $csv
+    $content = Get-Content $AssessmentCsvPath
 
     # the table starts at a line of text that looks like the text below and ends with a "--"
-    $tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
+    $tableStartPattern = ($content | Select-String "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context" | Select-Object * -First 1)
+    $tableStart = ( $tableStartPattern.LineNumber ) - 1
     $endStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
     $tableEnd = $content.IndexOf($endStringIdentifier) - 1
     $devOpsList = ConvertFrom-Csv $content[$tableStart..$tableEnd] -Delimiter ','
@@ -165,7 +175,7 @@ function Import-Assessment {
         }
 
         $assessment = @{
-        name = $name
+        name = $GithubTagName
         reportingCategories = $reportingCategories
         recommendations = $devOpsList
         milestones = $githubMilestones
@@ -357,14 +367,14 @@ function Create-GithubIssue {
 #endregion
 
 #region Script Main
-$settings = Get-GithubSettings -pat $pat -uri $uri
+$settings = Get-GithubSettings
 
-$assessment = Import-Assessment -csv $csv
+$assessment = Import-Assessment
 
 #region Ask End User
 # We ask the end user if they are ready to put data into their ticket system.
-Write-Host "Assessment Name:" $name
-Write-Host "Repository:" $uri
+Write-Host "Assessment Name:" $GithubTagName
+Write-Host "Repository:" $GithubrepoUri
 Write-Host "Number of Recommendations to import": $assessment.recommendations.Count
 $confirmation = Read-Host "Ready? [y/n]"
 while($confirmation -ne "y")
@@ -416,7 +426,7 @@ foreach($item in $assessment.recommendations){
  
     # start gathering labels from the the assesment items and the WASA.json
     $labels = New-Object System.Collections.ArrayList
-    $labels.Add("WARP-Import $name") | Out-Null
+    $labels.Add("WARP-Import $GithubTagName") | Out-Null
     if($item.category){
         $labels.Add($item.Category) | Out-Null
     }

@@ -9,7 +9,7 @@
             "type": "PowerShell",
             "request": "launch",
             "script": "${file}",
-            "args": ["PAT","https://dev.azure.com/org/project","WAF-Assessment","Feature"]
+            "args": ["PAT","https://dev.azure.com/org/project","WAF-Assessment"]
         }
     ]
 }
