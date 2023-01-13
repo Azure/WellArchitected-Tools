@@ -5,19 +5,19 @@
 .DESCRIPTION
     Creates epics and issues in an Azure DevOps project based on Well-Architected assessment findings .csv file.
 
-.PARAM DevOpsPersonalAccessToken
+.PARAMETER DevOpsPersonalAccessToken
     Personal Access Token from Azure DevOps
 
-.PARAM DevOpsProjectUri
+.PARAMETER DevOpsProjectUri
     URI fo the Azure DevOps project
     
-.PARAM AssessmentCsvPath
+.PARAMETER AssessmentCsvPath
     .csv file from Well-Architected assessment export
 
-.PARAM DevOpsTagName
+.PARAMETER DevOpsTagName
     Name of assessment
 
-.PARAM DevOpsWorkItemType
+.PARAMETER DevOpsWorkItemType
     The type of DevOps work item to create and link to the Epics. Certain project types support certain work items. SCRUM(Feature), Agile(Feature & Issue), Basic(Issue)
 
 .OUTPUTS
