@@ -1,15 +1,15 @@
 <#
 .SYNOPSIS
-    Creates epics and issues in a Github repository based on Well-Architected assessment findings .csv file.
+    Creates milestones and issues in a Github repository based on Well-Architected assessment findings .csv file.
     
 .DESCRIPTION
-    Creates epics and issues in a Github repository based on Well-Architected assessment findings .csv file.
+    Creates milestones and issues in a Github repository based on Well-Architected assessment findings .csv file.
 
 .PARAMETER GithubPersonalAccessToken
-    Personal Access Token from Azure DevOps
+    Personal Access Token from Github
 
 .PARAMETER GithubrepoUri
-    URI fo the Azure DevOps project
+    URI fo the Github repo
     
 .PARAMETER AssessmentCsvPath
     .csv file from Well-Architected assessment export
@@ -90,7 +90,7 @@ function Get-GithubSettings {
     $repository = $GithubrepoUri.Segments[2].replace('/','')
 
     $Headers = @{
-        Authorization='token '+$GithubPersonalAccessToken
+        Authorization = 'token ' + $GithubPersonalAccessToken
         }
     $settings = @{
         uriBase = $uriBase
@@ -447,7 +447,6 @@ foreach($item in $assessment.recommendations){
     Create-GithubIssue -settings $settings -title $issuetitle -bodytext $bodytext -labels $labels -milestoneid $milestoneid -AllGithubIssues $AllGithubIssues
 
 }
-
 
 Write-Output "All finished creating Issues in Github..."
 Write-Output ""
