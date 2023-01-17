@@ -9,7 +9,7 @@
             "type": "PowerShell",
             "request": "launch",
             "script": "${file}",
-            "args": ["github_pat_x","https://github.com/user/repo","WAF-Reliability"]
+            "args": ["PAT","https://devops or github.com/user/repo","WAF-Assessment"]
         }
     ]
 }
