@@ -104,7 +104,8 @@ function Read-File($File)
     $content = Get-Content $File
 
     #Get findings
-    $findingsStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
+    $findingsStartIdentifier = $content | Where-Object { $_.Contains("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context") } | Select-Object -Unique -First 1
+    $findingsStart = $content.IndexOf($findingsStartIdentifier)
     $endStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
     $findingsEnd = $content.IndexOf($endStringIdentifier) - 1
     $findings = $content[$findingsStart..$findingsEnd] | Out-String | ConvertFrom-CSV -Delimiter ","
