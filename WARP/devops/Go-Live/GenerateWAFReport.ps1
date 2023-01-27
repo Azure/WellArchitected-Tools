@@ -139,13 +139,12 @@ function Read-File($File)
 
         foreach($recommendationPerService in $recommendationsPerService)
         {
-            $sumOfWeights = $recommendationPerService.Group.Weight | Measure-Object -Sum
+            $firstObject = $recommendationPerService.Group | Sort-Object -Property Weight -Descending | Select-Object -First 1
 
             $wObject = [PSCustomObject]@{
                 "Service" = $recommendationPerService.Name.Split("-")[2].Split(":")[0].Trim()
-                "Weight" = [int]($sumOfWeights.Sum / $sumOfWeights.Count)
-                "Recommendation" = ($recommendationPerService.Group | Sort-Object -Property Weight | Select-Object -First 1)."Link-Text"
-                "Rating" = Get-Rating -WeightOrScore [int]($sumOfWeights.Sum / $sumOfWeights.Count)
+                "Weight" = [int]($firstObject.Weight)
+                "Recommendation" = $firstObject."Link-Text"
             }
 
             $null = $weightPerService.Add($wObject)
@@ -270,11 +269,11 @@ foreach($pillar in $scorecard.Pillar)
 
     if(($scoreForCurrentPillar.Weights."Service" | Measure-Object).Count -lt 5)
     {
-        $servicesPerPillar = $scoreForCurrentPillar.Weights | Sort-Object -Property "Weight" | Select-Object -First ($scoreForCurrentPillar.Weights."Service" | Measure-Object).Count
+        $servicesPerPillar = $scoreForCurrentPillar.Weights | Sort-Object -Property "Weight" -Descending | Select-Object -First ($scoreForCurrentPillar.Weights."Service" | Measure-Object).Count
     }
     else 
     {
-        $servicesPerPillar = $scoreForCurrentPillar.Weights | Sort-Object -Property "Weight" | Select-Object -First 5
+        $servicesPerPillar = $scoreForCurrentPillar.Weights | Sort-Object -Property "Weight" -Descending | Select-Object -First 5
     }
 
     $j = 0
