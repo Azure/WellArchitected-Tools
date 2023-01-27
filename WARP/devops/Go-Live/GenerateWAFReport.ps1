@@ -175,11 +175,11 @@ function Get-Rating($WeightOrScore)
     { 
         $rating = "Critical"
     }
-    elseif($WeightOrScore -gt 33 -and $WeightOrScore -lt 67)
+    elseif($WeightOrScore -ge 33 -and $WeightOrScore -lt 67)
     { 
         $rating = "Moderate" 
     }
-    elseif($WeightOrScore -gt 67)
+    elseif($WeightOrScore -ge 67)
     { 
         $rating = "Excellent" 
     }
