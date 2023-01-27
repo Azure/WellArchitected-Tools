@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Creates epics and issues in an Azure DevOps project based on Well-Architected assessment findings .csv file.
+    Creates epics and issues in an Azure DevOps project based on Well-Architected and other Azure assessment findings .csv file.
     
 .DESCRIPTION
-    Creates epics and issues in an Azure DevOps project based on Well-Architected assessment findings .csv file.
+    Creates epics and issues in an Azure DevOps project based on Well-Architected and other Azure assessment findings .csv file.
 
 .PARAMETER DevOpsPersonalAccessToken
     Personal Access Token from Azure DevOps
@@ -12,10 +12,10 @@
     URI fo the Azure DevOps project
     
 .PARAMETER AssessmentCsvPath
-    .csv file from Well-Architected assessment export
+    .csv file from Well-Architected and other Azure assessment export
 
 .PARAMETER DevOpsTagName
-    Name of assessment
+    Name of assessment Example: "WAF"
 
 .PARAMETER DevOpsWorkItemType
     The type of DevOps work item to create and link to the Epics. Certain project types support certain work items. SCRUM(Feature), Agile(Feature & Issue), Basic(Issue)
@@ -25,7 +25,7 @@
 
 .EXAMPLE
     PnP-DevOps -DevOpsPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -DevOpsProjectUri https://dev.azure.com/organization/project -DevOpsTagName WAF -DevOpsWorkItemType Feature -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
-    Adds the items from the Well-Architected assessment .csv export to a DevOps project as work itmes.
+    Adds the items from the Well-Architected and other Azure assessments .csv export to a DevOps project as work itmes.
 
 .NOTES
     Needs to be ran from local Github repo path so that the WAF.json file is available to merge into the assessment .csv export file.
@@ -62,6 +62,80 @@ function Get-AdoSettings {
     return $settings
 }
 
+$content = Get-Content $AssessmentCsvPath
+
+#Capturing first line of csv file to later check for "Well-Architected" string
+$assessmentTypeCheck = ($content | Select-Object -First 1)
+
+#Updated function to process import of items for non-Well-Architected assessments
+function Import-AssessmentOther {
+
+    $content = Get-Content $AssessmentCsvPath
+    
+    $tableStartPattern = ($content | Select-String "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context" | Select-Object * -First 1)
+    $tableStart = ( $tableStartPattern.LineNumber ) - 1
+    $endStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
+    $tableEnd = $content.IndexOf($endStringIdentifier) - 1
+    $devOpsList = ConvertFrom-Csv $content[$tableStart..$tableEnd] -Delimiter ','
+
+    # Hack to change blank reporting category to Azure Advisor
+    $devOpsList | 
+        Where-Object -Property ReportingCategory -eq "" | 
+        ForEach-Object {$_.ReportingCategory = "Azure Advisor"}
+
+    # get the WASA,json file in an xplat form.
+    [System.IO.FileInfo]$sourceScript = $PSCmdlet.MyInvocation.MyCommand.Source
+    $workingDirectory = $sourceScript.DirectoryName
+    $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WAF.json'
+
+    # Get unique list of ReportCategory column
+    $reportingCategories = @{}
+    $devOpsList | 
+        Select-Object -Property ReportingCategory -Unique | 
+        Sort-Object  -Property ReportingCategory |
+        ForEach-Object { 
+            $reportingCategories[$_.ReportingCategory] = ""       
+        }
+
+    # Add Decription and augment it using WAF.json data (if exists)
+    $devOpsList | Add-Member -Name Description -MemberType NoteProperty -Value ""
+
+    $devOpsList | 
+        ForEach-Object { 
+
+            $_.Description = "<a href=`"$($_.Link)`">$($_.'Link-Text')</a>"
+
+            foreach($detail in $recommendationDetail)
+            {
+                $detailName = $detail.Name.Trim('.')
+                $linkText = $_.'Link-Text'.Trim('.')
+
+                if(($detailName.Contains($linkText)))
+                {
+                    $recDescription = "<a href=`"$($_.Link)`">$($_.'Link-Text')</a>" + "`r`n`r`n" `
+                    + "<p><b>Why Consider This?</b></p>" + "`r`n`r`n" + $detail.WhyConsiderThis + "`r`n`r`n" `
+                    + "<p><b>Context</b></p>" + "`r`n`r`n" + $detail.Context + "`r`n`r`n" `
+                    + "<p><b>Suggested Actions</b></p>" + "`r`n`r`n" + $detail.SuggestedActions + "`r`n`r`n" `
+                    + "<p><b>Learn More</b></p>" + "`r`n`r`n" + $detail.LearnMore
+                    
+                    $recDescription = $recDescription -replace ' ',' '
+                    $recDescription = $recDescription -replace '“','"' -replace '”','"'
+
+                    $_.Description = $recDescription
+
+                    break
+                }
+            }           
+        }
+
+    $assessment = @{
+        name = $DevOpsTagName
+        reportingCategories = $reportingCategories
+        recommendations = $devOpsList
+    }
+
+    return $assessment
+}
 function Import-Assessment {
 
     $content = Get-Content $AssessmentCsvPath
@@ -346,6 +420,100 @@ param (
 }
 
 #Loop through DevOps and add Features for every recommendation in the csv
+#Updated function to process import of items for non-Well-Architected assessments
+function Add-WorkItemsAdoOther
+{
+    param (
+        $settings,
+        $assessment
+    )
+
+    if($assessment.recommendations)
+    {
+        Write-Host "Fetching existing DevOps Work Items"
+
+        $existingWorkItems = Get-WorkItemsAdo -settings $settings |
+            ForEach-Object {
+                @{Title = $_.fields.'System.Title'; Tags = $_.fields.'System.Tags'.Split(';')}
+            }
+
+        foreach($item in $assessment.recommendations)
+        {
+            try
+            {
+                $duplicate = $false
+
+                #Check if exists by ID or Title Name
+                if($null -ne $existingWorkItems)
+                {
+                    $duplicateItem = $existingWorkItems | Where-Object {$_.Title -eq $item.'Link-Text'}
+
+                    if ($null -ne $duplicateItem) {
+                        if ($duplicateItem.Tags.Contains($item.ReportingCategory)) {
+                            $duplicate = $true                            
+                        }
+                    }
+                }
+
+                if ($duplicate -eq $true)
+                {
+                    
+                    Write-Host "Skipping Duplicate Work Item: $($item.'Link-Text')"
+                }
+                else
+                {
+                    #IF NOT EXISTS
+                    #Add Relationship
+                    $url = $assessment.reportingCategories[$item.ReportingCategory]
+                    $linkedItem = '{"rel": "System.LinkTypes.Hierarchy-Reverse", "url": "EPICURLPLACEHOLDER", "attributes": {"comment": "Making a new link for the dependency"}}'
+                    $linkedItem = $linkedItem.Replace("EPICURLPLACEHOLDER", $url)
+
+                    $Priority = "4"
+                    $Risk = "1 - High"
+                    if($item.Weight -gt 80)
+                    {
+                        $Priority = "1"
+                        $Risk = "1 - High"
+                    }
+                    elseif($item.Weight -gt 60)
+                    {
+                        $Priority = "2"
+                        $Risk = "1 - High"
+                    }
+                    elseif($item.Weight -gt 30)
+                    {
+                        $Priority = "3"
+                        $Risk = "2 - Medium"
+                    }
+                    else
+                    {
+                        $Priority = "4"
+                        $Risk = "3 - Low"
+                    }
+
+                    Add-NewIssueToDevOps `
+                        -settings $settings `
+                        -assessment $assessment `
+                        -Title $item.'Link-Text' `
+                        -Effort "0" `
+                        -Tags $item.ReportingCategory `
+                        -Priority $Priority `
+                        -BusinessValue $item.Weight `
+                        -TimeCriticality $item.Weight `
+                        -Risk $Risk `
+                        -Description $($item.Description | Out-String | ConvertTo-Json) `
+                        -linkedItem $linkedItem
+                }
+            }
+            catch
+            {
+                Write-Error "Could not insert item to devops: $($Error[0].Exception.ToString())"
+                exit
+            }
+        }
+    }
+}
+
 function Add-WorkItemsAdo
 {
     param (
@@ -446,7 +614,13 @@ function Add-WorkItemsAdo
 
 $adoSettings = Get-AdoSettings
 
-$assessment = Import-Assessment
+#Assessment Type Check for Well-Architected vs Other Assessments
+if ($assessmentTypeCheck.Contains("Well-Architected")) {
+    $assessment = Import-Assessment
+} else {
+    $assessment = Import-AssessmentOther
+}
+
 
 # We ask the end user if they are ready to put data into their ticket system.
 Write-Output "Assessment Name: $($assessment.name)" 
@@ -474,7 +648,14 @@ if ($newEpics.Count -gt 0) {
 }
 
 Write-Output "Attempting DevOps Import for all Issues"
-Add-WorkItemsAdo -settings $adoSettings -assessment $assessment
+
+
+#Assessment Type Check for Well-Architected vs Other Assessments
+if ($assessmentTypeCheck.Contains("Well-Architected")) {
+    Add-WorkItemsAdo -settings $adoSettings -assessment $assessment
+} else {
+    Add-WorkItemsAdoOther -settings $adoSettings -assessment $assessment
+}
 
 Write-Output ""
 Write-Output "Import Complete!"
