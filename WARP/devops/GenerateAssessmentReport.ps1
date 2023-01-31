@@ -245,10 +245,8 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
 
 
 #region Instantiate PowerPoint variables
-Add-type -AssemblyName "c:\Program Files\Microsoft Office\root\vfs\ProgramFilesX86\Microsoft Office\Office16\DCF\office.dll"
 $application = New-Object -ComObject powerpoint.application
-$application.visible = [Microsoft.Office.Core.MsoTriState]::msoTrue
-#$slideType = "microsoft.office.interop.powerpoint.ppSlideLayout" -as [type]
+$application.visible = -1 # [Microsoft.Office.Core.MsoTriState]::msoTrue
 $presentation = $application.Presentations.open($templatePresentation)
 
 if ($assessmentTypeCheck.contains("Well-Architected")) {
