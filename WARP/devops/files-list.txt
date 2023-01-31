@@ -1,7 +1,9 @@
 Azure_Well_Architected_Review_Sample.csv
-GenerateWAFReport.ps1
+CAF Category Descriptions.csv
+GenerateAssessmentReport.ps1
 PnP-DevOps.ps1
 PnP-Github.ps1
 PnP_PowerPointReport_Template.pptx
+PnP_PowerPointReport_Template - CloudAdoption.pptx
 WAF Category Descriptions.csv
 WAF.json
