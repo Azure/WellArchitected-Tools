@@ -87,12 +87,14 @@ There are four sections to this document:
     Downloading from: https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops
     We will get these files:
        Azure_Well_Architected_Review_Sample.csv
-       GenerateWAFReport.ps1
+       CAF Category Descriptions.csv
+       GenerateAssessmentReport.ps1
        PnP-DevOps.ps1
        PnP-Github.ps1
        PnP_PowerPointReport_Template.pptx
+       PnP_PowerPointReport_Template - CloudAdoption.pptx
        WAF Category Descriptions.csv
-       WASA.json
+       WAF.json
     ```
 
 ## Reporting
@@ -106,10 +108,10 @@ There are four sections to this document:
 1. Run the following command in the PowerShell terminal and select the CSV file you wish to use:
 
     ```powershell
-    .\GenerateWAFReport.ps1 
+    .\GenerateAssessmentReport.ps1 
     ```
 
-    **NOTE:** A new PowerPoint file will be created in the directory with name in the format of: `PnP_PowerPointReport_Template_mmm-dd-yyyy hh.mm.ss.pptx`
+    **NOTE:** A new PowerPoint file will be created in the directory with name in the format of: `WAF-Review-yyyy-MM-dd-HHmm.pptx`
 
 1. Examine this PowerPoint file for auto-generated slides after slide 8.
 
