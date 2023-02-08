@@ -1,28 +1,42 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param (
         # Indicates CSV file for input
         [Parameter()][string]
-    $ContentFile,
+    $ContentFile ,
 
     # Minimum level for inclusion in summary (defaults to High)
         [Parameter()][int]
-    $MinimumReportLevel = 65   ,
+    $MinimumReportLevel = 65 ,
 
     # Show Top N Recommendations Per Slide (default 8)
     [Parameter()][int]
-    $ShowTop = 8   
+    $ShowTop = 8 ,
+
+    [Parameter()]
+    [switch] $CloudAdoption
 
 )
 <# Instructions to use this script
 
-1. Set the workingDirectory value in the script to a folder path that includes the scripts, templates and the downloaded csv file from PnP
-2. Set the right csv file name on $content value and point it to the downloaded csv file path
-3. Ensure the powerpoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
-4. Once the script is run, close the powershell window and a timestamped PowerPoint report and a subset csv file will be created on the working directory
-5. Use these reports to represent and edit your findings for the WAF Engagement
-6. Known issues 
-    a. Pillar scores may not reflect accurately if the ordering in the csv is jumbled. Please adjust lines 41-53 in case the score representations for the pillars are not accurate
-    b. If the hyperlinks are not being published accurately, ensure that the csv file doesnt have any multi-sentence recommendations under Link-Text field
+From the directory in which you've downloaded the scripts, templates and csv file from the PnP survey (mycontent.csv)
+
+For a WAF Assessment report:
+
+    .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv
+
+For a CASR report:
+
+    .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -CloudAdoption
+
+Ensure the powerpoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
+
+Once the script is run, close the powershell window and a timestamped PowerPoint report and a subset csv file will be created on the working directory
+
+Use these reports to represent and edit your findings for the WAF Engagement
+
+Known issues 
+  a. Pillar scores may not reflect accurately if the ordering in the csv is jumbled. Please adjust lines 41-53 in case the score representations for the pillars are not accurate
+  b. If the hyperlinks are not being published accurately, ensure that the csv file doesnt have any multi-sentence recommendations under Link-Text field
 
 #>
 #Get the working directory from the script
@@ -72,13 +86,24 @@ catch{
     exit
 }
 
-$assessmentTypeCheck = "";
+$assessmentTypeCheck = ""
 
 #$inputfilename = Split-Path $inputfile -leaf
 $assessmentTypeCheck = ($content | Select-Object -First 1)
-#region Validate input values
+
+# initial fix for wrong report type selection
+if($assessmentTypeCheck.contains("Cloud Adoption") ){
+    write-host "Detected Cloud Adoption Security Review from CSV title row"
+    $CloudAdoption = $true
+}
+if(!$CloudAdoption){
+    write-host "Well-Architected Review selected - use -CloudAdoption switch if incorrect."
+    $assessmentTypeCheck = "Well-Architected"
+}
+
+
 if ($assessmentTypeCheck.contains("Well-Architected")) {
-    #Write-Host "WAF!"
+    Write-host "Producing Well Architected report..."
     $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template.pptx"
     $title = "Well-Architected [pillar] Assessment" # Don't edit this - it's used when multiple Pillars are included.
     $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
@@ -102,7 +127,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         exit
     }
 } else {
-    #Write-Host "CASR!"
+    Write-host "Producing Cloud Adoption Security Review report..."
     $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - CloudAdoption.pptx"
     $title = "Cloud Adoption Security Review"
     $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
