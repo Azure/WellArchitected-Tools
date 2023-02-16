@@ -579,7 +579,7 @@ else { #Assessment type is NOT Well-Architected
 
         $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $category
         $newDetailSlide.Shapes[3].TextFrame.TextRange.Text = $categoryScore.ToString("#")
-        [Single]$detailBarScore = $categoryScore * 2.48 + 38
+        [Double]$detailBarScore = $categoryScore * 2.48 + 38
         $newDetailSlide.Shapes[12].Left = $detailBarScore
         $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
         $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
