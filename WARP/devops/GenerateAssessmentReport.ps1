@@ -1,3 +1,59 @@
+<#
+.SYNOPSIS
+    Takes output from the Well-Architected Review Assessment website and produces a PowerPoint presentation incorporating the findings.
+    Also support the Cloud Adoption Security Review Assessment.
+    https://learn.microsoft.com/en-us/assessments/azure-architecture-review/
+    
+.DESCRIPTION
+    The Well-Architected Review site provides a self-Assessment tool. This might be used for self-assessment, or run as part of an Assessment performed by Microsoft to help recommend improvements.
+
+.PARAMETER ContentFile
+    Exported CSV file from the Well-Architected Review file. Supports relative paths.
+
+.PARAMETER CloudAdoption
+    If set, indicates the Cloud Adoption Security Review format should be used. If not set, Well-Architected is assumed.
+    
+.PARAMETER MinimumReportLevel
+    The level above which a finding is considered high severity, By convention, scores up to 32 are low, 65 medium, and 66+ high.
+
+.PARAMETER ShowTop
+    How many recommendations to try to fit on a slide. 8 is default.
+
+.PARAMETER NoSmoke
+    This parameter doesn't exist, and whomever told you about it was pulling your leg.
+
+.INPUTS
+    ContentFile should be a CSV-formatted Well-Architected Assessment export
+
+.OUTPUTS
+    PowerPoint Presentation - WAF-Review-2023-16-1500.pptx
+    CSV artifact suitable for use with the DevOps/GitHub import scripts
+
+.EXAMPLE
+    .\generateAssessmentReport.ps1  
+    
+    If no -ContentFile is specified, a file browser dialog box will be shown and the file may be selected.
+    
+    Generates a PPTX report from a Well-Architected Review site exported CSV.
+
+.EXAMPLE
+    .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv    
+    
+    Generates a PPTX report from a CASR CSV
+        
+.EXAMPLE
+    .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -CloudAdoption    
+    
+    If the title doesn't identify the report type correctly, you can force the decision with -CloudAdoption
+
+.NOTES
+    PowerPoint needs to be installed to create a PPTX.
+    The CSV output is filtered when using WAF to work around some data issues - only nominated pillar findings will be processed.
+    The Assessment type is attemptedly guessed from the title on the input CSV. If it can't be guessed, WAF is assumed.
+
+.LINK
+    https://github.com/Azure/WellArchitected-Tools/
+#>
 [CmdletBinding()]
 param (
     # Indicates CSV file for input
@@ -98,25 +154,96 @@ if (!$CloudAdoption) {
     write-host "Well-Architected Review selected - use -CloudAdoption switch if incorrect."
     $assessmentTypeCheck = "Well-Architected"
 }
+$reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
+$localReportDate = Get-Date -Format g
 
+#region establish pillars and score from top of report
+$overallScore = ""
+$costScore = ""
+$operationsScore = ""
+$performanceScore = ""
+$reliabilityScore = ""
+$securityScore = ""
+$overallScoreDescription = ""
+
+$filteredPillars = @()
 
 if ($assessmentTypeCheck.contains("Well-Architected")) {
-    Write-host "Producing Well Architected report..."
+    for ($i = 3; $i -le 8; $i++) {
+        #write-Debug "Line: $($Content[$i])"
+        if ($Content[$i].Contains("overall")) {
+            $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+        }
+        if ($Content[$i].Contains("Cost Optimization")) {
+            $costScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Cost Optimization"
+        }
+        if ($Content[$i].Contains("Reliability")) {
+            $reliabilityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Reliability"
+        }
+        if ($Content[$i].Contains("Operational Excellence")) {
+            $operationsScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Operational Excellence"
+        }
+        if ($Content[$i].Contains("Performance Efficiency")) {
+            $performanceScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Performance Efficiency"
+        }
+        if ($Content[$i].Contains("Security")) {
+            $securityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Security"
+        }
+        if ($Content[$i].Equals(",,,,,")) {
+            #End early if not all pillars assessed
+            Break
+        }
+    }
+}
+else {
+    $i = 3
+    if ($Content[$i].Contains("overall")) {
+        $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+        $overallScoreDescription = $Content[$i].Split(',')[1]
+    }
+}
+#endregion
+
+if ($assessmentTypeCheck.contains("Well-Architected")) {
+    Write-host "Producing Well Architected report from $inputFile"
     $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template.pptx"
     $title = "Well-Architected [pillar] Assessment" # Don't edit this - it's used when multiple Pillars are included.
-    $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
-    $localReportDate = Get-Date -Format g
     try {
-        $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note"
+        $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context"
+    }
+    catch{
+        Write-host "That appears not to be a content file. Please use only content from the Well-Architected Assessment site."
+    }
+    try{
         #Write-Debug "Tablestart: $tablestart"
         $EndStringIdentifier = $content | Where-Object { $_.Contains("--,,") } | Select-Object -Unique -First 1
         #Write-Debug "EndStringIdentifier: $EndStringIdentifier"
         $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
         #Write-Debug "Tableend: $tableend"
         $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
-        $data = Import-Csv -Path "$workingDirectory\$reportDate.csv"
+        $importdata = Import-Csv -Path "$workingDirectory\$reportDate.csv"
+
+        #region Clean the uncategorized data
+        #if ($importdata.PSobject.Properties.Name -contains "ReportingCategory") {
+        
+            foreach ($lineData in $importdata) {
+                
+                if (!$lineData.ReportingCategory) {
+                    $lineData.ReportingCategory = "Uncategorized"
+                }
+            }
+        #}
+        #endregion
+        $data = $importdata | where {$_.Category -in $filteredPillars}
+        $data | Export-Csv -UseQuotes Never "$workingDirectory\$reportDate.csv" 
         $data | % { $_.Weight = [int]$_.Weight }
         $pillars = $data.Category | Select-Object -Unique
+        Write-host -Debug $pillars
     }
     catch {
         Write-Host "Unable to parse the content file."
@@ -129,8 +256,6 @@ else {
     Write-host "Producing Cloud Adoption Security Review report..."
     $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - CloudAdoption.pptx"
     $title = "Cloud Adoption Security Review"
-    $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
-    $localReportDate = Get-Date -Format g
     try {
         $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note"
         #Write-Debug "Tablestart: $tablestart"
@@ -201,58 +326,6 @@ function Get-PillarInfo($pillar) {
         return [pscustomobject]@{"Pillar" = $pillar; "Score" = $securityScore; "Description" = $securityDescription; "ScoreDescription" = $SecurityScoreDescription }
     }
 }
-
-
-$overallScore = ""
-$costScore = ""
-$operationsScore = ""
-$performanceScore = ""
-$reliabilityScore = ""
-$securityScore = ""
-$overallScoreDescription = ""
-
-$filteredPillars = @()
-
-if ($assessmentTypeCheck.contains("Well-Architected")) {
-    for ($i = 3; $i -le 8; $i++) {
-        #write-Debug "Line: $($Content[$i])"
-        if ($Content[$i].Contains("overall")) {
-            $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-        }
-        if ($Content[$i].Contains("Cost Optimization")) {
-            $costScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Cost Optimization"
-        }
-        if ($Content[$i].Contains("Reliability")) {
-            $reliabilityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Reliability"
-        }
-        if ($Content[$i].Contains("Operational Excellence")) {
-            $operationsScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Operational Excellence"
-        }
-        if ($Content[$i].Contains("Performance Efficiency")) {
-            $performanceScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Performance Efficiency"
-        }
-        if ($Content[$i].Contains("Security")) {
-            $securityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Security"
-        }
-        if ($Content[$i].Equals(",,,,,")) {
-            #End early if not all pillars assessed
-            Break
-        }
-    }
-}
-else {
-    $i = 3
-    if ($Content[$i].Contains("overall")) {
-        $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-        $overallScoreDescription = $Content[$i].Split(',')[1]
-    }
-}
-
 #endregion
 
 #region Instantiate PowerPoint variables
@@ -276,18 +349,8 @@ else {
 
 #endregion
 
-#region Clean the uncategorized data
 
-if ($data.PSobject.Properties.Name -contains "ReportingCategory") {
-    foreach ($lineData in $data) {
-        
-        if (!$lineData.ReportingCategory) {
-            $lineData.ReportingCategory = "Uncategorized"
-        }
-    }
-}
 
-#endregion
 if ($assessmentTypeCheck.contains("Well-Architected")) {
 
     foreach ($pillar in $filteredpillars) {
@@ -296,7 +359,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         #Write-host -Debug $data
 
         $pillarInfo = Get-PillarInfo -pillar $pillar
-        #Write-host -Debug "PILLAR INFO: $pillarInfo"
+        Write-host -Debug "PILLAR INFO: $pillarInfo"
         # Edit title & date on slide 1
         $slideTitle = $title.Replace("[pillar]", $pillar) #,$pillar.substring(0,1).toupper()+$pillar.substring(1).tolower()) #lowercase only here?
         $newTitleSlide = $titleSlide.Duplicate()
@@ -311,7 +374,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         $newSummarySlide.MoveTo($presentation.Slides.Count)
         $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
         $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
-        [Single]$summBarScore = [int]$pillarInfo.Score * 2.47 + 56
+        [Double]$summBarScore = [int]$pillarInfo.Score * 2.47 + 56
         $newSummarySlide.Shapes[11].Left = $summBarScore
 
         $CategoriesList = New-Object System.Collections.ArrayList
@@ -324,7 +387,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         }
 
         $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
-
+        write-host -Debug $CategoriesList
         $counter = 13 #Shape count for the slide to start adding scores
         $categoryCounter = 0
         $areaIconX = 378.1129
@@ -393,7 +456,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
 
             $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $category
             $newDetailSlide.Shapes[3].TextFrame.TextRange.Text = $categoryScore.ToString("#")
-            [Single]$detailBarScore = $categoryScore * 2.48 + 38
+            [Double]$detailBarScore = $categoryScore * 2.48 + 38
             $newDetailSlide.Shapes[12].Left = $detailBarScore
             $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
             $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
