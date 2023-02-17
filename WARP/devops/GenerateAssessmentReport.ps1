@@ -494,7 +494,7 @@ else { #Assessment type is NOT Well-Architected
     $newSummarySlide.MoveTo($presentation.Slides.Count)
     $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $ScoreText
     $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $otherAssessmentDescription
-    [Single]$summBarScore = [int]$ScoreText * 2.47 + 56
+    [Double]$summBarScore = [int]$ScoreText * 2.47 + 56
     $newSummarySlide.Shapes[11].Left = $summBarScore
 
 
