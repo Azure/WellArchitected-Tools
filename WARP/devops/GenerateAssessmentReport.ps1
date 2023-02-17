@@ -240,7 +240,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         #}
         #endregion
         $data = $importdata | where {$_.Category -in $filteredPillars}
-        $data | Export-Csv -UseQuotes Never "$workingDirectory\$reportDate.csv" 
+        $data | Export-Csv -UseQuotes AsNeeded "$workingDirectory\$reportDate.csv" 
         $data | % { $_.Weight = [int]$_.Weight }
         $pillars = $data.Category | Select-Object -Unique
         Write-host -Debug $pillars
