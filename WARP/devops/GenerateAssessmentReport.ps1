@@ -37,9 +37,11 @@
     Generates a PPTX report from a Well-Architected Review site exported CSV.
 
 .EXAMPLE
-    .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv    
+    .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -ShowTop 9
     
     Generates a PPTX report from a CASR CSV
+    
+    Tries to include the top 9 results of any category (which probably won't fit by default, so plan to reformat things)
         
 .EXAMPLE
     .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -CloudAdoption    
@@ -66,7 +68,7 @@ param (
 
     # Show Top N Recommendations Per Slide (default 8)
     [Parameter()][int]
-    $ShowTop = 8 ,
+    $ShowTop = 6 ,
 
     [Parameter()]
     [switch] $CloudAdoption
