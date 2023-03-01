@@ -1,11 +1,11 @@
 param(    
     [Parameter()][string]
-    $BranchName = "main"
+    $Branch = "main"
     )
 #This script will download a list of files from the proper location to the directory it is running from
 
 #This is the base URL for downloads. Base URL cannot end with a /
-$baseURL = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/$BranchName/WARP/devops"
+$baseURL = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/$Branch/WARP/devops"
 
 $workingDirectory = (Get-Location).Path
 Write-Host "Working Directory: $workingDirectory"
