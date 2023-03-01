@@ -86,15 +86,15 @@ There are four sections to this document:
     Working Directory: C:\Users\cae\warp
     Downloading from: https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops
     We will get these files:
-       Azure_Well_Architected_Review_Sample.csv
-       CAF Category Descriptions.csv
-       GenerateAssessmentReport.ps1
-       PnP-DevOps.ps1
-       PnP-Github.ps1
-       PnP_PowerPointReport_Template.pptx
-       PnP_PowerPointReport_Template - CloudAdoption.pptx
-       WAF Category Descriptions.csv
-       WAF.json
+        Azure_Well_Architected_Review_Sample.csv
+        CAF Category Descriptions.csv
+        GenerateAssessmentReport.ps1
+        PnP-DevOps.ps1
+        PnP-Github.ps1
+        PnP_PowerPointReport_Template.pptx
+        PnP_PowerPointReport_Template - CloudAdoption.pptx
+        WAF Category Descriptions.csv
+        WAF.json
     ```
 
 ## Reporting
