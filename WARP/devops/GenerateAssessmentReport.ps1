@@ -1,3 +1,4 @@
+#requires -Version 7
 <#
 .SYNOPSIS
     Takes output from the Well-Architected Review Assessment website and produces a PowerPoint presentation incorporating the findings.
@@ -248,9 +249,11 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         Write-host -Debug $pillars
     }
     catch {
+        catch {
         Write-Host "Unable to parse the content file."
         Write-Host "Please ensure all input files are in the correct format and aren't open in Excel or another editor which locks the file."
-        Write-Error -Message "There was a problem opening or parsing the content file ($inputfile)."
+        Write-Host "--"
+        Write-Host $_
         exit
     }
 }
@@ -273,7 +276,8 @@ else {
     catch {
         Write-Host "Unable to parse the content file."
         Write-Host "Please ensure all input files are in the correct format and aren't open in Excel or another editor which locks the file."
-        Write-Error -Message "There was a problem opening or parsing the content file ($inputfile)."
+        Write-Host "--"
+        Write-Host $_
         exit
     }
 }
@@ -361,7 +365,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         #Write-host -Debug $data
 
         $pillarInfo = Get-PillarInfo -pillar $pillar
-        Write-host -Debug "PILLAR INFO: $pillarInfo"
+        # Write-host -Debug "PILLAR INFO: $pillarInfo"
         # Edit title & date on slide 1
         $slideTitle = $title.Replace("[pillar]", $pillar) #,$pillar.substring(0,1).toupper()+$pillar.substring(1).tolower()) #lowercase only here?
         $newTitleSlide = $titleSlide.Duplicate()
