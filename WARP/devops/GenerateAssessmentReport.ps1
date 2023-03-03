@@ -1,3 +1,4 @@
+#requires -Version 7
 <#
 .SYNOPSIS
     Takes output from the Well-Architected Review Assessment website and produces a PowerPoint presentation incorporating the findings.
