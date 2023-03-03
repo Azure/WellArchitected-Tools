@@ -249,9 +249,11 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         Write-host -Debug $pillars
     }
     catch {
+        catch {
         Write-Host "Unable to parse the content file."
         Write-Host "Please ensure all input files are in the correct format and aren't open in Excel or another editor which locks the file."
-        Write-Error -Message "There was a problem opening or parsing the content file ($inputfile)."
+        Write-Host "--"
+        Write-Host $_
         exit
     }
 }
@@ -274,7 +276,8 @@ else {
     catch {
         Write-Host "Unable to parse the content file."
         Write-Host "Please ensure all input files are in the correct format and aren't open in Excel or another editor which locks the file."
-        Write-Error -Message "There was a problem opening or parsing the content file ($inputfile)."
+        Write-Host "--"
+        Write-Host $_
         exit
     }
 }
