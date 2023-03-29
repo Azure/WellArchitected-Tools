@@ -89,11 +89,13 @@ There are four sections to this document:
         Azure_Well_Architected_Review_Sample.csv
         CAF Category Descriptions.csv
         GenerateAssessmentReport.ps1
+        GenerateDCAReport.ps1 
         PnP-DevOps.ps1
         PnP-Github.ps1
         PnP_PowerPointReport_Template.pptx
         PnP_PowerPointReport_Template - CloudAdoption.pptx
         WAF Category Descriptions.csv
+        DOCACategoryDescriptions.csv
         WAF.json
     ```
 
@@ -104,7 +106,8 @@ There are four sections to this document:
 1. Copy the exported CSV from a [Microsoft Azure DevOps Capability Assessment Review](https://docs.microsoft.com/assessments/?mode=pre-assessment) into the working directory created above.
 
     **NOTE:** A sample export has been included with this tooling: Azure\_Well\_Architected\_Review\_Sample.csv
-    **NOTE:** In the PowerShell Script GenerateDCAReport.ps1 Change the parameters for 1. $ContentFile 2. $WorkingDir 3. $templatePresentationFile 4. $DescriptionsCSVFile
+    
+    **NOTE:** Change the parameters in the PowerShell Script GenerateDCAReport.ps1  for: 1. $ContentFile 2. $WorkingDir 3. $templatePresentationFile 4. $DescriptionsCSVFile
 
 1. Run the following command in the PowerShell terminal and select the CSV file you wish to use:
 
