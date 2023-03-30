@@ -2,12 +2,11 @@
 param (
     # Indicates CSV file for input
         [Parameter()][string]
-    $ContentFile = "DevOps_Capability_Assessment_NBSimul.csv" ,
-    #"C:\**\DevOps_Capability_Assessment*.csv"  ,
+    $ContentFile = "C:\*\New\DevOps_Capability_Assessment_Jan_19_2023_9_24_21_AM.csv"  ,
 
     # Set working directory for output files
         [Parameter()][string]
-    $WorkingDir = "C:\**"  ,
+    $WorkingDir = "C:\*"  ,
 
     # Presentation filename to build from
         [Parameter()][string]
@@ -15,7 +14,7 @@ param (
 
     # Descriptions File
         [Parameter()][string]
-    $DescriptionsCSVFile = "C:\U*\DOCACategoryDescriptions.csv"  ,
+    $DescriptionsCSVFile = "C:\*\DOCACategoryDescriptions.csv"  ,
 
     # Minimum level for inclusion in summary (defaults to High)
         [Parameter()][int]
@@ -48,7 +47,7 @@ $title = "DevOps Capability Assessment for [pillar]" # Don't edit this - it's us
 $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
 $localReportDate = Get-Date -Format g
 #$tableStart = $content.IndexOf("Title,Description,Link-Text,Link,Priority,Category,Subcategory,Weight")
-$tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context")
+$tableStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note")
 $EndStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
 $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
 $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
