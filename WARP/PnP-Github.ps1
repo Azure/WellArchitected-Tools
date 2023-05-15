@@ -163,7 +163,7 @@ function Import-Assessment {
                     + "<p><b>Learn More</b></p>" + "`r`n`r`n" + $detail.LearnMore
                     
                     $recDescription = $recDescription -replace ' ',' '
-                    $recDescription = $recDescription -replace 'â€œ','"' -replace 'â€','"'
+                    $recDescription = $recDescription -replace '“','"' -replace '”','"'
 
                     $_.Description = $recDescription
 
