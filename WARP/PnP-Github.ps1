@@ -11,6 +11,9 @@
 .PARAMETER GithubrepoUri
     URI fo the Github repo
     
+.PARAMETER GithubAPIUri
+    URI fo the Github API
+    
 .PARAMETER AssessmentCsvPath
     .csv file from Well-Architected assessment export
 
@@ -35,6 +38,7 @@
 param (
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$GithubPersonalAccessToken,
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][uri]$GithubrepoUri,
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][uri]$GithubAPIUri,
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$GithubTagName,
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$AssessmentCsvPath
 )
@@ -94,6 +98,7 @@ function Get-GithubSettings {
         }
     $settings = @{
         uriBase = $uriBase
+        apiUri = $GithubAPIUri
         owner = $owner
         repository = $repository
         pat = $GithubPersonalAccessToken
@@ -158,7 +163,7 @@ function Import-Assessment {
                     + "<p><b>Learn More</b></p>" + "`r`n`r`n" + $detail.LearnMore
                     
                     $recDescription = $recDescription -replace ' ',' '
-                    $recDescription = $recDescription -replace '“','"' -replace '”','"'
+                    $recDescription = $recDescription -replace 'â€œ','"' -replace 'â€','"'
 
                     $_.Description = $recDescription
 
@@ -191,7 +196,7 @@ function Get-GithubIssues
         $settings
     )
     Write-Output "Fetching existing Github Issues"
-    $issuesuri  = "https://api.github.com/repos/" + $settings.owner + "/" + $settings.repository + "/issues?state=open"
+    $issuesuri  = "" + $settings.apiUri + "/repos/" + $settings.owner + "/" + $settings.repository + "/issues?state=open"
     $AllGithubIssues = Invoke-RestMethod $issuesuri -FollowRelLink -MaximumFollowRelLink 10 -Headers $settings.Headers -ResponseHeadersVariable responseHeaders
 
     $ratelimit = ($responseHeaders.'X-RateLimit-Remaining')
@@ -242,7 +247,7 @@ function Get-GithubMilestones
         $settings
     )
     Write-Output "Fetching existing Github milestones"
-    $milestoneuri = "https://api.github.com/repos/" + $settings.owner + "/" + $settings.repository + "/milestones"
+    $milestoneuri = "" + $settings.apiUri + "/repos/" + $settings.owner + "/" + $settings.repository + "/milestones"
 
     $AllGithubMilestones  = Invoke-RestMethod $milestoneuri -FollowRelLink -MaximumFollowRelLink 10 -Headers $settings.Headers -ResponseHeadersVariable responseHeaders
 
@@ -290,7 +295,7 @@ function Add-MilestoneGithub {
         description = ""
     } | ConvertTo-Json
         
-    $uri = "https://api.github.com/repos/" + $settings.owner + "/" + $settings.repository + "/milestones"
+    $uri = "" + $settings.apiUri + "/repos/" + $settings.owner + "/" + $settings.repository + "/milestones"
 
     try {
         if($AllMilestones.title.Contains($milestone)) {
@@ -333,7 +338,7 @@ function Create-GithubIssue {
             milestone = "$MilestoneID"
         } | ConvertTo-Json
 
-        $uri = "https://api.github.com/repos/" + $settings.owner + "/" + $settings.repository + "/issues"
+        $uri = "" + $settings.apiUri + "/repos/" + $settings.owner + "/" + $settings.repository + "/issues"
         write-host "Attempting to create a new Github Issue: $issuetitle"
         
         try {
