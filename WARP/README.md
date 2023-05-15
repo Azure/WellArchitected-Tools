@@ -211,13 +211,18 @@ There are four sections to this document:
     - Permissions should be *Full control of private repositories*.
     ![](_images/github_repo_perms.png)
 
+1. Identify your Github Edition REST API URI.
+
+    - depending on your GitHub Edition (Free, Enterprise, ...) the URI for GitHub REST API is different, see [docs](https://docs.github.com/en/rest/overview/resources-in-the-rest-api?apiVersion=2022-11-28#schema)
+
 1. Run the `PnP-Github.ps1` script from a command prompt: `./PnP-Github.ps1 -GithubPersonalAccessToken \`
-   `"GITHUB-PAT-TOKEN" -AssessmentCsvPath PATH-TO-CSV -GithubrepoUri "URI-FOR-GITHUB-DEPOT" -GithubTagName "ASSESSMENT_NAME"`
+   `"GITHUB-PAT-TOKEN" -AssessmentCsvPath PATH-TO-CSV -GithubrepoUri "URI-FOR-GITHUB-DEPOT" -GithubAPIUri "URI-FOR-GITHUB-REST-API" -GithubTagName "ASSESSMENT_NAME"`
 
     The flags are:
 
     * **-pat** The **Personal Access Token** from Github
     * **-uri** The URL for your **Project**
+    * **-apiuri** The API URL for your GitHub Edition (Free, Enterprise, ...)
     * **-csv** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://docs.microsoft.com/assessments/?mode=pre-assessment).
     * **-name** is used is used to tag the imported work items in ADO.
         * Organizations and teams can use these tags as  milestones to organize the work items across multiple assessments.
@@ -233,7 +238,7 @@ There are four sections to this document:
     Example command output:
 1. Example: `./PnP-Github.ps1 -GithubPersonalAccessToken "ghp_TjDjgAKBNK0R1VPDm1234567890" \`
 `-AssessmentCsvPath .\test-assessmentsmall.csv -GithubrepoUri "https://github.com/WAF-USER/contoso" \`
-` -GithubTagName "WAF FEB 2021"`
+` -GithubAPIUri "https://hostname/api_path" -GithubTagName "WAF FEB 2021"`
 
 1.  You should see **Milestones** and **Issues** populated with data.
 ![](_images/github_repo_backlog.png)
