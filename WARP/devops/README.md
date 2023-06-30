@@ -86,13 +86,15 @@ There are four sections to this document:
     Working Directory: C:\Users\cae\warp
     Downloading from: https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops
     We will get these files:
-       Azure_Well_Architected_Review_Sample.csv
-       GenerateWAFReport.ps1
-       PnP-DevOps.ps1
-       PnP-Github.ps1
-       PnP_PowerPointReport_Template.pptx
-       WAF Category Descriptions.csv
-       WASA.json
+        Azure_Well_Architected_Review_Sample.csv
+        CAF Category Descriptions.csv
+        GenerateAssessmentReport.ps1
+        PnP-DevOps.ps1
+        PnP-Github.ps1
+        PnP_PowerPointReport_Template.pptx
+        PnP_PowerPointReport_Template - CloudAdoption.pptx
+        WAF Category Descriptions.csv
+        WAF.json
     ```
 
 ## Reporting
@@ -106,10 +108,10 @@ There are four sections to this document:
 1. Run the following command in the PowerShell terminal and select the CSV file you wish to use:
 
     ```powershell
-    .\GenerateWAFReport.ps1 
+    .\GenerateAssessmentReport.ps1 
     ```
 
-    **NOTE:** A new PowerPoint file will be created in the directory with name in the format of: `PnP_PowerPointReport_Template_mmm-dd-yyyy hh.mm.ss.pptx`
+    **NOTE:** A new PowerPoint file will be created in the directory with name in the format of: `WAF-Review-yyyy-MM-dd-HHmm.pptx`
 
 1. Examine this PowerPoint file for auto-generated slides after slide 8.
 
@@ -126,7 +128,7 @@ There are four sections to this document:
 1. Navigate to the **Project** where you want to import the recommendations:
     - If a project does not exist in the Azure DevOps Organization, then create a new project using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page&preserve-view=true).
 
-    **IMPORTANT:** If you are using an existing **Project**, you will need to ensure that the [process](https://docs.microsoft.com/en-us/azure/devops/organizations/settings/work/inheritance-process-model?view=azure-devops&tabs=agile-process) is set to **Agile**. When you create a new project, ensure that the **Work item process** is set to **Agile** under **Advanced**.
+    **IMPORTANT:** If you are using an existing **Project**, you will need to ensure that the [process](https://docs.microsoft.com/en-us/azure/devops/organizations/settings/work/inheritance-process-model?view=azure-devops&tabs=agile-process) is set to **Agile**. When you create a new project, ensure that the **Work item process** is set to **Agile** under **Advanced**. If the project is not Agile, you can change the DevOpsWorkItemType parameter to fit other work item proceses. Valid work items types are Feature or Issue.
 
     ![New Project](_images/new_project.png)
 
@@ -143,15 +145,16 @@ There are four sections to this document:
 1. Run the following command in the PowerShell terminal.
 
     ```powershell
-    .\PnP-DevOps.ps1 -csv PATH_TO_CSV -pat PAT_FROM_ADO -uri "PROJECT_URL" -name "ASSESSMENT_NAME"
+    .\PnP-DevOps.ps1 -DevOpsPersonalAccessToken PAT_FROM_ADO -DevOpsProjectUri "PROJECT_URL" -DevOpsTagName -DevOpsWorkItemType { [Feature],[Issue] } "ASSESSMENT_NAME" -AssessmentCsvPath PATH_TO_CSV
     ```
 
     The flags are:
 
-    * **-pat** The **Personal Access Token** from ADO
-    * **-uri** The URL for your **Project**
-    * **-csv** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://docs.microsoft.com/assessments/?mode=pre-assessment).
-    * **-name** is used to tag the imported work items in ADO.
+    * **-DevOpsPersonalAccessToken** The **Personal Access Token** from ADO
+    * **-DevOpsProjectUri** The URL for your **Project**
+    * **-AssessmentCsvPath** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://docs.microsoft.com/assessments/?mode=pre-assessment).
+    * **-DevOpsWorkItemType** Set the work item type for the project. Valid options are Feature or Issue.
+    * **-DevOpsTagName** is used to tag the imported work items in ADO.
         * Organizations and teams can use these tags as  milestones to organize the work items across multiple assessments. 
         * For example:
 
@@ -160,15 +163,14 @@ There are four sections to this document:
             After a few sprints, the team can perform another Well-Architected Review. The import the resultant CSV into their DevOps tooling. This import would be named "Milestone 2".
 
             Note: Assessments and imports should focus only on a single workload. There is no method to differentiate between workloads with these tools.
-    
 
     Example command output:
 
     ```powershell
     PS C:\Users\cae\warp>.\PnP-DevOps.ps1 -csv .\Azure_Well_Architected_Review_Sample.csv `
-    >> -pat xxxxxxxxxxxxxxxxx `
-    >> -uri https://dev.azure.com/contoso/WARP_Import `
-    >> -name "WAF-Assessment-202201"
+    >> -DevOpsPersonalAccessToken xxxxxxxxxxxxxxxxx `
+    >> -DevOpsProjectUri https://dev.azure.com/contoso/WARP_Import `
+    >> -DevOpsTagName "WAF-Assessment-202201"
     Assessment Name: WAF-Assessment-202201
     URI Base: https://dev.azure.com/contoso/WARP_Import/
     Number of Recommendations to import : 175
@@ -194,8 +196,7 @@ There are four sections to this document:
     ![Backlogs Scope](_images/backlog_settings3.png)
     **NOTE:** If **Epics** do not appear in the drop down after changing the settings, refreshing the page should fix that.
 
-
-1. You should now see the **Backlogs** populated with **Epics** and **Features**:
+1. You should now see the **Backlogs** populated with **Epics** and **Features** or **Issues**:
 
     ![Backlogs](_images/backlog_settings4.png)
 
@@ -210,8 +211,8 @@ There are four sections to this document:
     - Permissions should be *Full control of private repositories*.
     ![](_images/github_repo_perms.png)
 
-1. Run the `PnP-Github.ps1` script from a command prompt: `./PnP-Github.ps1 -pat \`
-   `"GITHUB-PAT-TOKEN" -csv PATH-TO-CSV -uri "URI-FOR-GITHUB-DEPOT" -name "ASSESSMENT_NAME"`
+1. Run the `PnP-Github.ps1` script from a command prompt: `./PnP-Github.ps1 -GithubPersonalAccessToken \`
+   `"GITHUB-PAT-TOKEN" -AssessmentCsvPath PATH-TO-CSV -GithubrepoUri "URI-FOR-GITHUB-DEPOT" -GithubTagName "ASSESSMENT_NAME"`
 
     The flags are:
 
@@ -219,7 +220,7 @@ There are four sections to this document:
     * **-uri** The URL for your **Project**
     * **-csv** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://docs.microsoft.com/assessments/?mode=pre-assessment).
     * **-name** is used is used to tag the imported work items in ADO.
-        * Organizations and teams can use these tags as  milestones to organize the work items across multiple assessments. 
+        * Organizations and teams can use these tags as  milestones to organize the work items across multiple assessments.
         * For example:
 
             A team performs a Well-Architected Review and imports the resultant CSV into their DevOps tooling. The team names this import "Milestone 1" and all work items imported are tagged with the name "Milestone 1"
@@ -230,9 +231,9 @@ There are four sections to this document:
     
 
     Example command output:
-1. Example: `./PnP-Github.ps1 -pat "ghp_TjDjgAKBNK0R1VPDm1234567890" \`
-`-csv .\test-assessmentsmall.csv -uri "https://github.com/WAF-USER/contoso" \`
-` -name "WAF FEB 2021"`
+1. Example: `./PnP-Github.ps1 -GithubPersonalAccessToken "ghp_TjDjgAKBNK0R1VPDm1234567890" \`
+`-AssessmentCsvPath .\test-assessmentsmall.csv -GithubrepoUri "https://github.com/WAF-USER/contoso" \`
+` -GithubTagName "WAF FEB 2021"`
 
 1.  You should see **Milestones** and **Issues** populated with data.
 ![](_images/github_repo_backlog.png)
