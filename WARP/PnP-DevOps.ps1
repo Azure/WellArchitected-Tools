@@ -20,6 +20,9 @@
 .PARAMETER DevOpsWorkItemType
     The type of DevOps work item to create and link to the Epics. Certain project types support certain work items. SCRUM(Feature), Agile(Feature & Issue), Basic(Issue)
 
+.PARAMETER WellArchitected
+    Indicates that the assessment is Well-Architected, even though the title does not include the words "well-architected". Full Description text will be looked up from the JSON file.
+
 .OUTPUTS
         Status message text
 
@@ -40,7 +43,8 @@ param (
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][uri]$DevOpsProjectUri,
     [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][string]$DevOpsTagName,
     [parameter(Mandatory=$true)][ValidateSet("Feature","Issue")][string]$DevOpsWorkItemType,
-    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$AssessmentCsvPath
+    [parameter(Mandatory=$true)][ValidateNotNullOrEmpty()][System.IO.FileInfo]$AssessmentCsvPath,
+    [parameter(Mandatory=$false)][Switch]$WellArchitected
 )
 
 $ErrorActionPreference = "break"
@@ -66,6 +70,9 @@ $content = Get-Content $AssessmentCsvPath
 
 #Capturing first line of csv file to later check for "Well-Architected" string
 $assessmentTypeCheck = ($content | Select-Object -First 1)
+if($WellArchitected){
+    $assessmentTypeCheck = "Well-Architected"
+}
 
 #Updated function to process import of items for non-Well-Architected assessments
 function Import-AssessmentOther {
