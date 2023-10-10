@@ -104,9 +104,6 @@ dist
 # TernJS port file
 .tern-port
 
-# Visual Studio Code
-.vscode
-
 #be nice to the MacOS users
 **/.DS_Store
 WARP/devops/keys copy.txt
