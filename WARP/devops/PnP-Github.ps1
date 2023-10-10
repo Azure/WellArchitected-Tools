@@ -80,7 +80,7 @@ function Github-Wait-Timer {
 
 #region Get settings for Github
 # Github expects to see an authorization token to perform anything interesting. Here we setup the authorization token as a header.
-# Example "Authorization: token ghp_16C7e42F292c6912E7710c838347Ae178B4a"
+# Example "Authorization: token ghp_xxxxxxxxxxxxxxxxxxxxxx"
 function Get-GithubSettings {
 
     #To reduce the amount of data entry our customers need to do at the command we derive the owner and repository from the URI given.
