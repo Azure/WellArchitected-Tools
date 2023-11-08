@@ -231,7 +231,7 @@ There are four sections to this document:
     
 
     Example command output:
-1. Example: `./PnP-Github.ps1 -GithubPersonalAccessToken "ghp_TjDjgAKBNK0R1VPDm1234567890" \`
+1. Example: `./PnP-Github.ps1 -GithubPersonalAccessToken "ghp_xxxxxxxxxxxxxxxxxxxxxx" \`
 `-AssessmentCsvPath .\test-assessmentsmall.csv -GithubrepoUri "https://github.com/WAF-USER/contoso" \`
 ` -GithubTagName "WAF FEB 2021"`
 
