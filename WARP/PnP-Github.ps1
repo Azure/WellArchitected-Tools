@@ -334,8 +334,6 @@ function Create-GithubIssue {
             milestone = "$MilestoneID"
         } | ConvertTo-Json
 
-        #Write-Debug -Verbose $body
-
         $uri = "https://api.github.com/repos/" + $settings.owner + "/" + $settings.repository + "/issues"
         write-host "Attempting to create a new Github Issue: $issuetitle"
         
