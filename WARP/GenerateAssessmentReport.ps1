@@ -22,8 +22,7 @@
     Use these reports to represent and edit your findings for the WAF Engagement
 
     Known issues 
-    a. Pillar scores may not reflect accurately if the ordering in the csv is jumbled. Please adjust lines 41-53 in case the score representations for the pillars are not accurate
-    b. If the hyperlinks are not being published accurately, ensure that the csv file doesnt have any multi-sentence recommendations under Link-Text field
+    - If the hyperlinks are not being published accurately, ensure that the csv file doesnt have any multi-sentence recommendations under Link-Text field
 
 
 .PARAMETER ContentFile
@@ -483,7 +482,6 @@ Function WellArchitectedAssessment
             $categoryDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq $pillar -and $_.Category.StartsWith($category) }).Description
             # Replacing the domain area (aka category) with the caption (aka new category) from the description file (if any)
             $categoryTitle = GetmappedReportingCategory -reportingCategrory $category -currentPillar $pillar
-            $temp = GetmappedReportingCategory -reportingCategrory $category.Category -currentPillar $pillar
 
             $y = $categoryDataCount
             $x = $ShowTop
