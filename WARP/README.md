@@ -94,14 +94,13 @@ There are four sections to this document:
         PnP_PowerPointReport_Template.pptx
         PnP_PowerPointReport_Template - CloudAdoption.pptx
         WAF Category Descriptions.csv
-        WAF.json
     ```
 
 ## Reporting
 
 ### Create a customer presentation PowerPoint deck using PowerShell
 
-1. Copy the exported CSV from a [Microsoft Azure Well-Architected Review](https://docs.microsoft.com/assessments/?mode=pre-assessment) into the working directory created above.
+1. Copy the exported CSV from a [Microsoft Azure Well-Architected Review](https://learn.microsoft.com/en-us/assessments/) into the working directory created above.
 
     **NOTE:** A sample export has been included with this tooling: Azure\_Well\_Architected\_Review\_Sample.csv
 
@@ -121,14 +120,14 @@ There are four sections to this document:
 
 1. Create or log into an Azure DevOps **Organization**:
 
-    - If an organization does not exist, follow these steps in this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/create-organization?view=azure-devops&preserve-view=true).
+    - If an organization does not exist, follow these steps in this [link](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/create-organization).
 
-    **IMPORTANT:** In Azure DevOps, under **Organization Settings - Overview**, verify that your organization is using the [new URL format](https://docs.microsoft.com/en-us/azure/devops/release-notes/2018/sep-10-azure-devops-launch#administration).
+    **IMPORTANT:** In Azure DevOps, under **Organization Settings - Overview**, verify that your organization is using the [new URL format](https://learn.microsoft.com/en-us/azure/devops/release-notes/2018/sep-10-azure-devops-launch#administration).
 
 1. Navigate to the **Project** where you want to import the recommendations:
-    - If a project does not exist in the Azure DevOps Organization, then create a new project using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/projects/create-project?view=azure-devops&tabs=preview-page&preserve-view=true).
+    - If a project does not exist in the Azure DevOps Organization, then create a new project using the steps in this [link](https://learn.microsoft.com/en-us/azure/devops/organizations/projects/create-project).
 
-    **IMPORTANT:** If you are using an existing **Project**, you will need to ensure that the [process](https://docs.microsoft.com/en-us/azure/devops/organizations/settings/work/inheritance-process-model?view=azure-devops&tabs=agile-process) is set to **Agile**. When you create a new project, ensure that the **Work item process** is set to **Agile** under **Advanced**. If the project is not Agile, you can change the DevOpsWorkItemType parameter to fit other work item proceses. Valid work items types are Feature or Issue.
+    **IMPORTANT:** If you are using an existing **Project**, you will need to ensure that the [process](https://learn.microsoft.com/en-us/azure/devops/organizations/settings/work/inheritance-process-model) is set to **Agile**. When you create a new project, ensure that the **Work item process** is set to **Agile** under **Advanced**. If the project is not Agile, you can change the DevOpsWorkItemType parameter to fit other work item proceses. Valid work items types are Feature or Issue.
 
     ![New Project](_images/new_project.png)
 
@@ -136,7 +135,7 @@ There are four sections to this document:
 
     ![Project URL](_images/project_url.png)
 
-1. Create or acquire an Azure DevOps **Personal Access Token** using the steps in this [link](https://docs.microsoft.com/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page&preserve-view=true).
+1. Create or acquire an Azure DevOps **Personal Access Token** using the steps in this [link](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate).
 
     - **IMPORTANT:** The **Personal Access Token** that you use or create must have **Read, write, & manage** access to **Work Items**
 
@@ -152,8 +151,6 @@ There are four sections to this document:
 
     * **-DevOpsPersonalAccessToken** The **Personal Access Token** from ADO
     * **-DevOpsProjectUri** The URL for your **Project**
-    * **-AssessmentCsvPath** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://docs.microsoft.com/assessments/?mode=pre-assessment).
-    * **-DevOpsWorkItemType** Set the work item type for the project. Valid options are Feature or Issue.
     * **-DevOpsTagName** is used to tag the imported work items in ADO.
         * Organizations and teams can use these tags as  milestones to organize the work items across multiple assessments. 
         * For example:
@@ -163,7 +160,10 @@ There are four sections to this document:
             After a few sprints, the team can perform another Well-Architected Review. The import the resultant CSV into their DevOps tooling. This import would be named "Milestone 2".
 
             Note: Assessments and imports should focus only on a single workload. There is no method to differentiate between workloads with these tools.
-
+    * **-DevOpsWorkItemType** Set the work item type for the project. Valid options are Feature or Issue.
+    * **-AssessmentCsvPath** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://learn.microsoft.com/en-us/assessments/).
+    
+    
     Example command output:
 
     ```powershell
@@ -216,24 +216,22 @@ There are four sections to this document:
 
     The flags are:
 
-    * **-pat** The **Personal Access Token** from Github
-    * **-uri** The URL for your **Project**
-    * **-csv** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://docs.microsoft.com/assessments/?mode=pre-assessment).
-    * **-name** is used is used to tag the imported work items in ADO.
-        * Organizations and teams can use these tags as  milestones to organize the work items across multiple assessments.
+    * **-GithubPersonalAccessToken** The **Personal Access Token** from Github
+    * **-GithubrepoUri** The URL for your **Project**
+    * **-AssessmentCsvPath** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://learn.microsoft.com/en-us/assessments/).
+    * **-GithubTagName** is used is used to tag the imported issues in GitHub.
+        * Organizations and teams can use these tags as  milestones to organize the issues (work items) across multiple assessments.
         * For example:
 
-            A team performs a Well-Architected Review and imports the resultant CSV into their DevOps tooling. The team names this import "Milestone 1" and all work items imported are tagged with the name "Milestone 1"
+            A team performs a Well-Architected Review and imports the resultant CSV into their GitHub repository. The team names this import "Milestone 1" and all issues (work items) imported are tagged with the name "Milestone 1"
             
-            After a few sprints, the team can perform another Well-Architected Review. The import the resultant CSV into their DevOps tooling. This import would be named "Milestone 2".
+            After a few sprints, the team can perform another Well-Architected Review. They import the resultant CSV into their GitHub repository. This import would be named "Milestone 2".
 
             Note: Assessments and imports should focus only on a single workload. There is no method to differentiate between workloads with these tools.
     
 
     Example command output:
-1. Example: `./PnP-Github.ps1 -GithubPersonalAccessToken "ghp_xxxxxxxxxxxxxxxxxxxxxx" \`
-`-AssessmentCsvPath .\test-assessmentsmall.csv -GithubrepoUri "https://github.com/WAF-USER/contoso" \`
-` -GithubTagName "WAF FEB 2021"`
+1. Example: `./PnP-Github.ps1 -GithubPersonalAccessToken xxxxxx -GithubrepoUri "https://github.com/contoso/WAF-Review" -GithubTagName WAF-Security  -AssessmentCsvPath .\Azure_Well_Architected_Review.csv`
 
 1.  You should see **Milestones** and **Issues** populated with data.
 ![](_images/github_repo_backlog.png)
