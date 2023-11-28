@@ -1,31 +1,32 @@
 <#
 .SYNOPSIS
-    Creates milestones and issues in a Github repository based on Well-Architected assessment findings .csv file.
+    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
     
 .DESCRIPTION
-    Creates milestones and issues in a Github repository based on Well-Architected assessment findings .csv file.
+    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
 
 .PARAMETER GithubPersonalAccessToken
-    Personal Access Token from Github
+    Personal Access Token from Github - find in personal menu (top right), Settings, Developer Settings, Tokens. Token needs Full Access to target Repo.
 
 .PARAMETER GithubrepoUri
-    URI fo the Github repo
+    URI of the Github repo
     
 .PARAMETER AssessmentCsvPath
-    .csv file from Well-Architected assessment export
+    .csv file exported from Well-Architected Assessment / Cloud Adoption Security Review
 
 .PARAMETER GithubTagName
-    Name of assessment
+    Name of assessment. Note tag cannot be longer than 50 characters. They will be truncated if longer.
 
 .OUTPUTS
     Status message text
 
 .EXAMPLE
-    PnP-Github -GithubPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -GithubrepoUri https://github.com/user/repo -GithubTagName WAF -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
-    Adds the items from the Well-Architected assessment .csv export to a Github repository as issues.
+    .\PnP-Github -GithubPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -GithubrepoUri https://github.com/user/repo -GithubTagName WAF -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
+    Adds items from a Well-Architected Assessment .csv export to a Github repository, as Issues with associated Milestones.
 
 .NOTES
-    Needs to be ran from local Github repo path so that the WAF.json file is available to merge into the assessment .csv export file.
+    Make sure 'WAF Category Descriptions.csv' is in the same directory as this script. It is used for well-architected assessments to map the old category names to the new category names 
+    (Run install-warptools.ps1 if you didn't already)
 
 .LINK
 
@@ -103,9 +104,43 @@ function Get-GithubSettings {
 }
 #endregion
 
+function GetMappedReportingCategory {
+    <#
+    .DESCRIPTION
+    This function takes an old category name as input and returns a new category name. The category name is used as the epic name in Azure DevOps.
+    It uses a mapping stored in a hashtable $categoryMapping to find and return the corresponding new category name.  $categoryMapping is build from WAF Category Description.csv
+    If the old category name does not exist in the mapping, the function returns the old category name.
+    #>    
+    param (
+        $reportingCategory
+    )
+
+    $newReportingCategory = if ($null -ne $categoryMapping -and $categoryMapping.ContainsKey($reportingCategory)) {  
+        $categoryMapping[$reportingCategory] # map the old category to the new category # map the old category to the new category
+    }
+    else {
+        $reportingCategory # no mapping found, keep the old category
+    }
+
+    return $newReportingCategory
+}  
+
+
 #region function Import-Assessment
 # We import the .csv file into memory after making a few housekeeping changes.
 function Import-Assessment {
+
+    $workingDirectory = (Get-Location).Path
+    [System.IO.FileInfo]$sourceScript = $PSCmdlet.MyInvocation.MyCommand.Source 
+    $workingDirectory = $sourceScript.DirectoryName
+
+    try {
+        $descriptionsFile = Import-Csv -Path "$workingDirectory\WAF Category Descriptions.csv"
+    }
+    catch {
+        Write-Error -Message "Unable to open $workingDirectory\WAF Category Descriptions.csv"
+        exit
+    }
 
     $content = Get-Content $AssessmentCsvPath
 
@@ -121,57 +156,40 @@ function Import-Assessment {
         Where-Object -Property ReportingCategory -eq "" | 
         ForEach-Object {$_.ReportingCategory = "Azure Advisor"}
 
-    # get the WASA.json file in an xplat method.
-    $workingDirectory = (Get-Location).Path
-    $WASAFile = Join-Path -Path $workingDirectory -ChildPath 'WAF.json'
-    $recommendationDetail = Get-Content $WASAFile | ConvertFrom-Json
 
     # Get unique list of ReportCategory column
-    # we will use these values as epics and milestones
+    # Map the existing assessment ReportCategory values to the new categories defined in the 'WAF Category Description.csv' file. The mappings are stored in the $categoryMapping hashtable.
+    # These mapped values will then be used as epics and milestones
     $reportingCategories = @{}
     $devOpsList | 
-        Select-Object -Property ReportingCategory -Unique | 
+        Select-Object -Property ReportingCategory, Category -Unique | 
         Sort-Object  -Property ReportingCategory |
         ForEach-Object { 
-            $reportingCategories[$_.ReportingCategory] = ""       
+
+            $currentReportingCategory = $_.ReportingCategory
+            $currentPillar = $_.Category
+            $categoryTitle = ($descriptionsFile | Where-Object { $_.Pillar -eq $currentPillar -and $_.Category.StartsWith($currentReportingCategory) }).Caption
+            if (-not $categoryTitle) {
+                $categoryTitle = $currentReportingCategory # Fallback to existing ReportingCategory if no mapping found
+            }
+            $categoryMapping[$currentReportingCategory] = $categoryTitle
+            $reportingCategories[$categoryTitle] = ""       
         }
 
-    # Add Decription and augment it using WAF.json data (if exists)
+    # Add Decription 
     $devOpsList | Add-Member -Name Description -MemberType NoteProperty -Value ""
 
     $devOpsList | 
         ForEach-Object { 
-
             $_.Description = "<a href=`"$($_.Link)`">$($_.'Link-Text')</a>"
-
-            foreach($detail in $recommendationDetail)
-            {
-                $detailName = $detail.Name.Trim('.')
-                $linkText = $_.'Link-Text'.Trim('.')
-
-                if(($detailName.Contains($linkText)))
-                {
-                    $recDescription = "<a href=`"$($_.Link)`">$($_.'Link-Text')</a>" + "`r`n`r`n" `
-                    + "<p><b>Why Consider This?</b></p>" + "`r`n`r`n" + $detail.WhyConsiderThis + "`r`n`r`n" `
-                    + "<p><b>Context</b></p>" + "`r`n`r`n" + $detail.Context + "`r`n`r`n" `
-                    + "<p><b>Suggested Actions</b></p>" + "`r`n`r`n" + $detail.SuggestedActions + "`r`n`r`n" `
-                    + "<p><b>Learn More</b></p>" + "`r`n`r`n" + $detail.LearnMore
-                    
-                    $recDescription = $recDescription -replace ' ',' '
-                    $recDescription = $recDescription -replace '“','"' -replace '”','"'
-
-                    $_.Description = $recDescription
-
-                    break
-                }
-            }           
         }
 
     $githubMilestones = [Ordered]@{}
     $devOpsList | 
         Select-Object -Property Category, ReportingCategory -Unique | 
         ForEach-Object {
-            $githubMilestones[$_.Category + " - " + $_.ReportingCategory] = ""
+
+            $githubMilestones[$_.Category + " - " + (GetMappedReportingCategory -reportingCategory $_.ReportingCategory)] = ""
         }
 
         $assessment = @{
@@ -311,8 +329,8 @@ function Add-MilestoneGithub {
 
 #endregion
 
-#region function Create-GithubIssue
-function Create-GithubIssue {
+#region function Add-GithubIssue
+function Add-GithubIssue {
     param (
         $settings,
         $title,
@@ -322,32 +340,34 @@ function Create-GithubIssue {
         $AllGithubIssues
     )
 
-    if($AllGithubIssues.title -eq $title) {
-        Write-Output "Yes exist: $title"
-    } else {
+    if ($AllGithubIssues.title -eq $title) {
+        Write-Output "Issue already exists: $title"
+    }
+    else {
  
         $Body = @{
-            title  = $title
-            body   = $bodytext
-            labels = $Labels
+            title     = $title
+            body      = $bodytext
+            labels    = $Labels
             milestone = "$MilestoneID"
         } | ConvertTo-Json
 
         $uri = "https://api.github.com/repos/" + $settings.owner + "/" + $settings.repository + "/issues"
-        write-host "Attempting to create a new Github Issue: $issuetitle"
+        write-host "Attempting to create a new Github Issue: $title"
         
         try {
             $NewIssue = Invoke-RestMethod -Method Post -Uri $uri -Verbose:$false -Body $Body -Headers $settings.Headers -ContentType "application/json" -ResponseHeadersVariable responseHeaders -MaximumRetryCount 6 -RetryIntervalSec 10
             Write-Output " :) Success"
-    
+        
             $ratelimit = ($responseHeaders.'X-RateLimit-Remaining')
             Get-GithubRateLimit -ratelimit $ratelimit
-        } Catch {
+        }
+        Catch {
+            Write-Output "Response from GitHub: $_.Exception.Message"
             Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
             Write-Host "ReasonPhrase:" $_.Exception.Response.ReasonPhrase
-            # Write-Host "All:" $_.Exception.Response
-            if ($_.Exception.Response.StatusCode.value__ -eq "403") {
-                Github-Wait-Timer -seconds 300
+        
+            if ($_.Exception.Response.StatusCode.value__ -eq 403) {
                 # Try again just for fun!
                 try {
                     $NewIssue = Invoke-RestMethod -Method Post -Uri $uri -Verbose:$false -Body $Body -Headers $settings.Headers -ContentType "application/json" -ResponseHeadersVariable responseHeaders -MaximumRetryCount 6 -RetryIntervalSec 10
@@ -356,11 +376,12 @@ function Create-GithubIssue {
                     if ($_.Exception.Response.StatusCode.value__ -eq "403") {
                         Github-Wait-Timer -seconds 300
                     }
-                }
-            } elseif ($_.Exception.Response.StatusCode.value__ -eq "422") {
-                Write-Output " :|       This may be a duplicate issue"
+                }                
             }
-        }    
+            elseif ($_.Exception.Response.StatusCode.value__ -eq 422) {
+                Write-Output "Response from GitHub: $_.Exception.Message"
+            }
+        }
     }
 }
 
@@ -368,6 +389,8 @@ function Create-GithubIssue {
 
 #region Script Main
 $settings = Get-GithubSettings
+
+$categoryMapping = @{}
 
 $assessment = Import-Assessment
 
@@ -402,7 +425,7 @@ Write-Output ""
 
 #endregion
 
-#Region create issues in Github
+# Region create issues in Github
 # Search for existing milestones again in github to reference when we create issues.
 # We run this 2 times due to secondary rate limits. These rate limits are undocumented
 # We get to run this 3x to get around secondary throttling in github. 
@@ -419,32 +442,36 @@ Write-Output ""
 
 foreach($item in $assessment.recommendations){
     $issuetitle=$item.'Link-Text'
-    # $body="<a href=`"$($item.Link)`">$($issuetitle)</a>`r`n`r`n"
-    $bodytext=$item.Description
-    $MilestoneName=($item.category + " - " + $item.ReportingCategory)
-    $MilestoneID = ($AllMilestones | Where-Object{$_.Title -eq $MilestoneName}).Number
- 
-    # start gathering labels from the the assesment items and the WASA.json
-    $labels = New-Object System.Collections.ArrayList
-    $labels.Add("WARP-Import $GithubTagName") | Out-Null
-    if($item.category){
-        $labels.Add($item.Category) | Out-Null
-    }
-    if($item.ReportingCategory){
-        $labels.Add($item.ReportingCategory) | Out-Null
-    }
-    if($item.ReportingSubcategory){
-        $labels.Add($item.ReportingSubcategory) | Out-Null
-    }
-    if($WASA.FocusArea){
-        $labels.Add($WASA.FocusArea) | Out-Null
-    }
-    if($WASA.ActionArea){
-        $labels.Add($WASA.ActionArea) | Out-Null
+    if(!$issuetitle){
+        Write-Information 'Issue has no title'
+        continue #lel, my continue statement be working, but Write-Information doesn't...
     }
 
+    $bodytext=$item.Description
+    $MilestoneName = ($item.category + " - " + (GetMappedReportingCategory -reportingCategory $item.ReportingCategory))
+
+    $count = $AllMilestones.Count
+    for ($i=0; $i -lt $count; $i++){
+        $MilestoneID = ($AllMilestones[$i] | Where-Object{$_.title -eq $MilestoneName}).Number
+
+        if($MilestoneID -is [Int64]){
+            break
+        }
+    }
+
+ 
+    # there are some issues with the tag length. Truncate them to 50 characters
+    # start gathering labels from the the assesment items 
+    $labels = New-Object System.Collections.ArrayList
+    $charLimit = 50
+
+    if ($GithubTagName -and $labels -notcontains $GithubTagName) {$labels.Add($GithubTagName.Substring(0, [Math]::Min($GithubTagName.Length, $charLimit))) | Out-Null}
+    if ($item.Category -and $labels -notcontains $item.Category) { $labels.Add($item.Category.Substring(0, [Math]::Min($item.Category.Length, $charLimit))) | Out-Null }
+    if ($item.ReportingCategory -and $labels -notcontains $item.ReportingCategory) {$labels.Add($item.ReportingCategory.Substring(0, [Math]::Min($item.ReportingCategory.Length, $charLimit))) | Out-Null}
+  
+
     # put all info into github
-    Create-GithubIssue -settings $settings -title $issuetitle -bodytext $bodytext -labels $labels -milestoneid $milestoneid -AllGithubIssues $AllGithubIssues
+    Add-GithubIssue -settings $settings -title $issuetitle -bodytext $bodytext -labels $labels -milestoneid $milestoneid -AllGithubIssues $AllGithubIssues
 
 }
 

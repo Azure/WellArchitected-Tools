@@ -8,6 +8,23 @@
 .DESCRIPTION
     The Well-Architected Review site provides a self-Assessment tool. This might be used for self-assessment, or run as part of an Assessment performed by Microsoft to help recommend improvements.
 
+    From the directory in which you've downloaded the scripts, templates and csv file from the PnP survey (mycontent.csv)
+    For a WAF Assessment report:
+
+        .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv
+
+    For a CASR report:
+
+        .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -CloudAdoption
+
+    Ensure the powerpoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
+    Once the script is run, close the powershell window and a timestamped PowerPoint report and a subset csv file will be created on the working directory
+    Use these reports to represent and edit your findings for the WAF Engagement
+
+    Known issues 
+    - If the hyperlinks are not being published accurately, ensure that the csv file doesnt have any multi-sentence recommendations under Link-Text field
+
+
 .PARAMETER ContentFile
     Exported CSV file from the Well-Architected Review file. Supports relative paths.
 
@@ -19,9 +36,6 @@
 
 .PARAMETER ShowTop
     How many recommendations to try to fit on a slide. 8 is default.
-
-.PARAMETER NoSmoke
-    This parameter doesn't exist, and whomever told you about it was pulling your leg.
 
 .INPUTS
     ContentFile should be a CSV-formatted Well-Architected Assessment export
@@ -56,7 +70,10 @@
 
 .LINK
     https://github.com/Azure/WellArchitected-Tools/
+
 #>
+
+
 [CmdletBinding()]
 param (
     # Indicates CSV file for input
@@ -67,7 +84,7 @@ param (
     [Parameter()][int]
     $MinimumReportLevel = 65 ,
 
-    # Show Top N Recommendations Per Slide (default 8)
+    # Show Top N Recommendations Per Slide (default 6)
     [Parameter()][int]
     $ShowTop = 6 ,
 
@@ -75,33 +92,36 @@ param (
     [switch] $CloudAdoption
 
 )
-<# Instructions to use this script
 
-From the directory in which you've downloaded the scripts, templates and csv file from the PnP survey (mycontent.csv)
+#region Functions
 
-For a WAF Assessment report:
+$assessmentFile = ""
 
-    .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv
+function OpenAssessmentFile
+{
 
-For a CASR report:
+    if ($null -eq $ContentFile -or !(Test-Path $ContentFile)) {
+        $inputFile = Get-FileName $workingDirectory
+    } else {
+        $inputFile = $ContentFile
+    }
 
-    .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -CloudAdoption
+    # validate our file is OK
+    try {
+        $content = Get-Content  $inputFile
+    }
+    catch {
+        Write-Error -Message "Unable to open selected Content file."
+        exit
+    }
 
-Ensure the powerpoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
+    $global:assessmentFile = $inputFile
+    return $content 
 
-Once the script is run, close the powershell window and a timestamped PowerPoint report and a subset csv file will be created on the working directory
+}
 
-Use these reports to represent and edit your findings for the WAF Engagement
 
-Known issues 
-  a. Pillar scores may not reflect accurately if the ordering in the csv is jumbled. Please adjust lines 41-53 in case the score representations for the pillars are not accurate
-  b. If the hyperlinks are not being published accurately, ensure that the csv file doesnt have any multi-sentence recommendations under Link-Text field
-
-#>
-#Get the working directory from the script
-$workingDirectory = (Get-Location).Path
-
-Function Get-FileName($initialDirectory) {
+function Get-FileName($initialDirectory) {
     [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
     
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
@@ -112,7 +132,7 @@ Function Get-FileName($initialDirectory) {
     $OpenFileDialog.filename
 }
 
-Function FindIndexBeginningWith($stringset, $searchterm) {
+function FindIndexBeginningWith($stringset, $searchterm) {
     $i = 0
     foreach ($line in $stringset) {
         if ($line.StartsWith($searchterm)) {
@@ -123,44 +143,86 @@ Function FindIndexBeginningWith($stringset, $searchterm) {
     return false
 }
 
-if ([String]::IsNullOrEmpty($ContentFile)) {
-    $inputfile = Get-FileName $workingDirectory
-}
-else {
-    if (!(Resolve-Path $ContentFile)) {
-        $inputfile = Get-FileName $workingDirectory
+function LoadDescriptionFile {
+    if ($WellArchitected) {
+        try {
+            $descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
+        }
+        catch {
+            Write-Error -Message "Unable to open $($workingDirectory)\WAF Category Descriptions.csv"
+            exit
+        }
     }
     else {
-        $inputFile = $ContentFile
+        try {
+            $descriptionsFile = Import-Csv "$workingDirectory\CAF Category Descriptions.csv"
+        }
+        catch {
+            Write-Error -Message "Unable to open $($workingDirectory)\CAF Category Descriptions.csv"
+            exit
+        }
+    }
+    return $descriptionsFile
+
+}
+
+function Get-PillarInfo($pillar) {
+    if ($pillar.Contains("Cost Optimization")) {
+        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $costScore; "Description" = $costDescription; "ScoreDescription" = $OverallScoreDescription }
+    }
+    if ($pillar.Contains("Reliability")) {
+        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $reliabilityScore; "Description" = $reliabilityDescription; "ScoreDescription" = $ReliabilityScoreDescription }
+    }
+    if ($pillar.Contains("Operational Excellence")) {
+        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $operationsScore; "Description" = $operationsDescription; "ScoreDescription" = $OperationsScoreDescription }
+    }
+    if ($pillar.Contains("Performance Efficiency")) {
+        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $performanceScore; "Description" = $performanceDescription; "ScoreDescription" = $PerformanceScoreDescription }
+    }
+    if ($pillar.Contains("Security")) {
+        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $securityScore; "Description" = $securityDescription; "ScoreDescription" = $SecurityScoreDescription }
     }
 }
-# validate our file is OK
-try {
-    $content = Get-Content $inputfile
+
+function GetMappedReportingCategory{
+    param (
+        $reportingCategrory,
+        $currentPillar
+    )
+
+    $newReportingCategory = ($descriptionsFile | Where-Object { $_.Pillar -eq $currentPillar -and $_.Category.StartsWith($reportingCategrory) }).Caption
+    if (-not $newReportingCategory) {
+        $newReportingCategory = $reportingCategrory # Fallback to existing ReportingCategory if no mapping found
+    }
+
+    return $newReportingCategory
 }
-catch {
-    Write-Error -Message "Unable to open selected Content file."
-    exit
-}
+
+#endregion
+
+$workingDirectory = (Get-Location).Path #Get the working directory from the script
+$content  = OpenAssessmentFile
 
 $assessmentTypeCheck = ""
+$WellArchitected = $true
 
-#$inputfilename = Split-Path $inputfile -leaf
 $assessmentTypeCheck = ($content | Select-Object -First 1)
 
 # initial fix for wrong report type selection
 if ($assessmentTypeCheck.contains("Cloud Adoption") ) {
     write-host "Detected Cloud Adoption Security Review from CSV title row"
     $CloudAdoption = $true
+    $WellArchitected = $false
 }
 if (!$CloudAdoption) {
     write-host "Well-Architected Review selected - use -CloudAdoption switch if incorrect."
     $assessmentTypeCheck = "Well-Architected"
+    $WellArchitected = $true
 }
 $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
 $localReportDate = Get-Date -Format g
 
-#region establish pillars and score from top of report
+
 $overallScore = ""
 $costScore = ""
 $operationsScore = ""
@@ -171,9 +233,10 @@ $overallScoreDescription = ""
 
 $filteredPillars = @()
 
-if ($assessmentTypeCheck.contains("Well-Architected")) {
+
+if ($WellArchitected) {
     for ($i = 3; $i -le 8; $i++) {
-        #write-Debug "Line: $($Content[$i])"
+
         if ($Content[$i].Contains("overall")) {
             $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
         }
@@ -210,10 +273,9 @@ else {
         $overallScoreDescription = $Content[$i].Split(',')[1]
     }
 }
-#endregion
 
-if ($assessmentTypeCheck.contains("Well-Architected")) {
-    Write-host "Producing Well Architected report from $inputFile"
+if ($WellArchitected) {
+    Write-host "Producing Well Architected report from $assessmentFile"
     $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template.pptx"
     $title = "Well-Architected [pillar] Assessment" # Don't edit this - it's used when multiple Pillars are included.
     try {
@@ -223,16 +285,15 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         Write-host "That appears not to be a content file. Please use only content from the Well-Architected Assessment site."
     }
     try{
-        #Write-Debug "Tablestart: $tablestart"
+        
         $EndStringIdentifier = $content | Where-Object { $_.Contains("--,,") } | Select-Object -Unique -First 1
-        #Write-Debug "EndStringIdentifier: $EndStringIdentifier"
+        
         $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
-        #Write-Debug "Tableend: $tableend"
+        
         $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
         $importdata = Import-Csv -Path "$workingDirectory\$reportDate.csv"
 
-        #region Clean the uncategorized data
-        #if ($importdata.PSobject.Properties.Name -contains "ReportingCategory") {
+        # Clean the uncategorized data
         
             foreach ($lineData in $importdata) {
                 
@@ -240,13 +301,11 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
                     $lineData.ReportingCategory = "Uncategorized"
                 }
             }
-        #}
-        #endregion
+
         $data = $importdata | where {$_.Category -in $filteredPillars}
         $data | Export-Csv -UseQuotes AsNeeded "$workingDirectory\$reportDate.csv" 
         $data | % { $_.Weight = [int]$_.Weight }
         $pillars = $data.Category | Select-Object -Unique
-        Write-host -Debug $pillars
     }
     catch {
         Write-Host "Unable to parse the content file."
@@ -281,98 +340,59 @@ else {
     }
 }
 
-if ($assessmentTypeCheck.contains("Well-Architected")) {
-    try {
-        $descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
-    }
-    catch {
-        Write-Error -Message "Unable to open $($workingDirectory)\WAF Category Descriptions.csv"
-        exit
-    }
-}
-else {
-    try {
-        $descriptionsFile = Import-Csv "$workingDirectory\CAF Category Descriptions.csv"
-    }
-    catch {
-        Write-Error -Message "Unable to open $($workingDirectory)\CAF Category Descriptions.csv"
-        exit
-    }
-}
 
+$descriptionsFile = LoadDescriptionFile
 
-#endregion
-
-
-#region CSV Calculations
-$otherAssessmentDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
-
-#Write-Host $otherAssessmentDescription
-
+$cloudAdoptionDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
 $costDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Cost Optimization" -and $_.Category -eq "Survey Level Group" }).Description
 $operationsDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Operational Excellence" -and $_.Category -eq "Survey Level Group" }).Description
 $performanceDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Performance Efficiency" -and $_.Category -eq "Survey Level Group" }).Description
 $reliabilityDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Reliability" -and $_.Category -eq "Survey Level Group" }).Description
 $securityDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Security" -and $_.Category -eq "Survey Level Group" }).Description
-function Get-PillarInfo($pillar) {
-    if ($pillar.Contains("Cost Optimization")) {
-        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $costScore; "Description" = $costDescription; "ScoreDescription" = $OverallScoreDescription }
-    }
-    if ($pillar.Contains("Reliability")) {
-        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $reliabilityScore; "Description" = $reliabilityDescription; "ScoreDescription" = $ReliabilityScoreDescription }
-    }
-    if ($pillar.Contains("Operational Excellence")) {
-        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $operationsScore; "Description" = $operationsDescription; "ScoreDescription" = $OperationsScoreDescription }
-    }
-    if ($pillar.Contains("Performance Efficiency")) {
-        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $performanceScore; "Description" = $performanceDescription; "ScoreDescription" = $PerformanceScoreDescription }
-    }
-    if ($pillar.Contains("Security")) {
-        return [pscustomobject]@{"Pillar" = $pillar; "Score" = $securityScore; "Description" = $securityDescription; "ScoreDescription" = $SecurityScoreDescription }
-    }
-}
-#endregion
+
 
 #region Instantiate PowerPoint variables
-#write-debug "Run PowerPoint"
+
 $application = New-Object -ComObject powerpoint.application
 $application.visible = -1 # [Microsoft.Office.Core.MsoTriState]::msoTrue
 $presentation = $application.Presentations.open($templatePresentation)
 
-if ($assessmentTypeCheck.contains("Well-Architected")) {
-    $titleSlide = $presentation.Slides[8]
-    $summarySlide = $presentation.Slides[9]
-    $detailSlide = $presentation.Slides[10]
-    $endSlide = $presentation.Slides[11]
+if ($WellArchitected) {
+    $titleSlide = $presentation.Slides[9]
+    $summarySlide = $presentation.Slides[10]
+    $detailSlide = $presentation.Slides[11]
+    $endSlide = $presentation.Slides[12]
 }
 else {
-    $titleSlide = $presentation.Slides[7]
-    $summarySlide = $presentation.Slides[8]
-    $detailSlide = $presentation.Slides[9]
-    $endSlide = $presentation.Slides[10]
+    $titleSlide = $presentation.Slides[3]
+    $summarySlide = $presentation.Slides[4]
+    $detailSlide = $presentation.Slides[5]
+    $endSlide = $presentation.Slides[6]
 }
 
 #endregion
 
 
 
-if ($assessmentTypeCheck.contains("Well-Architected")) {
-
-    foreach ($pillar in $filteredpillars) {
+Function WellArchitectedAssessment
+{
+    foreach ($pillar in $filteredpillars) 
+    {
         $pillarData = $data | Where-Object { $_.Category -eq $pillar }
-        # for debug
-        #Write-host -Debug $data
+        # for debug: Write-host -Debug $data
 
         $pillarInfo = Get-PillarInfo -pillar $pillar
         # Write-host -Debug "PILLAR INFO: $pillarInfo"
-        # Edit title & date on slide 1
+        # Populates Title Slide
+
         $slideTitle = $title.Replace("[pillar]", $pillar) #,$pillar.substring(0,1).toupper()+$pillar.substring(1).tolower()) #lowercase only here?
         $newTitleSlide = $titleSlide.Duplicate()
         $newTitleSlide.MoveTo($presentation.Slides.Count)
         $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
         $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]", $localReportDate)
 
-        # Edit Executive Summary Slide
+
+        # Populates Executive Summary Slide
 
         #Add logic to get overall score
         $newSummarySlide = $summarySlide.Duplicate()
@@ -392,55 +412,65 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         }
 
         $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
-        write-host -Debug $CategoriesList
-        $counter = 13 #Shape count for the slide to start adding scores
+
+        $counter = 13 #Shape index for the slide to start adding scores (it's 13 because the first 12 shapes are the boilerplate text: 12 is gauge icon, 13 is score, 14 is category, etc.)
         $categoryCounter = 0
-        $areaIconX = 378.1129
-        $areaIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
+        $gaugeIconX = 437.76 # X coordinate for the gauge icon in points (1 point = 1/72 inch)
+        $gaugeIconY = @(147.6, 176.4, 204.48, 232.56, 261.36, 289.44, 317.52, 346.32, 375.12, 403.2, 432.0, 460.08 ) # Y coordinates for the remaining 12 gauge icons in points (vertically aligned)
+        
+        # Filter out any empty / non-existing categories including "Uncategorized" (aka Advisor)
+        $FilteredCategoriesList = ($CategoriesList | Where-Object { $_.Category -ne "" -and $_.Category -ne "Uncategorized" })
+        $CategoriesList = $FilteredCategoriesList 
+        
         foreach ($category in $CategoriesList) {
-            if ($category.Category -ne "Uncategorized") {
-                try {
-                    #$newSummarySlide.Shapes[8] #Domain 1 Icon
-                    $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryWeightiestCount.ToString("#")
-                    $newSummarySlide.Shapes[$counter + 1].TextFrame.TextRange.Text = $category.Category
-                    $counter = $counter + 3
-                    switch ($category.CategoryScore) {
-                        { $_ -lt 33 } { 
-                            $categoryShape = $newSummarySlide.Shapes[37]
-                        }
-                        { $_ -gt 33 -and $_ -lt 67 } { 
-                            $categoryShape = $newSummarySlide.Shapes[38] 
-                        }
-                        { $_ -gt 67 } { 
-                            $categoryShape = $newSummarySlide.Shapes[39] 
-                        }
-                        Default { 
-                            $categoryShape = $newSummarySlide.Shapes[38] 
-                        }
+            if ($CategoriesList.IndexOf($category) -ge 12) {
+                # WARNING: only 12 categories fit on the slide. TODO: Change template slide to fit more categories
+                Write-Host "WARNING: only 12 categories fit on the summary slide. Skipping category $($category.Category), high-importance recommendations: $($category.CategoryWeightiestCount)"    
+                continue;
+            }
+
+            try {
+                $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryWeightiestCount.ToString("0")
+                    
+                # Replacing the domain area (aka category) with the caption (aka new category) from the description file (if any)
+                $newSummarySlide.Shapes[$counter + 1].TextFrame.TextRange.Text = GetmappedReportingCategory -reportingCategrory $category.Category -currentPillar $pillar
+
+                $counter = $counter + 3 # select the next score textbox shape on the slide (1. Gauge, 2. Score, 3. Category)
+                    
+                # Determining the color based on CategoryScore
+                switch ($category.CategoryScore) {
+                    { $_ -lt 33 } { 
+                        $categoryShape = $newSummarySlide.Shapes[49] #green
+                        break
                     }
-                    $categoryShape.Duplicate() | Out-Null
-                    $newShape = $newSummarySlide.Shapes.Count
-                    $newSummarySlide.Shapes[$newShape].Left = $areaIconX
-                    $newSummarySlide.Shapes[$newShape].top = $areaIcony[$categoryCounter] 
-                    $categoryCounter = $categoryCounter + 1
+                    { $_ -gt 33 -and $_ -lt 67 } { 
+                        $categoryShape = $newSummarySlide.Shapes[50] #yellow
+                        break
+                    }
+                    { $_ -gt 67 } { 
+                        $categoryShape = $newSummarySlide.Shapes[51] #red
+                        break
+                    }
+                    Default { 
+                        $categoryShape = $newSummarySlide.Shapes[50] #yellow
+                    }
                 }
-                catch {}
+                $categoryShape.Duplicate() | Out-Null
+                $newShape = $newSummarySlide.Shapes.Count
+                $newSummarySlide.Shapes[$newShape].Left = $gaugeIconX
+                $newSummarySlide.Shapes[$newShape].top = $gaugeIconY[$categoryCounter] 
+                $newSummarySlide.Shapes[$newShape].Name = "NewGauges"
+
+                $categoryCounter = $categoryCounter + 1
+            }
+            catch {
+                Write-Error "Error: $($Error[0].Exception.ToString())" 
+                Write-Error "Error: $($Error[0].Exception.InnerException.ToString())"
+                continue
             }
         }
 
-        #Remove the boilerplate placeholder text if categories < 8
-        if ($categories.Count -lt 8) {
-            for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
-                try {
-                    $newSummarySlide.Shapes[$k].Delete()
-                    <#$newSummarySlide.Shapes[$k].Delete()
-                    $newSummarySlide.Shapes[$k+1].Delete()#>
-                }
-                catch {}
-            }
-        }
-
-        # Edit new category summary slide
+        # Populates Pillar Slides
 
         foreach ($category in $CategoriesList.Category) {
             #Write-Debug "Processing Category: $category"
@@ -449,7 +479,10 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
             #write-Debug "  Category Data Count: $categoryDataCount"
             $categoryWeight = ($pillarData | Where-Object { $_.ReportingCategory -eq $category }).Weight | Measure-Object -Sum
             $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
-            $categoryDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq $pillar -and $categoryData.ReportingCategory.Contains($_.Category) }).Description
+            $categoryDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq $pillar -and $_.Category.StartsWith($category) }).Description
+            # Replacing the domain area (aka category) with the caption (aka new category) from the description file (if any)
+            $categoryTitle = GetmappedReportingCategory -reportingCategrory $category -currentPillar $pillar
+
             $y = $categoryDataCount
             $x = $ShowTop
             if ($categoryDataCount -lt $x) {
@@ -459,7 +492,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
             $newDetailSlide = $detailSlide.Duplicate()
             $newDetailSlide.MoveTo($presentation.Slides.Count)
 
-            $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $category
+            $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $categoryTitle
             $newDetailSlide.Shapes[3].TextFrame.TextRange.Text = $categoryScore.ToString("#")
             [Double]$detailBarScore = $categoryScore * 2.48 + 38
             $newDetailSlide.Shapes[12].Left = $detailBarScore
@@ -479,9 +512,22 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
             }    
         }
 
+        #Remove boilerplate shapes. 
+        if ($categories.Count -lt 12) { #12 is the number of categories shapes on the summary slide 
+            for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
+                if ($null -ne $newSummarySlide.Shapes[$k] -and $newSummarySlide.Shapes[$k].Name -ne "NewGauges") { # Fix: Don't delete the newly added colored gauge shapes 
+                    try {
+                        $newSummarySlide.Shapes[$k].Delete()
+                    }
+                    catch {}
+                }
+            }
+        }
     }
-} 
-else { #Assessment type is NOT Well-Architected
+}
+
+Function CloudAdoptionAssessment
+{
     $slideTitle = $title.Replace("[CA_Security_Review]", "Cloud Adoption Security Review")
     $newTitleSlide = $titleSlide.Duplicate()
     $newTitleSlide.MoveTo($presentation.Slides.Count)
@@ -493,12 +539,11 @@ else { #Assessment type is NOT Well-Architected
         $ScoreText = "$($overallScore)"
     }
 
-
     #Add logic to get overall score
     $newSummarySlide = $summarySlide.Duplicate()
     $newSummarySlide.MoveTo($presentation.Slides.Count)
     $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $ScoreText
-    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $otherAssessmentDescription
+    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $cloudAdoptionDescription
     [Double]$summBarScore = [int]$ScoreText * 2.47 + 56
     $newSummarySlide.Shapes[11].Left = $summBarScore
 
@@ -506,6 +551,12 @@ else { #Assessment type is NOT Well-Architected
     $CategoriesList = New-Object System.Collections.ArrayList
     #Updated to use ReportingCategory vs Category due to Category column for CASR containing multiple instances of varying interests vs WASA(ie. "Security")
     $categories = $data.ReportingCategory | Sort-Object -Property "Weight" -Descending | Select-Object -Unique
+    
+        
+    # Remove non existing (aka empty) categories. CASR has only 6 categories (no Advisor/uncategorized category)
+    $FilteredCategoriesList = [System.Collections.ArrayList]($categories | Where-Object { $_ -ne "" })
+    $categories = $FilteredCategoriesList
+    
     foreach ($category in $categories) {
         $categoryWeight = ($data | Where-Object { $_.ReportingCategory -eq $category }).Weight | Measure-Object -Sum
         $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
@@ -517,8 +568,8 @@ else { #Assessment type is NOT Well-Architected
 
     $counter = 13 #Shape count for the slide to start adding scores
     $categoryCounter = 0
-    $areaIconX = 378.1129
-    $areaIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
+    $gaugeIconX = 378.1129
+    $gaugeIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
 
     foreach ($category in $CategoriesList) {
         if ($category.Category -ne "Uncategorized") {
@@ -544,21 +595,22 @@ else { #Assessment type is NOT Well-Architected
                 }
                 $categoryShape.Duplicate() | Out-Null
                 $newShape = $newSummarySlide.Shapes.Count
-                $newSummarySlide.Shapes[$newShape].Left = $areaIconX
-                $newSummarySlide.Shapes[$newShape].top = $areaIcony[$categoryCounter] 
+                $newSummarySlide.Shapes[$newShape].Left = $gaugeIconX
+                $newSummarySlide.Shapes[$newShape].top = $gaugeIconY[$categoryCounter] 
                 $categoryCounter = $categoryCounter + 1
             }
             catch {}
         }
     }
 
+
+
     #Remove the boilerplate placeholder text if categories < 8
     if ($categories.Count -lt 8) {
         for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
             try {
                 $newSummarySlide.Shapes[$k].Delete()
-                <#$newSummarySlide.Shapes[$k].Delete()
-            $newSummarySlide.Shapes[$k+1].Delete()#>
+                $newSummarySlide.Shapes[$k+1].Delete()
             }
             catch {}
         }
@@ -603,25 +655,49 @@ else { #Assessment type is NOT Well-Architected
     }
 }
 
-$newEndSlide = $endSlide.Duplicate()
-$newEndSlide.MoveTo($presentation.Slides.Count)
 
-$titleSlide.Delete()
-$summarySlide.Delete()
-$detailSlide.Delete()
-$endSlide.Delete()
+Function CleanUp
+{
 
-if ($assessmentTypeCheck.contains("Well-Architected")) {
-    $presentation.SavecopyAs("$workingDirectory\WAF-Review-$($reportDate).pptx")
+    try {
+        $newEndSlide = $endSlide.Duplicate()
+        $newEndSlide.MoveTo($presentation.Slides.Count)
+        $titleSlide.Delete()
+        $summarySlide.Delete()
+        $detailSlide.Delete()
+        $endSlide.Delete()        
+    }
+    catch {
+    }
+
+    if ($assessmentTypeCheck.contains("Well-Architected"))
+    {
+        $presentation.SavecopyAs("$workingDirectory\WAF-Review-$($reportDate).pptx")
+    }
+    else
+    {
+        $presentation.SavecopyAs("$workingDirectory\CASR-$($reportDate).pptx")
+    }
+
+    $presentation.Close()
+    $application.quit()
+    $application = $null
+    [gc]::collect()
+    [gc]::WaitForPendingFinalizers()
+    
+
 }
-else {
-    $presentation.SavecopyAs("$workingDirectory\CASR-$($reportDate).pptx")
+
+
+
+if ($assessmentTypeCheck.contains("Well-Architected")) 
+{
+    WellArchitectedAssessment
+}
+else 
+{
+    CloudAdoptionAssessment
 }
 
-$presentation.Close()
+CleanUp
 
-
-$application.quit()
-$application = $null
-[gc]::collect()
-[gc]::WaitForPendingFinalizers()
