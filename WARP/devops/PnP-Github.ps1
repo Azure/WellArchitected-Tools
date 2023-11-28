@@ -1,31 +1,32 @@
 <#
 .SYNOPSIS
-    Creates milestones and issues in a Github repository based on Well-Architected assessment findings .csv file.
+    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
     
 .DESCRIPTION
-    Creates milestones and issues in a Github repository based on Well-Architected assessment findings .csv file.
+    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
 
 .PARAMETER GithubPersonalAccessToken
-    Personal Access Token from Github
+    Personal Access Token from Github - find in personal menu (top right), Settings, Developer Settings, Tokens. Token needs Full Access to target Repo.
 
 .PARAMETER GithubrepoUri
-    URI fo the Github repo
+    URI of the Github repo
     
 .PARAMETER AssessmentCsvPath
-    .csv file from Well-Architected assessment export
+    .csv file exported from Well-Architected Assessment / Cloud Adoption Security Review
 
 .PARAMETER GithubTagName
-    Name of assessment
+    Name of assessment - will be added as "WARP-Import <GithubTagName>" e.g. WARP-Import CASR
 
 .OUTPUTS
     Status message text
 
 .EXAMPLE
-    PnP-Github -GithubPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -GithubrepoUri https://github.com/user/repo -GithubTagName WAF -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
-    Adds the items from the Well-Architected assessment .csv export to a Github repository as issues.
+    .\PnP-Github -GithubPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -GithubrepoUri https://github.com/user/repo -GithubTagName WAF -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
+    Adds items from a Well-Architected Assessment .csv export to a Github repository, as Issues with associated Milestones.
 
 .NOTES
-    Needs to be ran from local Github repo path so that the WAF.json file is available to merge into the assessment .csv export file.
+    Needs to be run from local WARP Github repo path so that the WAF.json file is available to merge into the assessment .csv export file.
+    (Run install-warptools.ps1 if you didn't already)
 
 .LINK
 
@@ -426,21 +427,31 @@ foreach($item in $assessment.recommendations){
  
     # start gathering labels from the the assesment items and the WASA.json
     $labels = New-Object System.Collections.ArrayList
+
     $labels.Add("WARP-Import $GithubTagName") | Out-Null
+    
     if($item.category){
         $labels.Add($item.Category) | Out-Null
     }
     if($item.ReportingCategory){
-        $labels.Add($item.ReportingCategory) | Out-Null
+        if($labels -notcontains $item.ReportingCategory){
+            $labels.Add($item.ReportingCategory) | Out-Null
+        }
     }
     if($item.ReportingSubcategory){
-        $labels.Add($item.ReportingSubcategory) | Out-Null
+        if($labels -notcontains $item.ReportingSubcategory){
+            $labels.Add($item.ReportingSubcategory) | Out-Null
+        }
     }
     if($WASA.FocusArea){
-        $labels.Add($WASA.FocusArea) | Out-Null
+        if($labels -notcontains $item.FocusArea){
+            $labels.Add($WASA.FocusArea) | Out-Null
+        }
     }
     if($WASA.ActionArea){
-        $labels.Add($WASA.ActionArea) | Out-Null
+        if($labels -notcontains $item.ActionArea){
+            $labels.Add($WASA.ActionArea) | Out-Null
+        }
     }
 
     # put all info into github
