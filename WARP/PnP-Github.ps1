@@ -9,7 +9,7 @@
     Personal Access Token from Github - find in personal menu (top right), Settings, Developer Settings, Tokens. Token needs Full Access to target Repo.
 
 .PARAMETER GithubrepoUri
-    URI fo the Github repo
+    URI of the Github repo
     
 .PARAMETER AssessmentCsvPath
     .csv file exported from Well-Architected Assessment / Cloud Adoption Security Review
@@ -21,7 +21,7 @@
     Status message text
 
 .EXAMPLE
-    PnP-Github -GithubPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -GithubrepoUri https://github.com/user/repo -GithubTagName WAF -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
+    .\PnP-Github -GithubPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -GithubrepoUri https://github.com/user/repo -GithubTagName WAF -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
     Adds items from a Well-Architected Assessment .csv export to a Github repository, as Issues with associated Milestones.
 
 .NOTES
@@ -158,7 +158,8 @@ function Import-Assessment {
 
 
     # Get unique list of ReportCategory column
-    # we will use these values as epics and milestones
+    # Map the existing assessment ReportCategory values to the new categories defined in the 'WAF Category Description.csv' file. The mappings are stored in the $categoryMapping hashtable.
+    # These mapped values will then be used as epics and milestones
     $reportingCategories = @{}
     $devOpsList | 
         Select-Object -Property ReportingCategory, Category -Unique | 
@@ -172,9 +173,7 @@ function Import-Assessment {
                 $categoryTitle = $currentReportingCategory # Fallback to existing ReportingCategory if no mapping found
             }
             $categoryMapping[$currentReportingCategory] = $categoryTitle
-            
             $reportingCategories[$categoryTitle] = ""       
-            #$reportingCategories[$_.ReportingCategory] = ""       
         }
 
     # Add Decription 
@@ -191,11 +190,6 @@ function Import-Assessment {
         ForEach-Object {
 
             $githubMilestones[$_.Category + " - " + (GetMappedReportingCategory -reportingCategory $_.ReportingCategory)] = ""
-
-            #$githubMilestones[$_.Category + " - " + $_.ReportingCategory] = ""
-            #$newCategory = GetMappedReportingCategory -reportingCategory $_.ReportingCategory
-            #$githubMilestones[$_.Category + " - " + $newCategory] = ""
-
         }
 
         $assessment = @{
@@ -374,7 +368,6 @@ function Add-GithubIssue {
             Write-Host "ReasonPhrase:" $_.Exception.Response.ReasonPhrase
         
             if ($_.Exception.Response.StatusCode.value__ -eq 403) {
-                Github-Wait-Timer -seconds 300
                 # Try again just for fun!
                 try {
                     $NewIssue = Invoke-RestMethod -Method Post -Uri $uri -Verbose:$false -Body $Body -Headers $settings.Headers -ContentType "application/json" -ResponseHeadersVariable responseHeaders -MaximumRetryCount 6 -RetryIntervalSec 10
@@ -475,7 +468,7 @@ foreach($item in $assessment.recommendations){
     if ($GithubTagName -and $labels -notcontains $GithubTagName) {$labels.Add($GithubTagName.Substring(0, [Math]::Min($GithubTagName.Length, $charLimit))) | Out-Null}
     if ($item.Category -and $labels -notcontains $item.Category) { $labels.Add($item.Category.Substring(0, [Math]::Min($item.Category.Length, $charLimit))) | Out-Null }
     if ($item.ReportingCategory -and $labels -notcontains $item.ReportingCategory) {$labels.Add($item.ReportingCategory.Substring(0, [Math]::Min($item.ReportingCategory.Length, $charLimit))) | Out-Null}
-
+  
 
     # put all info into github
     Add-GithubIssue -settings $settings -title $issuetitle -bodytext $bodytext -labels $labels -milestoneid $milestoneid -AllGithubIssues $AllGithubIssues
