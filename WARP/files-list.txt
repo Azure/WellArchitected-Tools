@@ -7,4 +7,3 @@ PnP-Github.ps1
 PnP_PowerPointReport_Template.pptx
 PnP_PowerPointReport_Template - CloudAdoption.pptx
 WAF Category Descriptions.csv
-WAF.json
