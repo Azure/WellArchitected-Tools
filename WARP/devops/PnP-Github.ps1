@@ -1,22 +1,17 @@
 <#
 .SYNOPSIS
     Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
-    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
     
 .DESCRIPTION
-    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
     Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
 
 .PARAMETER GithubPersonalAccessToken
     Personal Access Token from Github - find in personal menu (top right), Settings, Developer Settings, Tokens. Token needs Full Access to target Repo.
-    Personal Access Token from Github - find in personal menu (top right), Settings, Developer Settings, Tokens. Token needs Full Access to target Repo.
 
 .PARAMETER GithubrepoUri
     URI of the Github repo
-    URI of the Github repo
     
 .PARAMETER AssessmentCsvPath
-    .csv file exported from Well-Architected Assessment / Cloud Adoption Security Review
     .csv file exported from Well-Architected Assessment / Cloud Adoption Security Review
 
 .PARAMETER GithubTagName
@@ -26,8 +21,6 @@
     Status message text
 
 .EXAMPLE
-    .\PnP-Github -GithubPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -GithubrepoUri https://github.com/user/repo -GithubTagName WAF -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
-    Adds items from a Well-Architected Assessment .csv export to a Github repository, as Issues with associated Milestones.
     .\PnP-Github -GithubPersonalAccessToken xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -GithubrepoUri https://github.com/user/repo -GithubTagName WAF -AssessmentCsvPath c:\temp\Azure_Well_Architected_Review_Jan_1_2023_1_00_00_PM.csv
     Adds items from a Well-Architected Assessment .csv export to a Github repository, as Issues with associated Milestones.
 
