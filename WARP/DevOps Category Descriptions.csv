@@ -1,0 +1,10 @@
+﻿Category,Description
+Survey Level Group,Understand current capabilities across the entire software release lifecycle and quickly identify opportunities for improvement based on the Microsoft DevOps practices.
+Agile Software Development,"In an agile team, sharing ideas is part of the iterative journey. Making ideas known to the team allows ideas to foster and breeds experimentation."
+Version Control,"ithout a strategy in place to manage changes to their source code, teams expose themselves to significant risks, including ongoing confusion, errors, and decreased productivity."
+Continuous Integration and Continuous Delivery (CI/CD),"The entire end-to-end CI/CD deployment process should be understood, and ideally, as much of the deployment process as possible should be automated."
+Infrastructure as a Flexible Resource,Public and hybrid clouds have made once impossible tasks easy. The cloud has eliminated traditional bottlenecks and facilitated the commoditization of infrastructure. 
+Continuous Security,"Security and penetration testing, such as scanning for open ports or known vulnerabilities and exposed credentials, is vital to ensure overall security and also support the operational effectiveness of the system."
+Configuration Management,Configuration management is a systems engineering process for establishing consistency of a product’s attributes throughout its life.
+Continuous Monitoring,"In order to successfully maintain applications, it's important to 'turn the lights on' and have clear visibility of important metrics both in real-time and historically."
+Culture,The contraction of “Dev” and “Ops” refers to replacing siloed Development and Operations to create multidisciplinary teams that now work together with shared and efficient practices and tools. 

@@ -13,6 +13,9 @@
 
 .PARAMETER CloudAdoption
     If set, indicates the Cloud Adoption Security Review format should be used. If not set, Well-Architected is assumed.
+
+.PARAMETER DevOpsCapability
+    If set, indicates the DevOps Capability Review format should be used. If not set, Well-Architected is assumed.
     
 .PARAMETER MinimumReportLevel
     The level above which a finding is considered high severity, By convention, scores up to 32 are low, 65 medium, and 66+ high.
@@ -47,7 +50,7 @@
 .EXAMPLE
     .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -CloudAdoption    
     
-    If the title doesn't identify the report type correctly, you can force the decision with -CloudAdoption
+    If the title doesn't identify the report type correctly, you can force the decision with -CloudAdoption (or -DevOpsCapability)
 
 .NOTES
     PowerPoint needs to be installed to create a PPTX.
@@ -72,7 +75,10 @@ param (
     $ShowTop = 6 ,
 
     [Parameter()]
-    [switch] $CloudAdoption
+    [switch] $CloudAdoption,
+
+    [Parameter()]
+    [switch] $DevOpsCapability
 
 )
 <# Instructions to use this script
@@ -87,11 +93,15 @@ For a CASR report:
 
     .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -CloudAdoption
 
-Ensure the powerpoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
+For a DevOps Capability report:
+
+    .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -DevOpsCapability
+
+Ensure the PowerPoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
 
 Once the script is run, close the powershell window and a timestamped PowerPoint report and a subset csv file will be created on the working directory
 
-Use these reports to represent and edit your findings for the WAF Engagement
+Use these reports to represent and edit your findings for the engagement
 
 Known issues 
   a. Pillar scores may not reflect accurately if the ordering in the csv is jumbled. Please adjust lines 41-53 in case the score representations for the pillars are not accurate
@@ -107,7 +117,7 @@ Function Get-FileName($initialDirectory) {
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenFileDialog.initialDirectory = $initialDirectory
     $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
-    $OpenFileDialog.Title = "Select Well-Architected Review file export"
+    $OpenFileDialog.Title = "Select review file export"
     $OpenFileDialog.ShowDialog() | Out-Null
     $OpenFileDialog.filename
 }
@@ -153,8 +163,12 @@ if ($assessmentTypeCheck.contains("Cloud Adoption") ) {
     write-host "Detected Cloud Adoption Security Review from CSV title row"
     $CloudAdoption = $true
 }
-if (!$CloudAdoption) {
-    write-host "Well-Architected Review selected - use -CloudAdoption switch if incorrect."
+if ($assessmentTypeCheck.contains("DevOps Capability") ) {
+    write-host "Detected DevOps Capability Review from CSV title row"
+    $DevOpsCapability = $true
+}
+if (!$CloudAdoption -and !$DevOpsCapability) {
+    write-host "Well-Architected Review selected - use -CloudAdoption switch for Cloud Adoption Security Review or -DevOpsCapability for DevOps Capability Review"
     $assessmentTypeCheck = "Well-Architected"
 }
 $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
@@ -202,8 +216,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
             Break
         }
     }
-}
-else {
+} else {
     $i = 3
     if ($Content[$i].Contains("overall")) {
         $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
@@ -255,11 +268,17 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         Write-Host $_
         exit
     }
-}
-else {
-    Write-host "Producing Cloud Adoption Security Review report..."
-    $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - CloudAdoption.pptx"
-    $title = "Cloud Adoption Security Review"
+} else {
+    if($assessmentTypeCheck.contains("DevOps Capability")) {
+        Write-host "Producing DevOps Capability report..."
+        $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - DevOpsCapability.pptx"
+        $title = "DevOps Capability Assessment"
+    } else {
+        Write-host "Producing Cloud Adoption Security Review report..."
+        $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - CloudAdoption.pptx"
+        $title = "Cloud Adoption Security Review"
+    }
+    
     try {
         $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note"
         #Write-Debug "Tablestart: $tablestart"
@@ -281,25 +300,23 @@ else {
     }
 }
 
-if ($assessmentTypeCheck.contains("Well-Architected")) {
-    try {
-        $descriptionsFile = Import-Csv "$workingDirectory\WAF Category Descriptions.csv"
-    }
-    catch {
-        Write-Error -Message "Unable to open $($workingDirectory)\WAF Category Descriptions.csv"
-        exit
-    }
+$categoryFilePrefix = "WAF-Review"
+if ($assessmentTypeCheck.contains("DevOps Capability")) {
+    $categoryFilePrefix = "DevOps"
+    $outputPrefix = "DevOps-Capability"
 }
-else {
-    try {
-        $descriptionsFile = Import-Csv "$workingDirectory\CAF Category Descriptions.csv"
-    }
-    catch {
-        Write-Error -Message "Unable to open $($workingDirectory)\CAF Category Descriptions.csv"
-        exit
-    }
+if ($assessmentTypeCheck.contains("Cloud Adoption")) {
+    $categoryFilePrefix = "CAF"
+    $outputPrefix = "CASR"
 }
 
+try {
+    $descriptionsFile = Import-Csv "$workingDirectory\$categoryFilePrefix Category Descriptions.csv"
+}
+catch {
+    Write-Error -Message "Unable to open $($workingDirectory)\$categoryFilePrefix Category Descriptions.csv"
+    exit
+}
 
 #endregion
 
@@ -344,8 +361,12 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
     $summarySlide = $presentation.Slides[9]
     $detailSlide = $presentation.Slides[10]
     $endSlide = $presentation.Slides[11]
-}
-else {
+} elseif($assessmentTypeCheck.contains("DevOps Capability")) {
+    $titleSlide = $presentation.Slides[1]
+    $summarySlide = $presentation.Slides[2]
+    $detailSlide = $presentation.Slides[3]
+    $endSlide = $presentation.Slides[4]
+} else {
     $titleSlide = $presentation.Slides[7]
     $summarySlide = $presentation.Slides[8]
     $detailSlide = $presentation.Slides[9]
@@ -482,7 +503,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
     }
 } 
 else { #Assessment type is NOT Well-Architected
-    $slideTitle = $title.Replace("[CA_Security_Review]", "Cloud Adoption Security Review")
+    $slideTitle = $title.Replace("[CA_Security_Review]", $title)
     $newTitleSlide = $titleSlide.Duplicate()
     $newTitleSlide.MoveTo($presentation.Slides.Count)
     $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
@@ -611,12 +632,7 @@ $summarySlide.Delete()
 $detailSlide.Delete()
 $endSlide.Delete()
 
-if ($assessmentTypeCheck.contains("Well-Architected")) {
-    $presentation.SavecopyAs("$workingDirectory\WAF-Review-$($reportDate).pptx")
-}
-else {
-    $presentation.SavecopyAs("$workingDirectory\CASR-$($reportDate).pptx")
-}
+$presentation.SavecopyAs("$workingDirectory\$outputPrefix-$($reportDate).pptx")
 
 $presentation.Close()
 
