@@ -301,6 +301,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
 }
 
 $categoryFilePrefix = "WAF"
+$outputPrefix = "WAF-Review"
 if ($assessmentTypeCheck.contains("DevOps Capability")) {
     $categoryFilePrefix = "DevOps"
     $outputPrefix = "DevOps-Capability"
