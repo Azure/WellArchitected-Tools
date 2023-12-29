@@ -100,6 +100,7 @@ Known issues
 #>
 #Get the working directory from the script
 $workingDirectory = (Get-Location).Path
+$WellArchitectedDocsRepo = "https://raw.githubusercontent.com/MicrosoftDocs/well-architected/main/well-architected/"
 
 Function Get-FileName($initialDirectory) {
     [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
@@ -141,6 +142,96 @@ try {
 catch {
     Write-Error -Message "Unable to open selected Content file."
     exit
+}
+
+Function EnsureWAFTOC() {
+    if([System.IO.File]::Exists($workingDirectory + "\WAF-toc.yml")) {
+        #check if file has been updated in the last day
+        $fileAge = (Get-Date) - (Get-Item -Path ($workingDirectory + "\WAF-toc.yml")).LastWriteTime
+        if ($fileAge.Days -gt 1) {
+            #file is older than a day, so update it
+            Remove-Item -Path ($workingDirectory + "\WAF-toc.yml") -Force
+        }
+        
+    }
+
+    if(![System.IO.File]::Exists($workingDirectory + "\WAF-toc.yml")) {
+        $toc = Invoke-RestMethod -Uri ($WellArchitectedDocsRepo + "TOC.yml")
+        $toc | Out-File -FilePath ($workingDirectory + "\WAF-toc.yml")
+    }
+}
+
+Function GetWAF2Category($lineData) {
+    $searchCode = $lineData.ReportingCategory.Trim()
+    $toc = ""
+    $category = $searchCode
+
+    EnsureWAFTOC
+
+    $toc = Get-Content -Path ($workingDirectory + "\WAF-toc.yml")
+
+    foreach($line in $toc) {
+        if($line.Trim().StartsWith("- name: " + $searchCode)) {
+            if($category.Length -gt 5) {
+                $category = $category + ","
+            }
+            $categoryArray = $line.Trim().Split(":")
+            $category = $category + $categoryArray[$categoryArray.Length - 1].Substring(2)
+        }
+    }
+
+    return $category
+
+}
+
+Function GetWAF2CategoryDescription($category) {
+    $searchCode = $category.Substring(0,5).Trim()
+    $toc = ""
+    $description = $null
+
+    EnsureWAFTOC
+
+    $toc = Get-Content -Path ($workingDirectory + "\WAF-toc.yml")
+
+    foreach($line in $toc) {
+        if($line.Contains("checklist.md")) {
+            $array = $line.Split(":");
+            $filename = $array[$array.Length - 1].Trim();
+            $uri = $WellArchitectedDocsRepo + $filename;
+
+            $localFileName = $filename.Replace("/", "-");
+
+            if([System.IO.File]::Exists($workingDirectory + "\" + $localFileName)) {
+                $fileAge = (Get-Date) - (Get-Item -Path ($workingDirectory + "\" + $localFileName)).LastWriteTime
+                if ($fileAge.Days -gt 1) {
+                    #file is older than a day, so update it
+                    Remove-Item -Path ($workingDirectory + "\" + $localFileName) -Force
+                }
+            }
+
+            if(![System.IO.File]::Exists($workingDirectory + "\" + $localFileName)) {
+                $content = Invoke-RestMethod -Uri $uri
+                $content | Out-File -FilePath ($workingDirectory + "\" + $localFileName)
+            }
+            
+            $checklist = Get-Content -Path ($workingDirectory + "\" + $localFileName)
+
+            foreach($checklistLine in $checklist) {
+                if($checklistLine.Contains($searchCode)) {
+                    $checklistArray = $checklistLine.Split("|")
+                    $descriptionRaw = $checklistArray[$checklistArray.Length - 2].Trim()
+                    $description = $descriptionRaw.Replace("**", "")
+                    break
+                }   
+            }
+        }
+
+        if($description -ne $null) {
+            break
+        }
+    }
+
+    return $description
 }
 
 $assessmentTypeCheck = ""
@@ -238,6 +329,11 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
                 
                 if (!$lineData.ReportingCategory) {
                     $lineData.ReportingCategory = "Uncategorized"
+                    continue
+                }
+
+                if($lineData.ReportingCategory.Trim().Length -eq 5) {
+                    $lineData.ReportingCategory = GetWAF2Category -lineData $lineData
                 }
             }
         #}
@@ -372,15 +468,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
         $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]", $localReportDate)
 
-        # Edit Executive Summary Slide
-
-        #Add logic to get overall score
-        $newSummarySlide = $summarySlide.Duplicate()
-        $newSummarySlide.MoveTo($presentation.Slides.Count)
-        $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
-        $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
-        [Double]$summBarScore = [int]$pillarInfo.Score * 2.47 + 56
-        $newSummarySlide.Shapes[11].Left = $summBarScore
+        # populate category list and identify "high importance" recommendations
 
         $CategoriesList = New-Object System.Collections.ArrayList
         $categories = ($pillarData | Sort-Object -Property "Weight" -Descending).ReportingCategory | Select-Object -Unique
@@ -391,17 +479,49 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
             $CategoriesList.Add([pscustomobject]@{"Category" = $category; "CategoryScore" = $categoryScore; "CategoryWeightiestCount" = $categoryWeightiestCount.Count }) | Out-Null
         }
 
-        $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
+        $CategoriesList = $CategoriesList | Sort-Object -Property Category
         write-host -Debug $CategoriesList
+
+        # Edit Executive Summary Slide
+
+        #Add logic to get overall score
+        $newSummarySlide = $summarySlide.Duplicate()
+        $newSummarySlide.MoveTo($presentation.Slides.Count)
+        $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
+        $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
+        [Double]$summBarScore = [int]$pillarInfo.Score * 2.47 + 56
+        $newSummarySlide.Shapes[11].Left = $summBarScore
+
         $counter = 13 #Shape count for the slide to start adding scores
         $categoryCounter = 0
+        $pageCounter = 1;
         $areaIconX = 378.1129
         $areaIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
         foreach ($category in $CategoriesList) {
+            
             if ($category.Category -ne "Uncategorized") {
+                if($categoryCounter -ge (8 * $pageCounter)) {
+                    # add another page if there are more categories with high importance recommendations than can fit
+                    $newSummarySlide = $summarySlide.Duplicate()
+                    $newSummarySlide.MoveTo($presentation.Slides.Count)
+                    $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
+                    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
+                    [Double]$summBarScore = [int]$pillarInfo.Score * 2.47 + 56
+                    $newSummarySlide.Shapes[11].Left = $summBarScore
+
+                    $counter = 13 #Shape count for the slide to start adding scores
+                    $categoryCounter = 0
+                    $areaIconX = 378.1129
+                    $areaIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
+                    $pageCounter = $pageCounter + 1
+                }
+
                 try {
                     #$newSummarySlide.Shapes[8] #Domain 1 Icon
                     $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryWeightiestCount.ToString("#")
+                    if($category.CategoryWeightiestCount -lt 1) {
+                        $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = "0"
+                    }
                     $newSummarySlide.Shapes[$counter + 1].TextFrame.TextRange.Text = $category.Category
                     $counter = $counter + 3
                     switch ($category.CategoryScore) {
@@ -429,7 +549,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
         }
 
         #Remove the boilerplate placeholder text if categories < 8
-        if ($categories.Count -lt 8) {
+        if ($categoryCounter -lt (8 * $pageCounter)) {
             for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
                 try {
                     $newSummarySlide.Shapes[$k].Delete()
@@ -450,6 +570,16 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
             $categoryWeight = ($pillarData | Where-Object { $_.ReportingCategory -eq $category }).Weight | Measure-Object -Sum
             $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
             $categoryDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq $pillar -and $categoryData.ReportingCategory.Contains($_.Category) }).Description
+            
+            # if category description is still empty check if this is a WAF 2.0 style report
+            if(!$categoryDescription) {
+                if($category.Substring(2,1) -eq ":") {
+                    # try and get description from the online checklist
+                    $categoryDescription = GetWAF2CategoryDescription $category
+                }
+
+            }
+
             $y = $categoryDataCount
             $x = $ShowTop
             if ($categoryDataCount -lt $x) {
@@ -464,7 +594,7 @@ if ($assessmentTypeCheck.contains("Well-Architected")) {
             [Double]$detailBarScore = $categoryScore * 2.48 + 38
             $newDetailSlide.Shapes[12].Left = $detailBarScore
             $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
-            $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
+            $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Showing $x of $y recommendations ordered by priority"
             $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
             $sentenceCount = $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences().count
 
@@ -510,6 +640,7 @@ else { #Assessment type is NOT Well-Architected
         $categoryWeight = ($data | Where-Object { $_.ReportingCategory -eq $category }).Weight | Measure-Object -Sum
         $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
         $categoryWeightiestCount = ($data | Where-Object { $_.ReportingCategory -eq $category }).Weight -ge $MinimumReportLevel | Measure-Object
+
         $CategoriesList.Add([pscustomobject]@{"Category" = $category; "CategoryScore" = $categoryScore; "CategoryWeightiestCount" = $categoryWeightiestCount.Count }) | Out-Null
     }
 
@@ -521,6 +652,7 @@ else { #Assessment type is NOT Well-Architected
     $areaIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
 
     foreach ($category in $CategoriesList) {
+
         if ($category.Category -ne "Uncategorized") {
             try {
                 #$newSummarySlide.Shapes[8] #Domain 1 Icon
@@ -553,7 +685,7 @@ else { #Assessment type is NOT Well-Architected
     }
 
     #Remove the boilerplate placeholder text if categories < 8
-    if ($categories.Count -lt 8) {
+    if ($categoryCounter -lt 8) {
         for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
             try {
                 $newSummarySlide.Shapes[$k].Delete()
