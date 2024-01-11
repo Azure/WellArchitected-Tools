@@ -10,4 +10,3 @@ PnP_PowerPointReport_Template.pptx
 PnP_PowerPointReport_Template - CloudAdoption.pptx
 PnP_PowerPointReport_Template - DevOpsCapability.pptx
 WAF Category Descriptions.csv
-WAF.json
