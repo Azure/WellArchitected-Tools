@@ -559,9 +559,9 @@ Function WellArchitectedAssessment
     }
 }
 
-Function CloudAdoptionAssessment($title, $description)
+Function CloudAdoptionAssessment
 {
-    $slideTitle = $title.Replace("[CA_Security_Review]", $title)
+    $slideTitle = $title.Replace("[CA_Security_Review]", "Cloud Adoption Security Review")
     $newTitleSlide = $titleSlide.Duplicate()
     $newTitleSlide.MoveTo($presentation.Slides.Count)
     $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
@@ -576,7 +576,7 @@ Function CloudAdoptionAssessment($title, $description)
     $newSummarySlide = $summarySlide.Duplicate()
     $newSummarySlide.MoveTo($presentation.Slides.Count)
     $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $ScoreText
-    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $description
+    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $cloudAdoptionDescription
     [Double]$summBarScore = [int]$ScoreText * 2.47 + 56
     $newSummarySlide.Shapes[11].Left = $summBarScore
 
@@ -688,6 +688,133 @@ Function CloudAdoptionAssessment($title, $description)
     }
 }
 
+Function DevOpsCapabilityAssessment {
+    $slideTitle = $title.Replace("[CA_Security_Review]", "DevOps Capability Review")
+    $newTitleSlide = $titleSlide.Duplicate()
+    $newTitleSlide.MoveTo($presentation.Slides.Count)
+    $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
+    $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]", $localReportDate)
+
+    # Edit Executive Summary Slide
+    if (![string]::IsNullOrEmpty($overallScore)) {
+        $ScoreText = "$($overallScore)"
+    }
+
+    #Add logic to get overall score
+    $newSummarySlide = $summarySlide.Duplicate()
+    $newSummarySlide.MoveTo($presentation.Slides.Count)
+    $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $ScoreText
+    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $devOpsDescription
+    [Double]$summBarScore = [int]$ScoreText * 2.47 + 56
+    $newSummarySlide.Shapes[11].Left = $summBarScore
+
+
+    $CategoriesList = New-Object System.Collections.ArrayList
+    $categories = $data.Category | Sort-Object -Property "Weight" -Descending | Select-Object -Unique
+    
+        
+    # Remove non existing (aka empty) categories. CASR has only 6 categories (no Advisor/uncategorized category)
+    $FilteredCategoriesList = [System.Collections.ArrayList]($categories | Where-Object { $_ -ne "" })
+    $categories = $FilteredCategoriesList
+    
+    foreach ($category in $categories) {
+        $categoryWeight = ($data | Where-Object { $_.Category -eq $category }).Weight | Measure-Object -Sum
+        $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
+        $categoryWeightiestCount = ($data | Where-Object { $_.Category -eq $category }).Weight -ge $MinimumReportLevel | Measure-Object
+        $CategoriesList.Add([pscustomobject]@{"Category" = $category; "CategoryScore" = $categoryScore; "CategoryWeightiestCount" = $categoryWeightiestCount.Count }) | Out-Null
+    }
+
+    $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
+
+    $counter = 13 #Shape count for the slide to start adding scores
+    $categoryCounter = 0
+    $gaugeIconX = 378.1129
+    $gaugeIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
+
+    foreach ($category in $CategoriesList) {
+        if ($category.Category -ne "Uncategorized") {
+            try {
+                #$newSummarySlide.Shapes[8] #Domain 1 Icon
+                #$newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryScore.ToString("#")
+                $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryWeightiestCount.ToString("#")
+                $newSummarySlide.Shapes[$counter + 1].TextFrame.TextRange.Text = $category.Category
+                $counter = $counter + 3 # no graphic anymore
+                switch ($category.CategoryScore) {
+                    { $_ -lt 33 } { 
+                        $categoryShape = $newSummarySlide.Shapes[37]
+                    }
+                    { $_ -gt 33 -and $_ -lt 67 } { 
+                        $categoryShape = $newSummarySlide.Shapes[38] 
+                    }
+                    { $_ -gt 67 } { 
+                        $categoryShape = $newSummarySlide.Shapes[39] 
+                    }
+                    Default { 
+                        $categoryShape = $newSummarySlide.Shapes[38] 
+                    }
+                }
+                $categoryShape.Duplicate() | Out-Null
+                $newShape = $newSummarySlide.Shapes.Count
+                $newSummarySlide.Shapes[$newShape].Left = $gaugeIconX
+                $newSummarySlide.Shapes[$newShape].top = $gaugeIconY[$categoryCounter] 
+                $categoryCounter = $categoryCounter + 1
+            }
+            catch {}
+        }
+    }
+
+
+
+    #Remove the boilerplate placeholder text if categories < 8
+    if ($categories.Count -lt 8) {
+        for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
+            try {
+                $newSummarySlide.Shapes[$k].Delete()
+                $newSummarySlide.Shapes[$k+1].Delete()
+            }
+            catch {}
+        }
+    }
+
+    # Edit new category summary slide
+
+    foreach ($category in $CategoriesList.Category) {
+
+        $categoryData = $data | Where-Object { $_.Category -eq $category }# -and $_.Category -eq $casr}
+        $categoryDataCount = ($categoryData | Measure-Object).Count
+        $categoryWeight = ($data | Where-Object { $_.Category -eq $category }).Weight | Measure-Object -Sum
+        $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
+        $categoryDescription = ($descriptionsFile | Where-Object { $categoryData.Category.Contains($_.Category) }).Description
+        $y = $categoryDataCount
+        $x = $ShowTop
+        if ($categoryDataCount -lt $x) {
+            $x = $categoryDataCount
+        }
+
+        $newDetailSlide = $detailSlide.Duplicate()
+        $newDetailSlide.MoveTo($presentation.Slides.Count)
+
+        $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $category
+        $newDetailSlide.Shapes[3].TextFrame.TextRange.Text = $categoryScore.ToString("#")
+        [Double]$detailBarScore = $categoryScore * 2.48 + 38
+        $newDetailSlide.Shapes[12].Left = $detailBarScore
+        $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
+        $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
+        $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
+        $sentenceCount = $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences().count
+
+        for ($k = 1; $k -le $sentenceCount; $k++) {
+            if ($newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text) {
+                try {
+                    $recommendationObject = $categoryData | Where-Object { $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text.Contains($_.'Link-Text') }
+                    $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).ActionSettings(1).HyperLink.Address = $recommendationObject.Link
+                }
+                catch {}
+            }
+        }     
+    }    
+}
+
 
 Function CleanUp
 {
@@ -725,25 +852,17 @@ Function CleanUp
 
 
 
-if ($assessmentTypeCheck.contains("Well-Architected")) 
+if ($WellArchitected) 
 {
     WellArchitectedAssessment
 }
+elseif ($DevOpsCapability) 
+{
+    DevOpsCapabilityAssessment
+}
 else 
 {
-    $title = "Cloud Adoption Security Review"
-
-    if($DevOpsCapability){
-        $title = "DevOps Capability Review"
-    }
-
-    $description = $cloudAdoptionDescription
-
-    if($DevOpsCapability) {
-        $description = $devOpsDescription
-    }
-
-    CloudAdoptionAssessment -title $title -description $description
+    CloudAdoptionAssessment
 }
 
 CleanUp
