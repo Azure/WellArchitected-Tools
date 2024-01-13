@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
     Takes output from the Well-Architected Review Assessment website and produces a PowerPoint presentation incorporating the findings.
-    Also support the Cloud Adoption Security Review Assessment.
+    Also support the Cloud Adoption Security Review Assessment and the DevOps Capability Assessment.
     https://learn.microsoft.com/en-us/assessments/azure-architecture-review/
     
 .DESCRIPTION
@@ -16,6 +16,10 @@
     For a CASR report:
 
         .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -CloudAdoption
+
+    For a DevOps capability report:
+
+        .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -DevOpsCapability
 
     Ensure the powerpoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
     Once the script is run, close the powershell window and a timestamped PowerPoint report and a subset csv file will be created on the working directory
