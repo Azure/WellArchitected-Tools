@@ -392,15 +392,9 @@ Function WellArchitectedAssessment
         $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]", $localReportDate)
 
 
-        # Populates Executive Summary Slide
+        # Populates Executive Summary Slide(s)
 
-        #Add logic to get overall score
-        $newSummarySlide = $summarySlide.Duplicate()
-        $newSummarySlide.MoveTo($presentation.Slides.Count)
-        $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
-        $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
-        [Double]$summBarScore = [int]$pillarInfo.Score * 2.47 + 56
-        $newSummarySlide.Shapes[11].Left = $summBarScore
+        # prepare category list and identify "high importance" recommendations
 
         $CategoriesList = New-Object System.Collections.ArrayList
         $categories = ($pillarData | Sort-Object -Property "Weight" -Descending).ReportingCategory | Select-Object -Unique
@@ -411,10 +405,19 @@ Function WellArchitectedAssessment
             $CategoriesList.Add([pscustomobject]@{"Category" = $category; "CategoryScore" = $categoryScore; "CategoryWeightiestCount" = $categoryWeightiestCount.Count }) | Out-Null
         }
 
-        $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
+        # display categories alphabetically - so that the WAF 2.0 code numbers are in order
+        $CategoriesList = $CategoriesList | Sort-Object -Property Category
+
+        $newSummarySlide = $summarySlide.Duplicate()
+        $newSummarySlide.MoveTo($presentation.Slides.Count)
+        $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
+        $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
+        [Double]$summBarScore = [int]$pillarInfo.Score * 2.47 + 56
+        $newSummarySlide.Shapes[11].Left = $summBarScore
 
         $counter = 13 #Shape index for the slide to start adding scores (it's 13 because the first 12 shapes are the boilerplate text: 12 is gauge icon, 13 is score, 14 is category, etc.)
         $categoryCounter = 0
+        $pageCounter = 1
         $gaugeIconX = 437.76 # X coordinate for the gauge icon in points (1 point = 1/72 inch)
         $gaugeIconY = @(147.6, 176.4, 204.48, 232.56, 261.36, 289.44, 317.52, 346.32, 375.12, 403.2, 432.0, 460.08 ) # Y coordinates for the remaining 12 gauge icons in points (vertically aligned)
         
@@ -423,10 +426,20 @@ Function WellArchitectedAssessment
         $CategoriesList = $FilteredCategoriesList 
         
         foreach ($category in $CategoriesList) {
-            if ($CategoriesList.IndexOf($category) -ge 12) {
-                # WARNING: only 12 categories fit on the slide. TODO: Change template slide to fit more categories
-                Write-Host "WARNING: only 12 categories fit on the summary slide. Skipping category $($category.Category), high-importance recommendations: $($category.CategoryWeightiestCount)"    
-                continue;
+            if($categoryCounter -ge (12 * $pageCounter)) {
+                # add another page if there are more categories than can fit
+                $newSummarySlide = $summarySlide.Duplicate()
+                $newSummarySlide.MoveTo($presentation.Slides.Count)
+                $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $pillarInfo.Score
+                $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $pillarInfo.Description
+                [Double]$summBarScore = [int]$pillarInfo.Score * 2.47 + 56
+                $newSummarySlide.Shapes[11].Left = $summBarScore
+
+                $counter = 13 #Shape count for the slide to start adding scores
+                $categoryCounter = 0
+                $pageCounter = $pageCounter + 1
+                $gaugeIconX = 437.76 # X coordinate for the gauge icon in points (1 point = 1/72 inch)
+                $gaugeIconY = @(147.6, 176.4, 204.48, 232.56, 261.36, 289.44, 317.52, 346.32, 375.12, 403.2, 432.0, 460.08 ) # Y coordinates for the remaining 12 gauge icons in points (vertically aligned)
             }
 
             try {
@@ -513,7 +526,7 @@ Function WellArchitectedAssessment
         }
 
         #Remove boilerplate shapes. 
-        if ($categories.Count -lt 12) { #12 is the number of categories shapes on the summary slide 
+        if ($categories.Count -lt (12 * $pageCounter)) { #12 is the number of categories shapes on the summary slide 
             for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
                 if ($null -ne $newSummarySlide.Shapes[$k] -and $newSummarySlide.Shapes[$k].Name -ne "NewGauges") { # Fix: Don't delete the newly added colored gauge shapes 
                     try {
