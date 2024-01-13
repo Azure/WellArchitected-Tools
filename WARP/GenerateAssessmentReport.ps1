@@ -30,7 +30,10 @@
 
 .PARAMETER CloudAdoption
     If set, indicates the Cloud Adoption Security Review format should be used. If not set, Well-Architected is assumed.
-    
+
+.PARAMETER DevOpsCapability
+    If set, indicates the DevOps Capability Review format should be used. If not set, Well-Architected is assumed.
+
 .PARAMETER MinimumReportLevel
     The level above which a finding is considered high severity, By convention, scores up to 32 are low, 65 medium, and 66+ high.
 
@@ -61,7 +64,7 @@
 .EXAMPLE
     .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -CloudAdoption    
     
-    If the title doesn't identify the report type correctly, you can force the decision with -CloudAdoption
+    If the title doesn't identify the report type correctly, you can force the decision with the relevant switch. (for example: -CloudAdoption, -DevOpsCapability)
 
 .NOTES
     PowerPoint needs to be installed to create a PPTX.
@@ -89,7 +92,10 @@ param (
     $ShowTop = 6 ,
 
     [Parameter()]
-    [switch] $CloudAdoption
+    [switch] $CloudAdoption,
+
+    [Parameter()]
+    [switch] $DevOpsCapability
 
 )
 
@@ -127,7 +133,7 @@ function Get-FileName($initialDirectory) {
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenFileDialog.initialDirectory = $initialDirectory
     $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
-    $OpenFileDialog.Title = "Select Well-Architected Review file export"
+    $OpenFileDialog.Title = "Select review file export"
     $OpenFileDialog.ShowDialog() | Out-Null
     $OpenFileDialog.filename
 }
@@ -150,6 +156,15 @@ function LoadDescriptionFile {
         }
         catch {
             Write-Error -Message "Unable to open $($workingDirectory)\WAF Category Descriptions.csv"
+            exit
+        }
+    }
+    elseif ($DevOpsCapability) {
+        try {
+            $descriptionsFile = Import-Csv "$workingDirectory\DevOps Category Descriptions.csv"
+        }
+        catch {
+            Write-Error -Message "Unable to open $($workingDirectory)\DevOps Category Descriptions.csv"
             exit
         }
     }
@@ -213,11 +228,20 @@ if ($assessmentTypeCheck.contains("Cloud Adoption") ) {
     write-host "Detected Cloud Adoption Security Review from CSV title row"
     $CloudAdoption = $true
     $WellArchitected = $false
+    $DevOpsCapability = $false
 }
-if (!$CloudAdoption) {
-    write-host "Well-Architected Review selected - use -CloudAdoption switch if incorrect."
+if ($assessmentTypeCheck.contains("DevOps Capability") ) {
+    write-host "Detected DevOps Capability Review from CSV title row"
+    $CloudAdoption = $false
+    $WellArchitected = $false
+    $DevOpsCapability = $true
+}
+if (!$CloudAdoption -and !$DevOpsCapability) {
+    write-host "Well-Architected Review selected - use switch to force a different report format."
     $assessmentTypeCheck = "Well-Architected"
+    $CloudAdoption = $false
     $WellArchitected = $true
+    $DevOpsCapability = $false
 }
 $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
 $localReportDate = Get-Date -Format g
@@ -314,11 +338,19 @@ if ($WellArchitected) {
         Write-Host $_
         exit
     }
-}
-else {
-    Write-host "Producing Cloud Adoption Security Review report..."
+} else {
+    
     $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - CloudAdoption.pptx"
     $title = "Cloud Adoption Security Review"
+
+    if($CloudAdoption) {
+        Write-host "Producing Cloud Adoption Security Review report..."
+    } elseif($DevOpsCapability) {
+        Write-host "Producing DevOps Capability Review report..."
+        $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - DevOps.pptx"
+        $title = "DevOps Capability Review"
+    }
+
     try {
         $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note"
         #Write-Debug "Tablestart: $tablestart"
@@ -344,6 +376,7 @@ else {
 $descriptionsFile = LoadDescriptionFile
 
 $cloudAdoptionDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
+$devOpsDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
 $costDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Cost Optimization" -and $_.Category -eq "Survey Level Group" }).Description
 $operationsDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Operational Excellence" -and $_.Category -eq "Survey Level Group" }).Description
 $performanceDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Performance Efficiency" -and $_.Category -eq "Survey Level Group" }).Description
@@ -526,9 +559,9 @@ Function WellArchitectedAssessment
     }
 }
 
-Function CloudAdoptionAssessment
+Function CloudAdoptionAssessment($title, $description)
 {
-    $slideTitle = $title.Replace("[CA_Security_Review]", "Cloud Adoption Security Review")
+    $slideTitle = $title.Replace("[CA_Security_Review]", $title)
     $newTitleSlide = $titleSlide.Duplicate()
     $newTitleSlide.MoveTo($presentation.Slides.Count)
     $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
@@ -543,7 +576,7 @@ Function CloudAdoptionAssessment
     $newSummarySlide = $summarySlide.Duplicate()
     $newSummarySlide.MoveTo($presentation.Slides.Count)
     $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $ScoreText
-    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $cloudAdoptionDescription
+    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $description
     [Double]$summBarScore = [int]$ScoreText * 2.47 + 56
     $newSummarySlide.Shapes[11].Left = $summBarScore
 
@@ -670,12 +703,14 @@ Function CleanUp
     catch {
     }
 
-    if ($assessmentTypeCheck.contains("Well-Architected"))
+    if ($WellArchitected)
     {
         $presentation.SavecopyAs("$workingDirectory\WAF-Review-$($reportDate).pptx")
     }
-    else
-    {
+    elseif($DevOpsCapability){
+        $presentation.SavecopyAs("$workingDirectory\DevOps-$($reportDate).pptx")
+    } 
+    else {
         $presentation.SavecopyAs("$workingDirectory\CASR-$($reportDate).pptx")
     }
 
@@ -696,7 +731,19 @@ if ($assessmentTypeCheck.contains("Well-Architected"))
 }
 else 
 {
-    CloudAdoptionAssessment
+    $title = "Cloud Adoption Security Review"
+
+    if($DevOpsCapability){
+        $title = "DevOps Capability Review"
+    }
+
+    $description = $cloudAdoptionDescription
+
+    if($DevOpsCapability) {
+        $description = $devOpsDescription
+    }
+
+    CloudAdoptionAssessment -title $title -description $description
 }
 
 CleanUp
