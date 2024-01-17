@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
     Takes output from the Well-Architected Review Assessment website and produces a PowerPoint presentation incorporating the findings.
-    Also support the Cloud Adoption Security Review Assessment.
+    Also support the Cloud Adoption Security Review Assessment and the DevOps Capability Assessment.
     https://learn.microsoft.com/en-us/assessments/azure-architecture-review/
     
 .DESCRIPTION
@@ -17,6 +17,10 @@
 
         .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -CloudAdoption
 
+    For a DevOps capability report:
+
+        .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -DevOpsCapability
+
     Ensure the powerpoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
     Once the script is run, close the powershell window and a timestamped PowerPoint report and a subset csv file will be created on the working directory
     Use these reports to represent and edit your findings for the WAF Engagement
@@ -30,7 +34,10 @@
 
 .PARAMETER CloudAdoption
     If set, indicates the Cloud Adoption Security Review format should be used. If not set, Well-Architected is assumed.
-    
+
+.PARAMETER DevOpsCapability
+    If set, indicates the DevOps Capability Review format should be used. If not set, Well-Architected is assumed.
+
 .PARAMETER MinimumReportLevel
     The level above which a finding is considered high severity, By convention, scores up to 32 are low, 65 medium, and 66+ high.
 
@@ -61,7 +68,7 @@
 .EXAMPLE
     .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -CloudAdoption    
     
-    If the title doesn't identify the report type correctly, you can force the decision with -CloudAdoption
+    If the title doesn't identify the report type correctly, you can force the decision with the relevant switch. (for example: -CloudAdoption, -DevOpsCapability)
 
 .NOTES
     PowerPoint needs to be installed to create a PPTX.
@@ -89,7 +96,10 @@ param (
     $ShowTop = 6 ,
 
     [Parameter()]
-    [switch] $CloudAdoption
+    [switch] $CloudAdoption,
+
+    [Parameter()]
+    [switch] $DevOpsCapability
 
 )
 
@@ -127,7 +137,7 @@ function Get-FileName($initialDirectory) {
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenFileDialog.initialDirectory = $initialDirectory
     $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
-    $OpenFileDialog.Title = "Select Well-Architected Review file export"
+    $OpenFileDialog.Title = "Select review file export"
     $OpenFileDialog.ShowDialog() | Out-Null
     $OpenFileDialog.filename
 }
@@ -150,6 +160,15 @@ function LoadDescriptionFile {
         }
         catch {
             Write-Error -Message "Unable to open $($workingDirectory)\WAF Category Descriptions.csv"
+            exit
+        }
+    }
+    elseif ($DevOpsCapability) {
+        try {
+            $descriptionsFile = Import-Csv "$workingDirectory\DevOps Category Descriptions.csv"
+        }
+        catch {
+            Write-Error -Message "Unable to open $($workingDirectory)\DevOps Category Descriptions.csv"
             exit
         }
     }
@@ -213,11 +232,20 @@ if ($assessmentTypeCheck.contains("Cloud Adoption") ) {
     write-host "Detected Cloud Adoption Security Review from CSV title row"
     $CloudAdoption = $true
     $WellArchitected = $false
+    $DevOpsCapability = $false
 }
-if (!$CloudAdoption) {
-    write-host "Well-Architected Review selected - use -CloudAdoption switch if incorrect."
+if ($assessmentTypeCheck.contains("DevOps Capability") ) {
+    write-host "Detected DevOps Capability Review from CSV title row"
+    $CloudAdoption = $false
+    $WellArchitected = $false
+    $DevOpsCapability = $true
+}
+if (!$CloudAdoption -and !$DevOpsCapability) {
+    write-host "Well-Architected Review selected - use switch to force a different report format."
     $assessmentTypeCheck = "Well-Architected"
+    $CloudAdoption = $false
     $WellArchitected = $true
+    $DevOpsCapability = $false
 }
 $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
 $localReportDate = Get-Date -Format g
@@ -314,11 +342,19 @@ if ($WellArchitected) {
         Write-Host $_
         exit
     }
-}
-else {
-    Write-host "Producing Cloud Adoption Security Review report..."
+} else {
+    
     $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - CloudAdoption.pptx"
     $title = "Cloud Adoption Security Review"
+
+    if($CloudAdoption) {
+        Write-host "Producing Cloud Adoption Security Review report..."
+    } elseif($DevOpsCapability) {
+        Write-host "Producing DevOps Capability Review report..."
+        $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - DevOps.pptx"
+        $title = "DevOps Capability Review"
+    }
+
     try {
         $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note"
         #Write-Debug "Tablestart: $tablestart"
@@ -344,6 +380,7 @@ else {
 $descriptionsFile = LoadDescriptionFile
 
 $cloudAdoptionDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
+$devOpsDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
 $costDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Cost Optimization" -and $_.Category -eq "Survey Level Group" }).Description
 $operationsDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Operational Excellence" -and $_.Category -eq "Survey Level Group" }).Description
 $performanceDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Performance Efficiency" -and $_.Category -eq "Survey Level Group" }).Description
@@ -668,6 +705,133 @@ Function CloudAdoptionAssessment
     }
 }
 
+Function DevOpsCapabilityAssessment {
+    $slideTitle = $title.Replace("[CA_Security_Review]", "DevOps Capability Review")
+    $newTitleSlide = $titleSlide.Duplicate()
+    $newTitleSlide.MoveTo($presentation.Slides.Count)
+    $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
+    $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]", $localReportDate)
+
+    # Edit Executive Summary Slide
+    if (![string]::IsNullOrEmpty($overallScore)) {
+        $ScoreText = "$($overallScore)"
+    }
+
+    #Add logic to get overall score
+    $newSummarySlide = $summarySlide.Duplicate()
+    $newSummarySlide.MoveTo($presentation.Slides.Count)
+    $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $ScoreText
+    $newSummarySlide.Shapes[4].TextFrame.TextRange.Text = $devOpsDescription
+    [Double]$summBarScore = [int]$ScoreText * 2.47 + 56
+    $newSummarySlide.Shapes[11].Left = $summBarScore
+
+
+    $CategoriesList = New-Object System.Collections.ArrayList
+    $categories = $data.Category | Sort-Object -Property "Weight" -Descending | Select-Object -Unique
+    
+        
+    # Remove non existing (aka empty) categories. CASR has only 6 categories (no Advisor/uncategorized category)
+    $FilteredCategoriesList = [System.Collections.ArrayList]($categories | Where-Object { $_ -ne "" })
+    $categories = $FilteredCategoriesList
+    
+    foreach ($category in $categories) {
+        $categoryWeight = ($data | Where-Object { $_.Category -eq $category }).Weight | Measure-Object -Sum
+        $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
+        $categoryWeightiestCount = ($data | Where-Object { $_.Category -eq $category }).Weight -ge $MinimumReportLevel | Measure-Object
+        $CategoriesList.Add([pscustomobject]@{"Category" = $category; "CategoryScore" = $categoryScore; "CategoryWeightiestCount" = $categoryWeightiestCount.Count }) | Out-Null
+    }
+
+    $CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
+
+    $counter = 13 #Shape count for the slide to start adding scores
+    $categoryCounter = 0
+    $gaugeIconX = 378.1129
+    $gaugeIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
+
+    foreach ($category in $CategoriesList) {
+        if ($category.Category -ne "Uncategorized") {
+            try {
+                #$newSummarySlide.Shapes[8] #Domain 1 Icon
+                #$newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryScore.ToString("#")
+                $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryWeightiestCount.ToString("#")
+                $newSummarySlide.Shapes[$counter + 1].TextFrame.TextRange.Text = $category.Category
+                $counter = $counter + 3 # no graphic anymore
+                switch ($category.CategoryScore) {
+                    { $_ -lt 33 } { 
+                        $categoryShape = $newSummarySlide.Shapes[37]
+                    }
+                    { $_ -gt 33 -and $_ -lt 67 } { 
+                        $categoryShape = $newSummarySlide.Shapes[38] 
+                    }
+                    { $_ -gt 67 } { 
+                        $categoryShape = $newSummarySlide.Shapes[39] 
+                    }
+                    Default { 
+                        $categoryShape = $newSummarySlide.Shapes[38] 
+                    }
+                }
+                $categoryShape.Duplicate() | Out-Null
+                $newShape = $newSummarySlide.Shapes.Count
+                $newSummarySlide.Shapes[$newShape].Left = $gaugeIconX
+                $newSummarySlide.Shapes[$newShape].top = $gaugeIconY[$categoryCounter] 
+                $categoryCounter = $categoryCounter + 1
+            }
+            catch {}
+        }
+    }
+
+
+
+    #Remove the boilerplate placeholder text if categories < 8
+    if ($categories.Count -lt 8) {
+        for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
+            try {
+                $newSummarySlide.Shapes[$k].Delete()
+                $newSummarySlide.Shapes[$k+1].Delete()
+            }
+            catch {}
+        }
+    }
+
+    # Edit new category summary slide
+
+    foreach ($category in $CategoriesList.Category) {
+
+        $categoryData = $data | Where-Object { $_.Category -eq $category }# -and $_.Category -eq $casr}
+        $categoryDataCount = ($categoryData | Measure-Object).Count
+        $categoryWeight = ($data | Where-Object { $_.Category -eq $category }).Weight | Measure-Object -Sum
+        $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
+        $categoryDescription = ($descriptionsFile | Where-Object { $categoryData.Category.Contains($_.Category) }).Description
+        $y = $categoryDataCount
+        $x = $ShowTop
+        if ($categoryDataCount -lt $x) {
+            $x = $categoryDataCount
+        }
+
+        $newDetailSlide = $detailSlide.Duplicate()
+        $newDetailSlide.MoveTo($presentation.Slides.Count)
+
+        $newDetailSlide.Shapes[1].TextFrame.TextRange.Text = $category
+        $newDetailSlide.Shapes[3].TextFrame.TextRange.Text = $categoryScore.ToString("#")
+        [Double]$detailBarScore = $categoryScore * 2.48 + 38
+        $newDetailSlide.Shapes[12].Left = $detailBarScore
+        $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
+        $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
+        $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
+        $sentenceCount = $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences().count
+
+        for ($k = 1; $k -le $sentenceCount; $k++) {
+            if ($newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text) {
+                try {
+                    $recommendationObject = $categoryData | Where-Object { $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text.Contains($_.'Link-Text') }
+                    $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).ActionSettings(1).HyperLink.Address = $recommendationObject.Link
+                }
+                catch {}
+            }
+        }     
+    }    
+}
+
 
 Function CleanUp
 {
@@ -683,12 +847,14 @@ Function CleanUp
     catch {
     }
 
-    if ($assessmentTypeCheck.contains("Well-Architected"))
+    if ($WellArchitected)
     {
         $presentation.SavecopyAs("$workingDirectory\WAF-Review-$($reportDate).pptx")
     }
-    else
-    {
+    elseif($DevOpsCapability){
+        $presentation.SavecopyAs("$workingDirectory\DevOps-$($reportDate).pptx")
+    } 
+    else {
         $presentation.SavecopyAs("$workingDirectory\CASR-$($reportDate).pptx")
     }
 
@@ -703,9 +869,13 @@ Function CleanUp
 
 
 
-if ($assessmentTypeCheck.contains("Well-Architected")) 
+if ($WellArchitected) 
 {
     WellArchitectedAssessment
+}
+elseif ($DevOpsCapability) 
+{
+    DevOpsCapabilityAssessment
 }
 else 
 {
