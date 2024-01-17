@@ -8,5 +8,6 @@ PnP-DevOps.ps1
 PnP-Github.ps1
 PnP_PowerPointReport_Template.pptx
 PnP_PowerPointReport_Template - CloudAdoption.pptx
-PnP_PowerPointReport_Template - DevOps.pptx
 WAF Category Descriptions.csv
+UpdateWAFCategories.ps1
+PnP_PowerPointReport_Template - DevOps.pptx
