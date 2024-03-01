@@ -194,6 +194,14 @@ function Clear-Presentation($Slide)
 }
 
 #-----------------------------------------------------------[Execution]------------------------------------------------------------
+
+#Check PowerShell version
+if ( $PSVersionTable.PSVersion.Major -lt 7 )
+{
+    Write-Host "ERROR: This script requires PowerShell Core 7 or later. Please install the latest PowerShell Core version from https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell"
+    exit
+}
+
 #Read input file
 $scorecard, $overallScore, $overallRating = Read-File -File $AssessmentReport
 
