@@ -46,7 +46,7 @@
 param 
 (
     [Parameter(Mandatory=$True)]
-    [ValidateScript({Test-Path $_ }, ErrorMessage = "Unable to find the selected file. Please select a valid Well-Architected Assessment report in the <filename>.csv format.")]
+    [ValidateScript({(Test-Path $_ -PathType Leaf) -and ($_ -match '.csv$')})]
     [string] $AssessmentReport,
 
     [Parameter(Mandatory=$True)]
@@ -279,7 +279,7 @@ foreach($slide in $slides.Values)
 }
 
 #Save presentation and close object
-$reportTemplateObject.SavecopyAs(“$workingDirectory\Azure Well-Architected $AssessmentType Review - Executive Summary - $reportDate.pptx”)
+$reportTemplateObject.SavecopyAs("$workingDirectory\Azure Well-Architected $AssessmentType Review - Executive Summary - $reportDate.pptx")
 $reportTemplateObject.Close()
 
 $application.quit()
