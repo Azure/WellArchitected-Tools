@@ -45,15 +45,15 @@
 [CmdletBinding()]
 param 
 (
-    [Parameter(Mandatory=$True)]
-    [ValidateScript({Test-Path $_ }, ErrorMessage = "Unable to find the selected file. Please select a valid Well-Architected Assessment report in the <filename>.csv format.")]
+    [Parameter(Mandatory = $True)]
+    [ValidateScript({ (Test-Path $_ -PathType Leaf) -and ($_ -match '.csv$') })]
     [string] $AssessmentReport,
 
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory = $True)]
     [ValidateSet("AVS", "AVD")]
     [string] $AssessmentType,
 
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory = $True)]
     [string] $YourName
 )
 
@@ -65,8 +65,8 @@ $workingDirectory = (Get-Location).Path
 #Get PowerPoint template and description file
 $reportTemplate = "$workingDirectory\WARR_PowerPoint_Template.pptx"
 $ratingDescription = @{
-    "Critical" = "Based on the outcome of the assessment your workload seems to be in a critical state. Please review the recommendations for each service to resolve key deployment risks and improve your results."
-    "Moderate" = "Almost there. You have some room to improve but you are on track. Review the recommendations to see what actions you can take to improve your results."
+    "Critical"  = "Based on the outcome of the assessment your workload seems to be in a critical state. Please review the recommendations for each service to resolve key deployment risks and improve your results."
+    "Moderate"  = "Almost there. You have some room to improve but you are on track. Review the recommendations to see what actions you can take to improve your results."
     "Excellent" = "Your workload is broadly following the principles of the Well-Architected framework. Review the recommendations to see where you can improve your results even further."
 }
 
@@ -77,14 +77,13 @@ $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
 #-----------------------------------------------------------[Functions]------------------------------------------------------------
 
 #Read input file content
-function Read-File($File)
-{
+function Read-File($File) {
     #Get report content
     $content = Get-Content $File
 
     #Get findings
     $findingsStart = $content.IndexOf("Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note")
-    $endStringIdentifier = $content | Where-Object{$_.Contains("--,,")} | Select-Object -Unique -First 1
+    $endStringIdentifier = $content | Where-Object { $_.Contains("--,,") } | Select-Object -Unique -First 1
     $findingsEnd = $content.IndexOf($endStringIdentifier) - 1
     $findings = $content[$findingsStart..$findingsEnd] | Out-String | ConvertFrom-CSV -Delimiter ","
     $null = $findings | ForEach-Object { $_.Weight = [int]$_.Weight }
@@ -93,17 +92,16 @@ function Read-File($File)
     $designAreas = $findings | ForEach-Object { $_.Category.Split("-")[1].Trim() } | Select-Object -Unique
 
     #Get scores
-    $startStringIdentifier = $content | Where-Object{$_.Contains("Your overall results")} | Select-Object -Unique -First 1
+    $startStringIdentifier = $content | Where-Object { $_.Contains("Your overall results") } | Select-Object -Unique -First 1
     $scoresStart = $content.IndexOf($startStringIdentifier) + 1
     $scoresEnd = $findingsStart - 7
     $scores = $content[$scoresStart..$scoresEnd] | Out-String | ConvertFrom-Csv -Delimiter "," -Header 'Category', 'Criticality', 'Score'
-    $null = $scores | ForEach-Object { $_.Score = $_.Score.Trim("'").Replace("/100", ""); $_.Score = [int]$_.Score}
+    $null = $scores | ForEach-Object { $_.Score = $_.Score.Trim("'").Replace("/100", ""); $_.Score = [int]$_.Score }
    
     #Get recommendations per design area
     [System.Collections.ArrayList]$scorecard = @{}
     
-    foreach($designArea in $designAreas)
-    {
+    foreach ($designArea in $designAreas) {
         #Rating and score per design area
         $ratingPerDesignArea = ($scores | Where-Object Category -like "*$designArea*").Criticality
         $scorePerDesignArea = ($scores | Where-Object Category -like "*$designArea*").Score
@@ -114,11 +112,10 @@ function Read-File($File)
         #Get weight per recommendation
         [System.Collections.ArrayList]$weightPerRecommendation = @{}
 
-        foreach($recommendationPerDesignArea in $recommendationsPerDesignArea)
-        {
+        foreach ($recommendationPerDesignArea in $recommendationsPerDesignArea) {
             $wObject = [PSCustomObject]@{
-                "Weight" = [int]($recommendationPerDesignArea.Weight)
-                "Priority" = ($recommendationPerDesignArea.Priority)
+                "Weight"         = [int]($recommendationPerDesignArea.Weight)
+                "Priority"       = ($recommendationPerDesignArea.Priority)
                 "Recommendation" = ($recommendationPerDesignArea.'Link-Text')
             }
 
@@ -126,10 +123,10 @@ function Read-File($File)
         }
 
         $rObject = [PSCustomObject]@{
-            "Design Area" = $designArea;
+            "Design Area"     = $designArea;
             "Recommendations" = $weightPerRecommendation;
-            "Score" = $scorePerDesignArea;
-            "Rating" = $ratingPerDesignArea
+            "Score"           = $scorePerDesignArea;
+            "Rating"          = $ratingPerDesignArea
         }
 
         $null = $scorecard.Add($rObject)
@@ -142,58 +139,47 @@ function Read-File($File)
     return $scorecard, $overallScore, $overallRating
 }
 
-function Edit-Slide([switch]$Chart, $Slide, $StringToFindAndReplace, $Counter)
-{
+function Edit-Slide([switch]$Chart, $Slide, $StringToFindAndReplace, $Counter) {
     $StringToFindAndReplace.GetEnumerator() | ForEach-Object { 
 
-        if($Chart -and ($_.Key -notlike "*DesignArea*") -and ($_.Key -notlike "*Rating*"))
-        {
+        if ($Chart -and ($_.Key -notlike "*DesignArea*") -and ($_.Key -notlike "*Rating*")) {
             $shape = $Slide.Shapes[$_.Key]
 
             # Edit chart serie color
-            switch ([int]$_.Value)
-            {
-                {$_ -le 33} { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#FF0000" }
-                {$_ -gt 33 -and $_ -le 66} { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#800000" }
-                {$_ -gt 66} { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#008000" }
+            switch ([int]$_.Value) {
+                { $_ -le 33 } { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#FF0000" }
+                { $_ -gt 33 -and $_ -le 66 } { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#800000" }
+                { $_ -gt 66 } { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#008000" }
             }
             
             # Edit chart data
-            $Slide.Shapes[$_.Key].Chart.ChartData.Workbook.Worksheets[1].Cells[2,2] = [string]$_.Value
-            $Slide.Shapes[$_.Key].Chart.ChartData.Workbook.Worksheets[1].Cells[3,2] = [string](100 - $_.Value)            
+            $Slide.Shapes[$_.Key].Chart.ChartData.Workbook.Worksheets[1].Cells[2, 2] = [string]$_.Value
+            $Slide.Shapes[$_.Key].Chart.ChartData.Workbook.Worksheets[1].Cells[3, 2] = [string](100 - $_.Value)            
         }
-        else
-        {
+        else {
             $Slide.Shapes[$_.Key].TextFrame.TextRange.Text = [string]$_.Value
         }
     }
 }
 
-function Clear-Presentation($Slide)
-{
-    $slideToRemove = $Slide.Shapes | Where-Object {$_.TextFrame.TextRange.Text -match '^(Category)$'}
-    $shapesToRemove = $Slide.Shapes | Where-Object {$_.TextFrame.TextRange.Text -match '^(W|Design\sarea|Sc|Priority|Rating|Recommendation)$'}
-    $scoreCharts = $Slide.Shapes | Where-Object {$_.Name -match '^(Summary - Score_[1-9])$'}
-    $chartsToRemove = $scoreCharts | Where-Object {$_.Chart.ChartData.Workbook.Worksheets[1].Cells[2,2].Text -eq 0}
+function Clear-Presentation($Slide) {
+    $slideToRemove = $Slide.Shapes | Where-Object { $_.TextFrame.TextRange.Text -match '^(Category)$' }
+    $shapesToRemove = $Slide.Shapes | Where-Object { $_.TextFrame.TextRange.Text -match '^(W|Design\sarea|Sc|Priority|Rating|Recommendation)$' }
+    $scoreCharts = $Slide.Shapes | Where-Object { $_.Name -match '^(Summary - Score_[1-9])$' }
+    $chartsToRemove = $scoreCharts | Where-Object { $_.Chart.ChartData.Workbook.Worksheets[1].Cells[2, 2].Text -eq 0 }
 
-    if ($slideToRemove)
-    {
+    if ($slideToRemove) {
         $Slide.Delete()
     }
-    else 
-    {
-        if ($shapesToRemove)
-        {
-            foreach($shapeToRemove in $shapesToRemove)
-            {
+    else {
+        if ($shapesToRemove) {
+            foreach ($shapeToRemove in $shapesToRemove) {
                 $shapeToRemove.Delete()
             }
         }
 
-        if ($chartsToRemove) 
-        {
-            foreach($chartToRemove in $chartsToRemove)
-            {
+        if ($chartsToRemove) {
+            foreach ($chartToRemove in $chartsToRemove) {
                 $chartToRemove.Delete()
             }
         }
@@ -208,12 +194,12 @@ $scorecard, $overallScore, $overallRating = Read-File -File $AssessmentReport
 $application = New-Object -ComObject PowerPoint.Application
 $reportTemplateObject = $application.Presentations.Open($reportTemplate)
 $slides = @{
-    "Cover" = $reportTemplateObject.Slides[1];
-    "Summary" = $reportTemplateObject.Slides[14];
-    "Plan" = $reportTemplateObject.Slides[15];
+    "Cover"      = $reportTemplateObject.Slides[1];
+    "Summary"    = $reportTemplateObject.Slides[14];
+    "Plan"       = $reportTemplateObject.Slides[15];
     "Categories" = $reportTemplateObject.Slides[16];
-    "Details" = $reportTemplateObject.Slides[17];
-    "End" = $reportTemplateObject.Slides[19]
+    "Details"    = $reportTemplateObject.Slides[17];
+    "End"        = $reportTemplateObject.Slides[19]
 }
 
 #Edit cover slide
@@ -224,19 +210,17 @@ Edit-Slide -Slide $coverSlide -StringToFindAndReplace $stringsToReplaceInCoverSl
 $i = 0
 
 #Duplicate, move and edit summary and detail slides for each design area
-foreach($designArea in $scorecard.'Design Area')
-{
+foreach ($designArea in $scorecard.'Design Area') {
     $i++
-    $scoreForCurrentDesignArea = $scorecard | Where-Object{$_.'Design Area'-contains $designArea}
+    $scoreForCurrentDesignArea = $scorecard | Where-Object { $_.'Design Area' -contains $designArea }
 
     #Edit summary slide
     $stringsToReplaceInSummarySlide = @{ "Summary - Overall" = $overallScore; "Summary - Overall_Rating" = $overallRating; "Summary - DesignArea_$i" = $designArea; "Summary - Score_$i" = $scoreForCurrentDesignArea.score }
     Edit-Slide -Slide $slides.Summary -StringToFindAndReplace $stringsToReplaceInSummarySlide -Chart
 
     #Edit action plan
-    if ($i -le 3)
-    {
-        $stringsToReplaceInPlanSlide = @{ "Plan - Category_$i" = $designArea; "Plan - Actions_$i" = ($scoreForCurrentDesignArea.Recommendations | Sort-Object -Property Weight -Descending | Select-Object -First 2).Recommendation | ForEach-Object {$_ + "`r"} }
+    if ($i -le 3) {
+        $stringsToReplaceInPlanSlide = @{ "Plan - Category_$i" = $designArea; "Plan - Actions_$i" = ($scoreForCurrentDesignArea.Recommendations | Sort-Object -Property Weight -Descending | Select-Object -First 2).Recommendation | ForEach-Object { $_ + "`r" } }
         Edit-Slide -Slide $slides.Plan -StringToFindAndReplace $stringsToReplaceInPlanSlide
     }
 
@@ -246,25 +230,22 @@ foreach($designArea in $scorecard.'Design Area')
     
     #Add most important recommendations
     $newDetailsSlide = $slides.Details.Duplicate()
-    $newDetailsSlide.MoveTo($reportTemplateObject.Slides.Count-2)
+    $newDetailsSlide.MoveTo($reportTemplateObject.Slides.Count - 2)
     $stringsToReplaceInDetailsSlide = @{ "Details - DesignArea" = $designArea; "Details - Score" = $scoreForCurrentDesignArea.Score; "Details - Rating" = $scoreForCurrentDesignArea.Rating }
     Edit-Slide -Slide $newDetailsSlide -StringToFindAndReplace $stringsToReplaceInDetailsSlide
 
-    if(($scoreForCurrentDesignArea.Recommendations | Measure-Object).Count -lt 7)
-    {
+    if (($scoreForCurrentDesignArea.Recommendations | Measure-Object).Count -lt 7) {
         $recommendationsPerDesignArea = $scoreForCurrentDesignArea.Recommendations | Sort-Object -Property Weight -Descending | Select-Object -First ($scoreForCurrentDesignArea.Recommendations | Measure-Object).Count
     }
-    else 
-    {
+    else {
         $recommendationsPerDesignArea = $scoreForCurrentDesignArea.Recommendations | Sort-Object -Property Weight -Descending | Select-Object -First 7
     }
 
     $j = 0
 
-    foreach($recommendationPerDesignArea in $recommendationsPerDesignArea)
-    {
+    foreach ($recommendationPerDesignArea in $recommendationsPerDesignArea) {
         $j++
-        $stringsToReplaceInDetailsSlide = @{ "Details - Priority_$j" = [string]$recommendationPerDesignArea.Priority; "Details - Weight_$j" = [string]$recommendationPerDesignArea.Weight; "Details - Recommendation_$j" = [string]$recommendationPerDesignArea."Recommendation"}
+        $stringsToReplaceInDetailsSlide = @{ "Details - Priority_$j" = [string]$recommendationPerDesignArea.Priority; "Details - Weight_$j" = [string]$recommendationPerDesignArea.Weight; "Details - Recommendation_$j" = [string]$recommendationPerDesignArea."Recommendation" }
         Edit-Slide -Slide $newDetailsSlide -StringToFindAndReplace $stringsToReplaceInDetailsSlide
     }
 
@@ -273,13 +254,12 @@ foreach($designArea in $scorecard.'Design Area')
 }
 
 #Remove empty shapes and slides
-foreach($slide in $slides.Values)
-{
+foreach ($slide in $slides.Values) {
     Clear-Presentation -Slide $slide
 }
 
 #Save presentation and close object
-$reportTemplateObject.SavecopyAs(“$workingDirectory\Azure Well-Architected $AssessmentType Review - Executive Summary - $reportDate.pptx”)
+$reportTemplateObject.SavecopyAs("$workingDirectory\Azure Well-Architected $AssessmentType Review - Executive Summary - $reportDate.pptx")
 $reportTemplateObject.Close()
 
 $application.quit()
