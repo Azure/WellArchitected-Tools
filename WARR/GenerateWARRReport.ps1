@@ -42,6 +42,8 @@
 #>
 
 #---------------------------------------------------------[Initialisations]--------------------------------------------------------
+#Requires -Version 6.0
+
 [CmdletBinding()]
 param 
 (
@@ -279,7 +281,7 @@ foreach($slide in $slides.Values)
 }
 
 #Save presentation and close object
-$reportTemplateObject.SavecopyAs(“$workingDirectory\Azure Well-Architected $AssessmentType Review - Executive Summary - $reportDate.pptx”)
+$reportTemplateObject.SavecopyAs("$workingDirectory\Azure Well-Architected $AssessmentType Review - Executive Summary - $reportDate.pptx")
 $reportTemplateObject.Close()
 
 $application.quit()
