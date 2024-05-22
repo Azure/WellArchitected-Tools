@@ -193,7 +193,10 @@ function Clear-Presentation($Slide)
     if ($AssessmentType -eq "AVS")
     {
         $scoreCharts = $Slide.Shapes | Where-Object {$_.Name -match '^(Summary - Score_[1-9])$'}
-        $chartsToRemove = $scoreCharts[-1] # | Where-Object {$_.Chart.ChartData.Workbook.Worksheets[1].Cells[2,2].Text -eq 0}    
+        if($scoreCharts.Count -gt 0)
+        {
+            $chartsToRemove = $scoreCharts[-1]
+        }
     }
 
     if ($slideToRemove)
