@@ -42,6 +42,8 @@
 #>
 
 #---------------------------------------------------------[Initialisations]--------------------------------------------------------
+#Requires -Version 6.0
+
 [CmdletBinding()]
 param 
 (
@@ -135,6 +137,21 @@ function Read-File($File)
         $null = $scorecard.Add($rObject)
     }
 
+    foreach($score in $scores)
+    {
+        if ($score.Score -eq 100)
+        {
+            $sObject = [PSCustomObject]@{
+                "Design Area" = $score.Category.Split("-")[1].Trim();
+                "Recommendations" = $null;
+                "Score" = $score.Score;
+                "Rating" = $score.Criticality
+            }
+
+            $null = $scorecard.Add($sObject)
+        }
+    }
+
     $scorecard = $scorecard | Sort-Object -Property Score
     $overallScore = $content[3].Split(',')[2].Trim("'").Split('/')[0]
     $overallRating = $content[3].Split(',')[1].Trim("")
@@ -153,9 +170,9 @@ function Edit-Slide([switch]$Chart, $Slide, $StringToFindAndReplace, $Counter)
             # Edit chart serie color
             switch ([int]$_.Value)
             {
-                {$_ -le 33} { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#FF0000" }
-                {$_ -gt 33 -and $_ -le 66} { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#800000" }
-                {$_ -gt 66} { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#008000" }
+                {$_ -le 33} { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#AA2629" }
+                {$_ -gt 33 -and $_ -le 66} { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#F6B91E" }
+                {$_ -gt 66} { $shape.Chart.SeriesCollection(1).Points(1).Interior.Color = "#448B2D" }
             }
             
             # Edit chart data
@@ -173,8 +190,14 @@ function Clear-Presentation($Slide)
 {
     $slideToRemove = $Slide.Shapes | Where-Object {$_.TextFrame.TextRange.Text -match '^(Category)$'}
     $shapesToRemove = $Slide.Shapes | Where-Object {$_.TextFrame.TextRange.Text -match '^(W|Design\sarea|Sc|Priority|Rating|Recommendation)$'}
-    $scoreCharts = $Slide.Shapes | Where-Object {$_.Name -match '^(Summary - Score_[1-9])$'}
-    $chartsToRemove = $scoreCharts | Where-Object {$_.Chart.ChartData.Workbook.Worksheets[1].Cells[2,2].Text -eq 0}
+    if ($AssessmentType -eq "AVS")
+    {
+        $scoreCharts = $Slide.Shapes | Where-Object {$_.Name -match '^(Summary - Score_[1-9])$'}
+        if($scoreCharts.Count -gt 0)
+        {
+            $chartsToRemove = $scoreCharts[-1]
+        }
+    }
 
     if ($slideToRemove)
     {
@@ -279,7 +302,7 @@ foreach($slide in $slides.Values)
 }
 
 #Save presentation and close object
-$reportTemplateObject.SavecopyAs(“$workingDirectory\Azure Well-Architected $AssessmentType Review - Executive Summary - $reportDate.pptx”)
+$reportTemplateObject.SavecopyAs("$workingDirectory\Azure Well-Architected $AssessmentType Review - Executive Summary - $reportDate.pptx")
 $reportTemplateObject.Close()
 
 $application.quit()
