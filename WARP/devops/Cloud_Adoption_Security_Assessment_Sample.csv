@@ -1,0 +1,487 @@
+"Cloud Adoption Security Assessment (CASA) - Nov 28, 2024 - 1:55:21 PM",,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+Your overall results,Critical,'2/100',,,,,,,
+"CAF - Teams, roles and functions",Critical,'17/100',,,,,,,
+CAF - Strategy,Critical,'0/100',,,,,,,
+CAF - Plan,Critical,'0/100',,,,,,,
+CAF - Ready,Critical,'0/100',,,,,,,
+CAF - Adopt,Critical,'0/100',,,,,,,
+CAF - Govern,Critical,'0/100',,,,,,,
+CAF - Manage,Critical,'0/100',,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+,,,,,,,,,
+Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note
+"CAF - Teams, roles and functions","T-1-5-1: Define and document a security role framework with clear responsibilities for each stage of the cloud lifecycle, and communicate it to all relevant teams.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/teams-roles,High,Teams and Roles,,80,,N,
+"CAF - Teams, roles and functions","T-5-5-1: Define internal GRC processes to complement provider policies, ensuring comprehensive governance and risk management.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/teams-roles,High,Teams and Roles,,80,,N,
+"CAF - Teams, roles and functions","T-3-5-1: Define internal security responsibilities to complement cloud provider roles, ensuring a balanced approach to cloud security.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/teams-roles,High,Teams and Roles,,70,,N,
+"CAF - Teams, roles and functions",T-4-5-1: Shift the focus of security updates to address emerging threats in addition to compliance requirements.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/teams-roles,High,Teams and Roles,,70,,N,
+"CAF - Teams, roles and functions",T-2-5-1: Broaden collaboration to cover additional areas of cloud security beyond specific functions like IAM or network security.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/teams-roles,Medium,Teams and Roles,,60,,N,
+CAF - Strategy,S-1-5-1: Define governance policies to ensure consistent application of Zero Trust principles across the organization.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,80,,N,
+CAF - Strategy,S-3-3-1: Implement Zero Trust access control policies using least privilege and just-in-time access to minimize unauthorized access risks.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,80,,N,
+CAF - Strategy,S-2-8-1: Perform a risk assessment to prioritize responses to cloud-specific incidents.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-2-1-1: Implement a cloud-specific incident response plan to address cloud-specific risks and ensure business continuity.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-2-3-1: Schedule regular cloud-specific incident response drills to enhance team preparedness and identify process gaps.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-1-3-1: Assign specialized cloud security roles to oversee critical security functions.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-2-4-1: Define a rapid process for forensic data collection during cloud incidents.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-2-6-1: Deploy continuous monitoring tools for real-time threat and anomaly detection.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-3-4-1: Enable and periodically review audit logs to detect and address unauthorized access to sensitive data.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,"S-3-1-1: Define data privacy and protection policies aligned with GDPR, HIPAA, and similar regulations.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-3-2-1: Establish a risk management framework to identify and mitigate threats to data confidentiality.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-3-8-1: Enforce lifecycle management for critical accounts and regularly review privileged access.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-2-11-1: Configure emergency access accounts to ensure continuity during critical incidents.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,"S-4-2-1: Define controls like encryption, access restrictions, and tampeT-proof logs to safeguard data integrity.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-4-1-1: Embed integrity as a primary focus in your security strategy to ensure that protection efforts are directly tied to achieving your organization’s business goals,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-6-8-1: Assign a team to monitor security posture and enforce policy adherence consistently.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-6-3-1: Perform regular security posture assessments to identify and address gaps.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-6-2-1: Regularly update security policies to align with evolving requirements and best practices.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-1-1-1: Define and prioritize security requirements by creating a clear implementation roadmap.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-5-1-1: Establish availability requirements for critical systems and integrate them into the cloud strategy.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,"S-4-5-1: Establish regular integrity checks, including hash verification and digital signatures, for key data assets.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-4-4-1: Implement a system classification process to prioritize integrity measures for critical systems.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-5-2-1: Establish  redundancy and failover mechanisms to minimize downtime during disruptions.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,High,Strategy,,70,,N,
+CAF - Strategy,S-6-10-1: Allocate a sustainment budget to support ongoing security posture management and improvements.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-4-6-1: Use configuration management and version control to maintain and track system and data integrity.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-2-10-1: Regularly update the incident response strategy to address emerging cloud threats.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-2-5-1: Assign clear roles to teams to ensure coordinated and efficient incident response.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-6-9-1: Create a feedback loop to integrate lessons from incidents into the security strategy.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-3-6-1: Appoint a data protection officer to oversee cloud data confidentiality and compliance risks.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-3-7-1: Conduct regular assessments of data privacy measures to stay compliant and address emerging risks.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-4-3-1: Deploy automated tools to enforce integrity policies across cloud data and systems.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-4-7-1: Leverage automation to enforce integrity in infrastructure and application deployments.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-1-9-1: Secure executive support and funding for ongoing Zero Trust initiatives to ensure long-term success.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-6-1-1: Develop a continuous improvement plan to adapt security practices to emerging threats.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-1-4-1: Establish consistent and transparent communication channels between security and operational teams.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-6-4-1: Implement security metrics to monitor and sustain the organization's security posture over time.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-6-5-1: Develop a framework for continuous training to keep cloud security teams updated on emerging threats.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-6-6-1: Create guidelines/playbooks to ensure preparedness and effective response to emerging threats.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-6-7-1: Develop a security roadmap that aligns long-term goals with business objectives.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-1-2-1: Launch a cross-functional training program to enhance organization-wide security awareness.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-1-7-1: Conduct a gap analysis to identify areas for improvement in the implementation of Zero Trust principles.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,60,,N,
+CAF - Strategy,S-2-9-1: Establish a communication plan to provide timely updates to stakeholders during cloud incidents.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,50,,N,
+CAF - Strategy,S-1-8-1: Update security documentation to align with Zero Trust principles and ensure it reflects current practices.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,50,,N,
+CAF - Strategy,S-2-2-1: Establish escalation protocols to coordinate effectively with cloud providers during critical incidents.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,50,,N,
+CAF - Strategy,S-3-5-1: Conduct training programs to ensure employees understand and uphold data confidentiality and integrity practices.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,50,,N,
+CAF - Strategy,S-2-7-1: Align incident response processes with reliability and performance goals to minimize service disruption.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,50,,N,
+CAF - Strategy,S-1-6-1: Define clear metrics to validate the effectiveness of security modernization efforts.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/strategy,Medium,Strategy,,40,,N,
+CAF - Plan,P-3-5-1: Establish and conduct penetration testing processes to identify and address vulnerabilities proactively.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,80,,N,
+CAF - Plan,P-1-2-1: Enforce multi-factor authentication to secure access to sensitive cloud data.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,80,,N,
+CAF - Plan,P-1-7-1: Use managed identities instead of API keys and connection strings for accessing Azure services to enhance security.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,"P-1-3-1: Deploy DLP tools (e.g., Purview) to monitor and prevent unauthorized sharing or exfiltration of sensitive data.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-1-4-1: Apply Zero Trust principles using Entra ID Conditional Access to continuously verify data access requests.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-1-5-1: Use Microsoft Entra ID or another managed identity provider for secure user authentication.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-1-1-1: Classify sensitive data based on regulatory requirements and business needs to ensure appropriate controls are applied.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-1-6-1: Implement modern authentication protocols like OpenID Connect and OAuth 2.0 to enhance application security.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-2-3-1: Integrate integrity monitoring with incident response plans to quickly address unauthorized changes.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-2-4-1: Deploy observability tools to monitor real-time changes in critical cloud systems and data assets.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-3-1-1: Use standardized design patterns to ensure high availability for applications and infrastructure.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-3-2-1: Develop disaster recovery plans and conduct regular failover simulations to ensure readiness.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-2-1-1: Implement automated integrity monitoring to detect and prevent unauthorized changes to data and systems.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,High,Plan,,70,,N,
+CAF - Plan,P-2-2-1: Standardize configuration management processes to maintain consistent and compliant system setups.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,Medium,Plan,,60,,N,
+CAF - Plan,"P-3-4-1: Regularly review availability standards to balance cost, performance, and resilience.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,Medium,Plan,,60,,N,
+CAF - Plan,P-3-3-1: Set up uptime monitoring and alerting systems to track availability metrics in real time.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,Medium,Plan,,60,,N,
+CAF - Plan,P-2-5-1: Train teams on the importance of integrity controls and their implementation in daily operations.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/plan,Medium,Plan,,50,,N,
+CAF - Ready,R-1-3-1: Establish IAM policies within the landing zone to secure and control access to cloud resources.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,High,Ready,,80,,N,
+CAF - Ready,R-1-1-1: Create landing zones following Azure design principles to ensure scalability and security.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,High,Ready,,70,,N,
+CAF - Ready,R-1-4-1: Develop a governance strategy in the landing zone to enforce compliance with organizational policies.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,High,Ready,,70,,N,
+CAF - Ready,R-1-6-1: Integrate monitoring and logging tools to ensure visibility into landing zone performance and compliance.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,High,Ready,,70,,N,
+CAF - Ready,R-1-9-1: Integrate disaster recovery and failover strategies into the landing zone to ensure continuity during outages.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,High,Ready,,70,,N,
+CAF - Ready,"R-1-2-1: Use management groups to efficiently govern resources across subscriptions, ensuring consistent policy enforcement and compliance.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,Medium,Ready,,60,,N,
+CAF - Ready,R-1-5-1: Set up a hub-and-spoke network topology in the landing zones to ensure secure and reliable connectivity.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,Medium,Ready,,60,,N,
+CAF - Ready,R-1-10-1: Regularly review and update landing zone configurations to align with evolving business needs and best practices.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,Medium,Ready,,60,,N,
+CAF - Ready,R-1-11-1: Provide training to stakeholders to ensure effective management and maintenance of the landing zone.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,Medium,Ready,,60,,N,
+CAF - Ready,"R-1-7-1: Define resource organization standards, including naming conventions and tagging, to enhance manageability.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,Medium,Ready,,50,,N,
+CAF - Ready,R-1-8-1: Use modular IaC  templates to design a scalable landing zone for adding or modifying workloads.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/ready,Medium,Ready,,50,,N,
+CAF - Adopt,A-3-1-1: Use industry-standard algorithms like AES-256 for encryption and SHA-2 for integrity verification to ensure strong data protection.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,80,,N,
+CAF - Adopt,"A-4-1-1: Use tools like Azure Key Vault to manage passwords, secrets, and keys outside of application artifacts to prevent exposure.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,80,,N,
+CAF - Adopt,"A-2-2-1: Use a centrally-managed, next-generation firewall to control traffic flows, block malicious domains, and detect insecure protocols.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,80,,N,
+CAF - Adopt,A-5-1-1: Deploy an EDR solution on client and server endpoints to enable advanced threat detection and incident response.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,80,,N,
+CAF - Adopt,"A-6-3-1: Use Defender for Servers (MDE) to provide consistent protection for hybrid workloads, including on-premises and cloud environments.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,80,,N,
+CAF - Adopt,"A-1-6-1: Configure RBAC and MFA to secure access to infrastructure and applications, ensuring least privilege.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,80,,N,
+CAF - Adopt,A-6-2-1: Consolidate security recommendations and alerts from all environments into a single console to enhance visibility and response.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,80,,N,
+CAF - Adopt,"A-1-2-1: Implement automated security testing (unit, integration, regression) to validate workloads before deployment.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,80,,N,
+CAF - Adopt,"A-5-3-1: Implement a threat protection solution across compute, data, and service layers to defend against advanced threats.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,80,,N,
+CAF - Adopt,"A-2-4-1: Use VNets and Subnets to segment core services, high-value applications, and non-production environments for better isolation.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-7-1-1: Integrate security into every phase of the development and release lifecycle to address vulnerabilities early.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-3-2-1: Enforce TLS 1.2 or later to secure communication channels and mitigate vulnerabilities in outdated protocols.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-1-3-1: Use monitoring and alerting tools like Azure Monitor or Microsoft Sentinel for real-time visibility into infrastructure and workload security.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,"A-9-1-1: Maintain a software bill of materials (SBoM) for all dependencies, frameworks, and libraries to track vulnerabilities effectively.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-8-1-1: Manage and monitor developer machines and self-hosted build agents to prevent security incidents and unauthorized access.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-2-1-1: Enable DDoS Protection on all public-facing IP addresses to prevent service disruptions from malicious traffic.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-2-5-1: Apply NSGs to subnets to explicitly allow only authorized traffic flows and prevent unauthorized access.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-2-3-1: Deploy a web application firewall (WAF) to protect web applications and APIs from common exploits and vulnerabilities.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-4-3-1: Implement key and secret rotation procedures to minimize risks from compromised credentials.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,"A-3-3-1: Encrypt data at rest and in transit using strong standards, including cloud-native encryption mechanisms, for comprehensive protection.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,"A-7-5-1: Review, scan, and manage all IaC/CaC and source code artifacts in source control, with integrated security checks in CI/CD pipelines.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,"A-4-2-1: Define an access model for keys and secrets, and audit all operations to ensure accountability and security.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,"A-7-4-1: Enforce branch policies, protect the main branch, and require code reviews to maintain code quality and security.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-5-2-1: Deploy an anti-malware solution on client and server endpoints to detect and block malicious software.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-5-4-1: Apply security updates and patches promptly to all endpoints and workloads to mitigate vulnerabilities.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,A-7-2-1: Apply Security Development Lifecycle (SDL) practices in all projects to ensure secure design and coding.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,"A-2-6-1: Use Private Endpoints to restrict Azure service access to applications or servers within your VNets, minimizing public exposure.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,High,Adopt,,70,,N,
+CAF - Adopt,"A-1-4-1: Implement change management practices to track, review, and approve infrastructure and software modifications.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,"A-1-5-1: Automate remediation workflows for common security issues, like misconfigurations and compliance violations.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,A-1-7-1: Periodically review IaC templates and CI/CD pipelines to ensure compliance with evolving security standards.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,A-1-8-1: Provide regular training on secure coding and infrastructure management practices for developers and administrators.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,A-3-4-1: Conduct periodic reviews and audits of cryptographic protocols to ensure alignment with evolving security standards.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,A-9-2-1: Automate the creation of security bugs when vulnerabilities in dependencies are detected to accelerate remediation.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,A-8-3-1: Enable auditing for all changes to the build environment to ensure traceability and accountability.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,"A-6-1-1: Establish a unified governance and management layer for Azure, non-Azure, and on-premises workloads to ensure consistency.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,"A-1-1-1: Automate infrastructure deployments with tools like ARM templates, Bicep, or Terraform to ensure consistency and reduce errors.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,"A-8-2-1: Assess all development tools, extensions, and integrations for trustworthiness to reduce security risks.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,A-7-3-1: Configure gates and approvals in DevOps release processes to ensure security and compliance before deployment.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,A-6-4-1: Continuously monitor policies and configurations for compliance across the hybrid environment to maintain security standards.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,A-4-4-1: Monitor SSL/TLS certificate expirations and implement renewal processes to prevent disruptions.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Adopt,A-9-3-1: Automate daily builds and security testing in non-production environments through a CI/CD pipeline to detect vulnerabilities early.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/adopt,Medium,Adopt,,60,,N,
+CAF - Govern,G-1-2-1: Perform continuous vulnerability assessments and address identified risks promptly to prevent potential exploits.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/govern,High,Govern,,80,,N,
+CAF - Govern,G-1-3-1: Use Azure Policy to enforce baseline security standards and monitor compliance with frameworks like MCSB.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/govern,High,Govern,,70,,N,
+CAF - Govern,"G-1-1-1: Continuously implement asset discovery and tracking for virtual machines, containers, and SaaS applications to maintain visibility and ensure compliance.",https://learn.microsoft.com/azure/cloud-adoption-framework/secure/govern,Medium,Govern,,60,,N,
+CAF - Govern,G-1-4-1: Enforce policies to decommission or isolate unused cloud resources to mitigate shadow IT risks and reduce attack surfaces.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/govern,Medium,Govern,,60,,N,
+CAF - Manage,M-1-2-1: Configure Microsoft Sentinel or a third-party SIEM to centralize security telemetry for efficient threat detection and response.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/manage,High,Manage,,80,,N,
+CAF - Manage,M-1-1-1: Enable logging for security events across resources to detect suspicious activity and identify vulnerabilities,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/manage,High,Manage,,70,,N,
+CAF - Manage,M-1-3-1: Set up real-time alerts for unauthorized access attempts to quickly identify and mitigate potential breaches.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/manage,High,Manage,,70,,N,
+CAF - Manage,M-1-4-1: Deploy Microsoft Defender XDR to enhance threat detection and response through AI-driven signal correlation across resources.,https://learn.microsoft.com/azure/cloud-adoption-framework/secure/manage,High,Manage,,70,,N,
+-----------,,,,,,,,,
+,,,,,,,,,
+Category,Question,Answers,Selected Answer,Note,,,,,
+"CAF - Teams, roles and functions","T-1: How well-defined and integrated are security roles and responsibilities across your organization to address the cloud lifecycle, from development to continuous improvement?
+",T-1-1: Security roles and responsibilities are comprehensive and aligned with each cloud lifecycle stage.,,,,,,,
+"CAF - Teams, roles and functions","T-1: How well-defined and integrated are security roles and responsibilities across your organization to address the cloud lifecycle, from development to continuous improvement?
+","T-1-2: Security roles are defined but focus mainly on isolated areas (e.g., IAM, networking).",,,,,,,
+"CAF - Teams, roles and functions","T-1: How well-defined and integrated are security roles and responsibilities across your organization to address the cloud lifecycle, from development to continuous improvement?
+",T-1-3: Security roles exist but lack alignment with cloud-specific responsibilities.,,,,,,,
+"CAF - Teams, roles and functions","T-1: How well-defined and integrated are security roles and responsibilities across your organization to address the cloud lifecycle, from development to continuous improvement?
+",T-1-4: Security responsibilities are ad hoc and not consistently defined across teams.,,,,,,,
+"CAF - Teams, roles and functions","T-1: How well-defined and integrated are security roles and responsibilities across your organization to address the cloud lifecycle, from development to continuous improvement?
+",T-1-5: Security roles are not clearly defined within the organization.,T-1-5: Security roles are not clearly defined within the organization.,,,,,,
+"CAF - Teams, roles and functions","T-2: To what extent does your organization implement collaborative practices between security and technical teams to support cloud security?
+",T-2-1: Security and technical teams collaborate effectively across all cloud functions.,,,,,,,
+"CAF - Teams, roles and functions","T-2: To what extent does your organization implement collaborative practices between security and technical teams to support cloud security?
+","T-2-2: Collaboration is informal and mostly ad hoc, depending on project needs.",,,,,,,
+"CAF - Teams, roles and functions","T-2: To what extent does your organization implement collaborative practices between security and technical teams to support cloud security?
+","T-2-3: Collaboration is limited, with teams working largely independently.",,,,,,,
+"CAF - Teams, roles and functions","T-2: To what extent does your organization implement collaborative practices between security and technical teams to support cloud security?
+",T-2-4: Collaboration occurs mainly during compliance assessments or security incidents.,,,,,,,
+"CAF - Teams, roles and functions","T-2: To what extent does your organization implement collaborative practices between security and technical teams to support cloud security?
+",T-2-5: Security and technical teams work together primarily on specific areas like IAM or network security.,T-2-5: Security and technical teams work together primarily on specific areas like IAM or network security.,,,,,,
+"CAF - Teams, roles and functions","T-3: Does your organization adopt a shared responsibility model or similar structure to define security accountability in cloud services?
+",T-3-1: A shared responsibility model is clearly established and followed across teams,,,,,,,
+"CAF - Teams, roles and functions","T-3: Does your organization adopt a shared responsibility model or similar structure to define security accountability in cloud services?
+",T-3-2: A model exists but is inconsistently applied or understood.,,,,,,,
+"CAF - Teams, roles and functions","T-3: Does your organization adopt a shared responsibility model or similar structure to define security accountability in cloud services?
+",T-3-3: A shared responsibility model is in development or not yet implemented.,,,,,,,
+"CAF - Teams, roles and functions","T-3: Does your organization adopt a shared responsibility model or similar structure to define security accountability in cloud services?
+",T-3-4: Responsibility for cloud security is informally managed without a structured model.,,,,,,,
+"CAF - Teams, roles and functions","T-3: Does your organization adopt a shared responsibility model or similar structure to define security accountability in cloud services?
+",T-3-5: Cloud security responsibility is managed solely by external cloud providers.,T-3-5: Cloud security responsibility is managed solely by external cloud providers.,,,,,,
+"CAF - Teams, roles and functions","T-4: How effectively does your organization address evolving security threats through continuous improvement and Zero Trust principles?
+",T-4-1: Continuous improvement processes are well-established and prioritize Zero Trust principles.,,,,,,,
+"CAF - Teams, roles and functions","T-4: How effectively does your organization address evolving security threats through continuous improvement and Zero Trust principles?
+",T-4-2: Security improvements occur mainly after security audits.,,,,,,,
+"CAF - Teams, roles and functions","T-4: How effectively does your organization address evolving security threats through continuous improvement and Zero Trust principles?
+","T-4-3: Zero Trust principles are partially implemented, but improvement efforts are limited.",,,,,,,
+"CAF - Teams, roles and functions","T-4: How effectively does your organization address evolving security threats through continuous improvement and Zero Trust principles?
+",T-4-4: Security processes are mostly reactive and lack structured improvement.,,,,,,,
+"CAF - Teams, roles and functions","T-4: How effectively does your organization address evolving security threats through continuous improvement and Zero Trust principles?
+",T-4-5: Security updates focus on compliance rather than evolving threats.,T-4-5: Security updates focus on compliance rather than evolving threats.,,,,,,
+"CAF - Teams, roles and functions","T-5: How comprehensive and integrated are your Governance, Risk, and Compliance (GRC) processes within your cloud security strategy?
+","T-5-1: GRC processes are fully defined, integrated, and consistently applied to cloud environments.",,,,,,,
+"CAF - Teams, roles and functions","T-5: How comprehensive and integrated are your Governance, Risk, and Compliance (GRC) processes within your cloud security strategy?
+",T-5-2: GRC roles and processes are partially defined but inconsistently followed.,,,,,,,
+"CAF - Teams, roles and functions","T-5: How comprehensive and integrated are your Governance, Risk, and Compliance (GRC) processes within your cloud security strategy?
+","T-5-3: GRC functions focus on compliance, with minimal proactive risk management.",,,,,,,
+"CAF - Teams, roles and functions","T-5: How comprehensive and integrated are your Governance, Risk, and Compliance (GRC) processes within your cloud security strategy?
+",T-5-4: Governance and risk management are handled informally without clear processes.,,,,,,,
+"CAF - Teams, roles and functions","T-5: How comprehensive and integrated are your Governance, Risk, and Compliance (GRC) processes within your cloud security strategy?
+",T-5-5: GRC responsibilities rely on external cloud provider policies.,T-5-5: GRC responsibilities rely on external cloud provider policies.,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+",S-1-1: Established a clear security modernization roadmap focused on cloud-specific requirements.,,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+",S-1-2: Incorporated cross-functional training to prepare teams for new cloud security roles and responsibilities.,,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+","S-1-3: Added dedicated cloud security roles (e.g., cloud security architect, DevSecOps) to support cloud adoption.",,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+","S-1-4: Integrated regular, open communication sessions to address challenges and conflicts around security changes.",,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+",S-1-5: Defined governance policies to ensure consistent application of Zero Trust principles across the organization.,,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+",S-1-6: Established clear metrics to monitor the effectiveness of security modernization efforts.,,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+",S-1-7: Conducted a security gap analysis to identify areas needing further cloud-specific security enhancements.,,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+",S-1-8: Updated security documentation to align with new cloud-based security requirements and practices.,,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+",S-1-9 Secured executive support and funding for the security modernization initiative.,,,,,,,
+CAF - Strategy,"S-1: How well is your organization modernizing its security posture to align with cloud adoption?
+",S-1-10: None of the above.,S-1-10: None of the above.,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-1: Established a cloud-specific incident response plan aligned with the overall business strategy.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-2: Defined incident escalation protocols to coordinate with cloud service providers.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-3: Conducted regular incident response drills and simulations specific to cloud environments.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-4: Established a process for rapid forensic data collection and analysis for cloud incidents.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+","S-2-5: Defined clear roles for each team involved in incident response, ensuring no overlap or ambiguity.",,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-6: Integrated continuous monitoring tools to detect potential threats and anomalies in real time.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-7: Aligned incident response processes with the organization’s reliability and performance requirements.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-8: Conducted a risk assessment to evaluate potential impacts of cloud-specific incidents on business continuity.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-9: Defined a communication plan to update stakeholders during and after cloud incidents.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-10: Reviewed and updated the incident response strategy periodically to account for emerging cloud threats.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-11: Appropriate emergency access accounts are configured in case of an emergency.,,,,,,,
+CAF - Strategy,"S-2: How prepared is your organization for incident response and preparedness in the cloud?
+",S-2-12: None of the above.,S-2-12: None of the above.,,,,,,
+CAF - Strategy,"S-3: How well has your organization defined a strategy for data confidentiality in the cloud?
+",S-3-1: Established data privacy and protection policies aligned with regulations like GDPR and HIPAA.,,,,,,,
+CAF - Strategy,"S-3: How well has your organization defined a strategy for data confidentiality in the cloud?
+",S-3-2: Defined a risk management framework to identify and mitigate risks to data confidentiality.,,,,,,,
+CAF - Strategy,"S-3: How well has your organization defined a strategy for data confidentiality in the cloud?
+","S-3-3: Access control policies based on Zero Trust principles, including least privilege and just-in-time (JIT) access, are implemented to reduce the risk of unauthorized access",,,,,,,
+CAF - Strategy,"S-3: How well has your organization defined a strategy for data confidentiality in the cloud?
+",S-3-4: Created audit logs for all access to sensitive data and review them periodically for anomalies.,,,,,,,
+CAF - Strategy,"S-3: How well has your organization defined a strategy for data confidentiality in the cloud?
+","S-3-5: Developed training programs on data confidentiality, integrity and availability (CIA) for employees handling sensitive information.",,,,,,,
+CAF - Strategy,"S-3: How well has your organization defined a strategy for data confidentiality in the cloud?
+",S-3-6: Designated a data protection officer responsible for managing cloud data confidentiality risks.,,,,,,,
+CAF - Strategy,"S-3: How well has your organization defined a strategy for data confidentiality in the cloud?
+",S-3-7: Periodically assess data privacy measures and make adjustments based on regulatory changes and new risks.,,,,,,,
+CAF - Strategy,"S-3: How well has your organization defined a strategy for data confidentiality in the cloud?
+","S-3-8: There is a lifecycle management policy for critical accounts, and privileged accounts are reviewed regularly.",,,,,,,
+CAF - Strategy,"S-3: How well has your organization defined a strategy for data confidentiality in the cloud?
+",S-3-9: None of the above.,S-3-9: None of the above.,,,,,,
+CAF - Strategy,"S-4: How comprehensive is your organization’s strategy for data and system integrity in the cloud?
+","S-4-1: Established integrity as a core principle in security strategy, ensuring alignment with business goals.",,,,,,,
+CAF - Strategy,"S-4: How comprehensive is your organization’s strategy for data and system integrity in the cloud?
+","S-4-2: Defined controls for data integrity, including access control, encryption, and tamper-proof logging.",,,,,,,
+CAF - Strategy,"S-4: How comprehensive is your organization’s strategy for data and system integrity in the cloud?
+",S-4-3: Implemented automated policy management for integrity across all cloud data and systems.,,,,,,,
+CAF - Strategy,"S-4: How comprehensive is your organization’s strategy for data and system integrity in the cloud?
+",S-4-4: Established a system classification process to prioritize integrity requirements for critical systems.,,,,,,,
+CAF - Strategy,"S-4: How comprehensive is your organization’s strategy for data and system integrity in the cloud?
+","S-4-5: Defined procedures for regular integrity checks on key data assets, such as hash verification and digital signatures.",,,,,,,
+CAF - Strategy,"S-4: How comprehensive is your organization’s strategy for data and system integrity in the cloud?
+",S-4-6: Integrated configuration management and version control to track system and data integrity.,,,,,,,
+CAF - Strategy,"S-4: How comprehensive is your organization’s strategy for data and system integrity in the cloud?
+",S-4-7: Used automation to enforce integrity across infrastructure and application deployments.,,,,,,,
+CAF - Strategy,"S-4: How comprehensive is your organization’s strategy for data and system integrity in the cloud?
+",S-4-8: None of the above.,S-4-8: None of the above.,,,,,,
+CAF - Strategy,"S-5: How well has your organization defined a strategy for availability in the cloud?
+",S-5-1: Defined availability requirements for critical systems and included them in the cloud adoption strategy.,,,,,,,
+CAF - Strategy,"S-5: How well has your organization defined a strategy for availability in the cloud?
+",S-5-2: Established redundancy and failover mechanisms to ensure minimal downtime during disruptions.,,,,,,,
+CAF - Strategy,"S-5: How well has your organization defined a strategy for availability in the cloud?
+",S-5-3: None of the above.,S-5-3: None of the above.,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-1: Established a continuous improvement plan to evolve security practices in response to new threats.,,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-2: Security policies are regularly reviewed and refined to ensure they remain relevant and effective.,,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-3: Periodic security posture assessments are conducted to identify areas for improvement.,,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-4: Integrated security metrics to monitor and report on security posture sustainability over time.,,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-5: Defined a framework for ongoing security training and education for cloud security teams.,,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+","S-6-6: Established guidelines for handling emerging threats, ensuring preparedness for unknown risks.",,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-7: Created a roadmap to align long-term security goals with the organization’s business objectives.,,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-8: Designated a team responsible for monitoring security posture and ensuring policy adherence.,,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-9: Established a feedback loop to incorporate lessons learned from incidents into the security strategy.,,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-10: Maintain a security sustainment budget to ensure resources are available for ongoing posture management.,,,,,,,
+CAF - Strategy,"S-6: How effectively does your organization sustain its security posture in the cloud over time?
+",S-6-11: None of the above.,S-6-11: None of the above.,,,,,,
+CAF - Plan,"P-1: How effectively has your organization defined a strategy for confidentiality in the cloud?
+",P-1-1: Identified and classified sensitive data based on regulatory requirements and business needs.,,,,,,,
+CAF - Plan,"P-1: How effectively has your organization defined a strategy for confidentiality in the cloud?
+",P-1-2: Implemented multi-factor authentication (MFA) for accessing sensitive cloud data.,,,,,,,
+CAF - Plan,"P-1: How effectively has your organization defined a strategy for confidentiality in the cloud?
+",P-1-3: Deployed Data Loss Prevention (DLP) tools to monitor and protect sensitive data across endpoints and cloud services.,,,,,,,
+CAF - Plan,"P-1: How effectively has your organization defined a strategy for confidentiality in the cloud?
+","P-1-4: Incorporated Zero Trust principles to enhance data protection, including continuous verification of access requests with Entra ID Conditional Access Policies.",,,,,,,
+CAF - Plan,"P-1: How effectively has your organization defined a strategy for confidentiality in the cloud?
+",P-1-5: Microsoft Entra ID or another managed identity provider is used for user authentication.,,,,,,,
+CAF - Plan,"P-1: How effectively has your organization defined a strategy for confidentiality in the cloud?
+","P-1-6: Modern authentication and authorization protocols (OpenID Connect, OAuth 2.0) are used in applications and services.",,,,,,,
+CAF - Plan,"P-1: How effectively has your organization defined a strategy for confidentiality in the cloud?
+","P-1-7: When accessing Azure platform services, managed identities are preferred over API keys and connection strings.",,,,,,,
+CAF - Plan,"P-1: How effectively has your organization defined a strategy for confidentiality in the cloud?
+",P-1-8: None of the above.,P-1-8: None of the above.,,,,,,
+CAF - Plan,"P-2: How comprehensive is your organization’s approach for data and system integrity in the cloud?
+",P-2-1: Established automated integrity monitoring to detect and prevent unauthorized changes to data and systems.,,,,,,,
+CAF - Plan,"P-2: How comprehensive is your organization’s approach for data and system integrity in the cloud?
+",P-2-2: Standardized configuration management processes to ensure consistent and compliant system setups.,,,,,,,
+CAF - Plan,"P-2: How comprehensive is your organization’s approach for data and system integrity in the cloud?
+",P-2-3: Incorporated integrity monitoring into incident response plans to address unauthorized changes effectively.,,,,,,,
+CAF - Plan,"P-2: How comprehensive is your organization’s approach for data and system integrity in the cloud?
+",P-2-4: Deployed observability tools to monitor real-time changes in critical cloud systems and data assets.,,,,,,,
+CAF - Plan,"P-2: How comprehensive is your organization’s approach for data and system integrity in the cloud?
+",P-2-5: Trained teams on the importance of integrity controls and how to implement them in daily operations.,,,,,,,
+CAF - Plan,"P-2: How comprehensive is your organization’s approach for data and system integrity in the cloud?
+",P-2-6: None of the above.,P-2-6: None of the above.,,,,,,
+CAF - Plan,"P-3: How robust is your organization’s strategy for availability in the cloud?
+",P-3-1: Standardized application and infrastructure design patterns for high availability.,,,,,,,
+CAF - Plan,"P-3: How robust is your organization’s strategy for availability in the cloud?
+",P-3-2: Incorporated disaster recovery plans and conducted regular failover simulations.,,,,,,,
+CAF - Plan,"P-3: How robust is your organization’s strategy for availability in the cloud?
+",P-3-3: Established uptime monitoring and alerting systems to track availability metrics in real time.,,,,,,,
+CAF - Plan,"P-3: How robust is your organization’s strategy for availability in the cloud?
+","P-3-4: Periodically reviewed availability standards to balance cost, performance, and resilience objectives.",,,,,,,
+CAF - Plan,"P-3: How robust is your organization’s strategy for availability in the cloud?
+",P-3-5: Penetration testing processes are established and conducted.,,,,,,,
+CAF - Plan,"P-3: How robust is your organization’s strategy for availability in the cloud?
+",P-3-6: None of the above.,P-3-6: None of the above.,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-1: Established a landing zone based on Azure’s design principles to provide a scalable and secure foundation.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-2: Implemented management groups to govern resources across subscriptions efficiently.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-3: Defined identity and access management (IAM) policies as part of the landing zone to secure access.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-4: Developed a governance strategy within the landing zone to enforce compliance with organizational policies.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-5: Configured a hub-and-spoke network topology within the landing zone to support secure and reliable connectivity.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-6: Integrated monitoring and logging tools to provide visibility into landing zone performance and compliance.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-7: Established resource organization standards to improve manageability and reporting.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-8: Designed for scalability by including modular templates for adding or modifying workloads in the landing zone.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-9: Incorporated disaster recovery and failover strategies into the landing zone design.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-10: Conducted regular reviews and updates to align landing zone configurations with evolving business needs and best practices.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-11: Trained stakeholders to manage and maintain the landing zone effectively.,,,,,,,
+CAF - Ready,"R-1: How mature is your organization’s implementation of a secure and scalable cloud foundation (Azure landing zone)?
+",R-1-12: None of the above.,R-1-12: None of the above.,,,,,,
+CAF - Adopt,"A-1: How well has your organization adopted modern security posture practices?
+","A-1-1: Automated infrastructure deployments and configurations using tools like Azure Resource Manager templates, Bicep, or Terraform.",,,,,,,
+CAF - Adopt,"A-1: How well has your organization adopted modern security posture practices?
+","A-1-2: Established automated security testing procedures, such as unit, integration, and regression tests, to validate workloads.",,,,,,,
+CAF - Adopt,"A-1: How well has your organization adopted modern security posture practices?
+",A-1-3: Implemented monitoring and alerting for infrastructure and workloads using tools like Azure Monitor or Microsoft Sentinel.,,,,,,,
+CAF - Adopt,"A-1: How well has your organization adopted modern security posture practices?
+","A-1-4: Adopted change management practices to track, review, and approve modifications to infrastructure and software configurations.",,,,,,,
+CAF - Adopt,"A-1: How well has your organization adopted modern security posture practices?
+","A-1-5: Automated remediation workflows for common security issues, such as misconfigurations or compliance violations.",,,,,,,
+CAF - Adopt,"A-1: How well has your organization adopted modern security posture practices?
+",A-1-6: Configured role-based access controls (RBAC) and multifactor authentication to secure access to infrastructure and applications.,,,,,,,
+CAF - Adopt,"A-1: How well has your organization adopted modern security posture practices?
+",A-1-7: Conducted periodic reviews of infrastructure as code (IaC) templates and CI/CD pipelines to ensure compliance with evolving security standards.,,,,,,,
+CAF - Adopt,"A-1: How well has your organization adopted modern security posture practices?
+",A-1-8: Regularly trained developers and administrators on secure coding and infrastructure management practices.,,,,,,,
+CAF - Adopt,"A-1: How well has your organization adopted modern security posture practices?
+",A-1-9: None of the above.,A-1-9: None of the above.,,,,,,
+CAF - Adopt,"A-2: How effectively does your organization secure its network and application layers?
+",A-2-1: DDoS Protection is enabled on all public-facing IP addresses to protect against DDoS attacks.,,,,,,,
+CAF - Adopt,"A-2: How effectively does your organization secure its network and application layers?
+","A-2-2: A centrally-managed, next-generation Layer 3-7 firewall with advanced threat intelligence capabilities is used to govern traffic flows, block communication with known malicious IPs/domains, and detect insecure legacy protocols.",,,,,,,
+CAF - Adopt,"A-2: How effectively does your organization secure its network and application layers?
+",A-2-3: A web application firewall (WAF) is used to protect all web applications and APIs from common exploits and vulnerabilities.,,,,,,,
+CAF - Adopt,"A-2: How effectively does your organization secure its network and application layers?
+","A-2-4: Virtual Networks (VNets) and Subnets are used to segment core/shared services, high-value applications, and non-production environments.",,,,,,,
+CAF - Adopt,"A-2: How effectively does your organization secure its network and application layers?
+",A-2-5: Network Security Groups (NSGs) are applied to subnets to explicitly allow authorized traffic flows.,,,,,,,
+CAF - Adopt,"A-2: How effectively does your organization secure its network and application layers?
+",A-2-6: Private Endpoints are configured to restrict access to Azure services to applications or servers on your Vnets,,,,,,,
+CAF - Adopt,"A-2: How effectively does your organization secure its network and application layers?
+",A-2-7: None of the above.,A-2-7: None of the above.,,,,,,
+CAF - Adopt,"A-3: How effectively are cryptographic standards and secure communication practices implemented?
+","A-3-1: Industry-standard cryptographic algorithms like AES-256 are used for encryption, and secure modern hashing algorithms like SHA-2 are employed for integrity verification.",,,,,,,
+CAF - Adopt,"A-3: How effectively are cryptographic standards and secure communication practices implemented?
+",A-3-2: Only TLS 1.2 or later is used to secure communication channels.,,,,,,,
+CAF - Adopt,"A-3: How effectively are cryptographic standards and secure communication practices implemented?
+","A-3-3: Data at rest and data in transit are encrypted using strong encryption standards, including native encryption mechanisms provided by the cloud provider.",,,,,,,
+CAF - Adopt,"A-3: How effectively are cryptographic standards and secure communication practices implemented?
+",A-3-4: Periodic reviews and audits of cryptographic protocols and configurations are performed to ensure they align with evolving security standards.,,,,,,,
+CAF - Adopt,"A-3: How effectively are cryptographic standards and secure communication practices implemented?
+",A-3-5: None of the above.,A-3-5: None of the above.,,,,,,
+CAF - Adopt,"A-4: How well are passwords, secrets, and access management practices implemented?
+","A-4-1: Passwords, secrets and keys are managed outside of application artifacts, using tools like Azure Key Vault.",,,,,,,
+CAF - Adopt,"A-4: How well are passwords, secrets, and access management practices implemented?
+","A-4-2: The access model for keys and secrets is defined, and all operations and access are audited.",,,,,,,
+CAF - Adopt,"A-4: How well are passwords, secrets, and access management practices implemented?
+",A-4-3: Secret and key rotation procedures are in place to minimize exposure of compromised credentials.,,,,,,,
+CAF - Adopt,"A-4: How well are passwords, secrets, and access management practices implemented?
+","A-4-4: Expiry dates for SSL/TLS certificates are monitored, with renewal processes in place to prevent disruptions.",,,,,,,
+CAF - Adopt,"A-4: How well are passwords, secrets, and access management practices implemented?
+",A-4-5: None of the above.,A-4-5: None of the above.,,,,,,
+CAF - Adopt,"A-5: How effectively are endpoint and workload protections implemented?
+",A-5-1: Endpoint detection and response (EDR) is implemented on client and server endpoints.,,,,,,,
+CAF - Adopt,"A-5: How effectively are endpoint and workload protections implemented?
+",A-5-2: Anti-malware solutions are deployed on all client and server endpoints.,,,,,,,
+CAF - Adopt,"A-5: How effectively are endpoint and workload protections implemented?
+","A-5-3: Threat protection is enabled for the compute, data, and service layers of the environment.",,,,,,,
+CAF - Adopt,"A-5: How effectively are endpoint and workload protections implemented?
+",A-5-4: Security updates and patches are applied to all endpoints and workloads promptly to minimize vulnerabilities.,,,,,,,
+CAF - Adopt,"A-5: How effectively are endpoint and workload protections implemented?
+",A-4-5: None of the above.,A-4-5: None of the above.,,,,,,
+CAF - Adopt,"A-6: How effectively are governance and management practices implemented across the hybrid estate?
+","A-6-1: A single governance and management layer is used across Azure, non-Azure, and on-premises workloads.",,,,,,,
+CAF - Adopt,"A-6: How effectively are governance and management practices implemented across the hybrid estate?
+",A-6-2: Security recommendations and alerts from on-premises and multi-cloud workloads are consolidated into a single console.,,,,,,,
+CAF - Adopt,"A-6: How effectively are governance and management practices implemented across the hybrid estate?
+",A-6-3: Defender for Servers (MDE) is leveraged to protect hybrid workloads.,,,,,,,
+CAF - Adopt,"A-6: How effectively are governance and management practices implemented across the hybrid estate?
+",A-6-4: Policies and configurations are continuously monitored for compliance across the hybrid estate.,,,,,,,
+CAF - Adopt,"A-6: How effectively are governance and management practices implemented across the hybrid estate?
+",A-6-5: None of the above.,A-6-5: None of the above.,,,,,,
+CAF - Adopt,"A-7: How well is security integrated into the development lifecycle and DevOps processes?
+",A-7-1: Security has been integrated into all phases of the development and release lifecycle.,,,,,,,
+CAF - Adopt,"A-7: How well is security integrated into the development lifecycle and DevOps processes?
+",A-7-2: Security Development Lifecycle (SDL) practices are applied in all projects.,,,,,,,
+CAF - Adopt,"A-7: How well is security integrated into the development lifecycle and DevOps processes?
+",A-7-3: Gates and approvals are configured in DevOps release processes.,,,,,,,
+CAF - Adopt,"A-7: How well is security integrated into the development lifecycle and DevOps processes?
+","A-7-4: Branch policies are used in source control management, the main branch is protected, and code reviews are required.",,,,,,,
+CAF - Adopt,"A-7: How well is security integrated into the development lifecycle and DevOps processes?
+","A-7-5: All IaC/CaC and source code artifacts are reviewed, scanned, and maintained in source control, with integrated security checks, including static code analysis and vulnerability scanning in CI/CD pipelines.",,,,,,,
+CAF - Adopt,"A-7: How well is security integrated into the development lifecycle and DevOps processes?
+",A-7-6: None of the above.,A-7-6: None of the above.,,,,,,
+CAF - Adopt,"A-8: How secure are your development environments and tools?
+",A-8-1: Developer machines (including self-hosted build agents) are managed and monitored for security incidents.,,,,,,,
+CAF - Adopt,"A-8: How secure are your development environments and tools?
+","A-8-2: All development tools, extensions, and integrations are assessed for trustworthiness.",,,,,,,
+CAF - Adopt,"A-8: How secure are your development environments and tools?
+",A-8-3: Auditing is enabled for all changes to the build environment.,,,,,,,
+CAF - Adopt,"A-8: How secure are your development environments and tools?
+",A-8-4: None of the above.,A-8-4: None of the above.,,,,,,
+CAF - Adopt,"A-9: How well are vulnerabilities and dependencies managed in your software development processes?
+","A-9-1: A software bill of materials (SBoM) is maintained for all dependencies, frameworks, and libraries used.",,,,,,,
+CAF - Adopt,"A-9: How well are vulnerabilities and dependencies managed in your software development processes?
+",A-9-2: Vulnerability data is ingested and used to automatically update or create security bugs when vulnerable dependencies are in use.,,,,,,,
+CAF - Adopt,"A-9: How well are vulnerabilities and dependencies managed in your software development processes?
+","A-9-3: Regular builds (e.g., daily) are deployed automatically to non-production environments as part of a CI/CD pipeline, with automated security testing performed.",,,,,,,
+CAF - Adopt,"A-9: How well are vulnerabilities and dependencies managed in your software development processes?
+",A-9-4: None of the above.,A-9-4: None of the above.,,,,,,
+CAF - Govern,"G-1: How comprehensive are your organization's efforts in maintaining a dynamic and secure governance framework for your cloud estate?
+","G-1-1: Asset discovery and tracking are continuously implemented for virtual machines, containers, and SaaS applications.",,,,,,,
+CAF - Govern,"G-1: How comprehensive are your organization's efforts in maintaining a dynamic and secure governance framework for your cloud estate?
+","G-1-2: Continuous vulnerability assessments are conducted, and identified risks are promptly addressed.",,,,,,,
+CAF - Govern,"G-1: How comprehensive are your organization's efforts in maintaining a dynamic and secure governance framework for your cloud estate?
+",G-1-3: Azure Policy is used to enforce baseline security standards and monitor compliance with frameworks like MCSB.,,,,,,,
+CAF - Govern,"G-1: How comprehensive are your organization's efforts in maintaining a dynamic and secure governance framework for your cloud estate?
+",G-1-4: Policies for decommissioning or isolating unused cloud resources are enforced.,,,,,,,
+CAF - Govern,"G-1: How comprehensive are your organization's efforts in maintaining a dynamic and secure governance framework for your cloud estate?
+",G-1-5: None of the above.,G-1-5: None of the above.,,,,,,
+CAF - Manage,"M-1: How effectively is your cloud environment's security monitoring?
+",M-1-1: Enabled logging for security events across resources.,,,,,,,
+CAF - Manage,"M-1: How effectively is your cloud environment's security monitoring?
+",M-1-2: Configured Microsoft Sentinel (or 3rd party) as a centralized SIEM for security telemetry ingestion.,,,,,,,
+CAF - Manage,"M-1: How effectively is your cloud environment's security monitoring?
+",M-1-3: Established alerting for unauthorized access attempts.,,,,,,,
+CAF - Manage,"M-1: How effectively is your cloud environment's security monitoring?
+",M-1-4: Implemented Microsoft Defender XDR for advanced threat detection.,,,,,,,
+CAF - Manage,"M-1: How effectively is your cloud environment's security monitoring?
+",M-1-5: None of the above.,M-1-5: None of the above.,,,,,,
