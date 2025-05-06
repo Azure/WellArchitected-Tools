@@ -3,12 +3,12 @@
 .SYNOPSIS
     Takes output from the Well-Architected Review Assessment website and produces a PowerPoint presentation incorporating the findings.
     Also support the Cloud Adoption Security Review Assessment and the DevOps Capability Assessment.
-    https://learn.microsoft.com/en-us/assessments/azure-architecture-review/
+    https://learn.microsoft.com/assessments/azure-architecture-review/
     
 .DESCRIPTION
-    The Well-Architected Review site provides a self-Assessment tool. This might be used for self-assessment, or run as part of an Assessment performed by Microsoft to help recommend improvements.
+    The Well-Architected Review site provides a self-assessment tool. This might be used for self-assessment or run as part of an Assessment performed by Microsoft to help recommend improvements.
 
-    From the directory in which you've downloaded the scripts, templates and csv file from the PnP survey (mycontent.csv)
+    From the directory in which you've downloaded the scripts, templates, and csv file from the PnP survey (mycontent.csv)
     For a WAF Assessment report:
 
         .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv
@@ -21,9 +21,9 @@
 
         .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -DevOpsCapability
 
-    Ensure the powerpoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
-    Once the script is run, close the powershell window and a timestamped PowerPoint report and a subset csv file will be created on the working directory
-    Use these reports to represent and edit your findings for the WAF Engagement
+    Ensure the PowerPoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script.
+    Once the script is run, close the PowerShell window and a timestamped PowerPoint report and a subset csv file will be created in the working directory.
+    Use these reports to represent and edit your findings for the WAF Engagement.
 
     Known issues 
     - If the hyperlinks are not being published accurately, ensure that the csv file doesnt have any multi-sentence recommendations under Link-Text field
@@ -45,7 +45,7 @@
     How many recommendations to try to fit on a slide. 8 is default.
 
 .INPUTS
-    ContentFile should be a CSV-formatted Well-Architected Assessment export
+    ContentFile should be a CSV-formatted Well-Architected Assessment export.
 
 .OUTPUTS
     PowerPoint Presentation - WAF-Review-2023-16-1500.pptx
@@ -61,19 +61,19 @@
 .EXAMPLE
     .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -ShowTop 9
     
-    Generates a PPTX report from a CASR CSV
+    Generates a PPTX report from a CASR CSV.
     
-    Tries to include the top 9 results of any category (which probably won't fit by default, so plan to reformat things)
+    Tries to include the top 9 results of any category (which probably won't fit by default, so plan to reformat things).
         
 .EXAMPLE
     .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -CloudAdoption    
     
-    If the title doesn't identify the report type correctly, you can force the decision with the relevant switch. (for example: -CloudAdoption, -DevOpsCapability)
+    If the title doesn't identify the report type correctly, you can force the decision with the relevant switch (for example: -CloudAdoption, -DevOpsCapability).
 
 .NOTES
     PowerPoint needs to be installed to create a PPTX.
     The CSV output is filtered when using WAF to work around some data issues - only nominated pillar findings will be processed.
-    The Assessment type is attemptedly guessed from the title on the input CSV. If it can't be guessed, WAF is assumed.
+    The Assessment type is guessed from the title on the input CSV. If it can't be guessed, WAF is assumed.
 
 .LINK
     https://github.com/Azure/WellArchitected-Tools/
