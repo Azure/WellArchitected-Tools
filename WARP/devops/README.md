@@ -55,13 +55,13 @@ There are four sections to this document:
 
 - Microsoft PowerPoint 2019
 
- - PowerPoint is not required for importing findings into Azure DevOps or Github.
+ - PowerPoint is not required for importing findings into Azure DevOps or GitHub.
 
  - Only required for creating PowerPoint slideshows outlining the issues found.
 
 ---
 
-**IMPORTANT:**  **These instructions only work in a Windows environment at this time.**
+**IMPORTANT:**  **These instructions only work in a Windows environment.**
 
 ### Download scripts and prepare your environment to run them.
 
@@ -78,22 +78,24 @@ There are four sections to this document:
     Example output:
 
     ```powershell
-    PS C:\Users\cae> mkdir warp
-    PS C:\Users\cae> cd warp
-    PS C:\Users\cae\warp> $installUri = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/install-WARP-tools.ps1"
-    PS C:\Users\cae\warp> Invoke-WebRequest $installUri -OutFile "install-WARP-tools.ps1"
-    PS C:\Users\cae\warp> .\install-WARP-tools.ps1
-    Working Directory: C:\Users\cae\warp
+    PS C:\Users\demo> mkdir warp
+    PS C:\Users\demo> cd warp
+    PS C:\Users\demo\warp> $installUri = "https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops/install-WARP-tools.ps1"
+    PS C:\Users\demo\warp> Invoke-WebRequest $installUri -OutFile "install-WARP-tools.ps1"
+    PS C:\Users\demo\warp> .\install-WARP-tools.ps1
+    Working Directory: C:\Users\demo\warp
     Downloading from: https://raw.githubusercontent.com/Azure/WellArchitected-Tools/main/WARP/devops
     We will get these files:
         Azure_Well_Architected_Review_Sample.csv
         CAF Category Descriptions.csv
+        Cloud_Adoption_Security_Assessment_Sample.csv
         GenerateAssessmentReport.ps1
         PnP-DevOps.ps1
         PnP-Github.ps1
         PnP_PowerPointReport_Template.pptx
-        PnP_PowerPointReport_Template - CloudAdoption.pptx
+        PnP_PowerPointReport_Template - CAF-Secure.pptx
         WAF Category Descriptions.csv
+        ...
     ```
 
 ## Reporting
@@ -144,7 +146,7 @@ There are four sections to this document:
 1. Run the following command in the PowerShell terminal.
 
     ```powershell
-    .\PnP-DevOps.ps1 -DevOpsPersonalAccessToken PAT_FROM_ADO -DevOpsProjectUri "PROJECT_URL" -DevOpsTagName -DevOpsWorkItemType { [Feature],[Issue] } "ASSESSMENT_NAME" -AssessmentCsvPath PATH_TO_CSV
+    .\PnP-DevOps -DevOpsPersonalAccessToken <<PAT_TOKEN>> -DevOpsProjectUri <<ADO_PROJECT_URL>>  -DevOpsTagName <<TAG_NAME>> -DevOpsWorkItemType Feature -AssessmentCsvPath <<PATH_TO_CSV>>
     ```
 
     The flags are:
@@ -160,30 +162,36 @@ There are four sections to this document:
             After a few sprints, the team can perform another Well-Architected Review. The import the resultant CSV into their DevOps tooling. This import would be named "Milestone 2".
 
             Note: Assessments and imports should focus only on a single workload. There is no method to differentiate between workloads with these tools.
-    * **-DevOpsWorkItemType** Set the work item type for the project. Valid options are Feature or Issue.
+    * **-DevOpsWorkItemType** Set the work item type for the project. Valid options are Feature.
     * **-AssessmentCsvPath** The exported CSV file from a [Microsoft Azure Well-Architected Assessment](https://learn.microsoft.com/en-us/assessments/).
     
     
     Example command output:
 
     ```powershell
-    PS C:\Users\cae\warp>.\PnP-DevOps.ps1 -csv .\Azure_Well_Architected_Review_Sample.csv `
-    >> -DevOpsPersonalAccessToken xxxxxxxxxxxxxxxxx `
-    >> -DevOpsProjectUri https://dev.azure.com/contoso/WARP_Import `
-    >> -DevOpsTagName "WAF-Assessment-202201"
-    Assessment Name: WAF-Assessment-202201
-    URI Base: https://dev.azure.com/contoso/WARP_Import/
-    Number of Recommendations to import : 175
-    Ready? [y/n]: y
-    Adding Epic to ADO: Operational Procedures
-    Adding Epic to ADO: Deployment & Testing
-    Adding Epic to ADO: Governance
-    ...
-    Adding Work Item: Storage account should use a private link connection for 4 Storage Account(s)
-    Adding Work Item: Log Analytics agent should be installed on your virtual machine for 1 Virtual machine(s)
-    Adding Work Item: Management ports of virtual machines should be protected with just-in-time network access control for 1 Virtual machine(s)
-    ...
+    PS C:\Users\demo\warp>.\PnP-DevOps.ps1
+    Supply values for the following parameters:
+    DevOpsPersonalAccessToken: XXXXXXXXXXXXXX
+    DevOpsProjectUri: https://dev.azure.com/demo/WARP
+    DevOpsTagName: Security
+    DevOpsWorkItemType: Feature
+    AssessmentCsvPath: C:\Users\demo\Azure_Well_Architected_Review_Sample.csv
+    Assessment Name: Security
+    URI Base: hhttps://dev.azure.com/demo/WARP
+    Number of Recommendations to import: 93
 
+    Ready? [y/n]: y
+    Processing...
+    Adding new Epic to ADO: Defender for Cloud
+    Adding new Epic to ADO: SE:01 Security Baseline
+    Adding new Epic to ADO: SE:02 Secure Development Lifecycle
+    Adding new Epic to ADO: SE:03 Data Classification
+    ...
+    Fetching existing DevOps Work Items...
+    Adding Work Item: Role-Based Access Control should be used on Azure Keyvault Services (AKV)
+    Adding Work Item: Key Vault secrets should have an expiration date
+    Adding Work Item: [Preview] Containers running in Azure should have vulnerability findings resolved
+    ...
     Import Complete!
     ```
 
