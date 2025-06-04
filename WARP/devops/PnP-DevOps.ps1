@@ -81,7 +81,7 @@ function Import-AssessmentOther {
     # Hack to change blank reporting category to Azure Advisor
     $devOpsList | 
     Where-Object -Property ReportingCategory -eq "" | 
-    ForEach-Object { $_.ReportingCategory = "Azure Advisor" }
+    ForEach-Object { $_.ReportingCategory = "Defender for Cloud" }
 
 
     # Get unique list of ReportCategory column
@@ -132,7 +132,7 @@ function Import-Assessment {
     # Hack to change blank reporting category to Azure Advisor
     $devOpsList | 
     Where-Object -Property ReportingCategory -eq "" | 
-    ForEach-Object { $_.ReportingCategory = "Azure Advisor" }
+    ForEach-Object { $_.ReportingCategory = "Defender for Cloud" }
 
     # Get unique list of ReportCategory column
    
@@ -618,7 +618,10 @@ Write-Output "Processing..."
 ## Get existing epics from ADO
 $existingAdoEpics = Search-EpicsAdo -settings $adoSettings 
 
-$assessmentCategoryKeys = $assessment.reportingCategories.Keys
+#$assessmentCategoryKeys = $assessment.reportingCategories.Keys | Sort-Object
+$assessmentCategoryKeys = $assessment.reportingCategories.Keys |
+    Sort-Object -Property @{ Expression = { if ($_ -eq 'Defender for Cloud') { 0 } else { 1 } } }, @{ Expression = { $_ } }
+
 
 foreach ($epicName in $assessmentCategoryKeys) {
     $newEpicName = GetMappedReportingCategory -reportingCategrory $epicName

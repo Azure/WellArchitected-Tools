@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
     Takes output from the Well-Architected Review Assessment website and produces a PowerPoint presentation incorporating the findings.
-    Also support the Cloud Adoption Security Review Assessment and the DevOps Capability Assessment.
+    Also support the Cloud Adoption Security Assessment and the DevOps Capability Assessment.
     https://learn.microsoft.com/en-us/assessments/azure-architecture-review/
     
 .DESCRIPTION
@@ -13,7 +13,7 @@
 
         .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv
 
-    For a CASR report:
+    For a CASA report:
 
         .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -CloudAdoption
 
@@ -33,7 +33,7 @@
     Exported CSV file from the Well-Architected Review file. Supports relative paths.
 
 .PARAMETER CloudAdoption
-    If set, indicates the Cloud Adoption Security Review format should be used. If not set, Well-Architected is assumed.
+    If set, indicates the Cloud Adoption Security Assessment format should be used. If not set, Well-Architected is assumed.
 
 .PARAMETER DevOpsCapability
     If set, indicates the DevOps Capability Review format should be used. If not set, Well-Architected is assumed.
@@ -59,14 +59,14 @@
     Generates a PPTX report from a Well-Architected Review site exported CSV.
 
 .EXAMPLE
-    .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -ShowTop 9
+    .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Assessment_Sample.csv -ShowTop 9
     
-    Generates a PPTX report from a CASR CSV
+    Generates a PPTX report from a CASA CSV
     
     Tries to include the top 9 results of any category (which probably won't fit by default, so plan to reformat things)
         
 .EXAMPLE
-    .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Review_Sample.csv -CloudAdoption    
+    .\generateAssessmentReport.ps1 -ContentFile .\Cloud_Adoption_Security_Assessment_Sample.csv -CloudAdoption    
     
     If the title doesn't identify the report type correctly, you can force the decision with the relevant switch. (for example: -CloudAdoption, -DevOpsCapability)
 
@@ -91,9 +91,9 @@ param (
     [Parameter()][int]
     $MinimumReportLevel = 65 ,
 
-    # Show Top N Recommendations Per Slide (default 6)
+    # Show Top N Recommendations Per Slide (default 5)
     [Parameter()][int]
-    $ShowTop = 6 ,
+    $ShowTop = 5 ,
 
     [Parameter()]
     [switch] $CloudAdoption,
@@ -102,6 +102,7 @@ param (
     [switch] $DevOpsCapability
 
 )
+
 
 #region Functions
 
@@ -216,198 +217,6 @@ function GetMappedReportingCategory{
 
     return $newReportingCategory
 }
-
-#endregion
-
-$workingDirectory = (Get-Location).Path #Get the working directory from the script
-$content  = OpenAssessmentFile
-
-$assessmentTypeCheck = ""
-$WellArchitected = $true
-
-$assessmentTypeCheck = ($content | Select-Object -First 1)
-
-# initial fix for wrong report type selection
-if ($assessmentTypeCheck.contains("Cloud Adoption") ) {
-    write-host "Detected Cloud Adoption Security Review from CSV title row"
-    $CloudAdoption = $true
-    $WellArchitected = $false
-    $DevOpsCapability = $false
-}
-if ($assessmentTypeCheck.contains("DevOps Capability") ) {
-    write-host "Detected DevOps Capability Review from CSV title row"
-    $CloudAdoption = $false
-    $WellArchitected = $false
-    $DevOpsCapability = $true
-}
-if (!$CloudAdoption -and !$DevOpsCapability) {
-    write-host "Well-Architected Review selected - use switch to force a different report format."
-    $assessmentTypeCheck = "Well-Architected"
-    $CloudAdoption = $false
-    $WellArchitected = $true
-    $DevOpsCapability = $false
-}
-$reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
-$localReportDate = Get-Date -Format g
-
-
-$overallScore = ""
-$costScore = ""
-$operationsScore = ""
-$performanceScore = ""
-$reliabilityScore = ""
-$securityScore = ""
-$overallScoreDescription = ""
-
-$filteredPillars = @()
-
-
-if ($WellArchitected) {
-    for ($i = 3; $i -le 8; $i++) {
-
-        if ($Content[$i].Contains("overall")) {
-            $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-        }
-        if ($Content[$i].Contains("Cost Optimization")) {
-            $costScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Cost Optimization"
-        }
-        if ($Content[$i].Contains("Reliability")) {
-            $reliabilityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Reliability"
-        }
-        if ($Content[$i].Contains("Operational Excellence")) {
-            $operationsScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Operational Excellence"
-        }
-        if ($Content[$i].Contains("Performance Efficiency")) {
-            $performanceScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Performance Efficiency"
-        }
-        if ($Content[$i].Contains("Security")) {
-            $securityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-            $filteredPillars += "Security"
-        }
-        if ($Content[$i].Equals(",,,,,")) {
-            #End early if not all pillars assessed
-            Break
-        }
-    }
-}
-else {
-    $i = 3
-    if ($Content[$i].Contains("overall")) {
-        $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
-        $overallScoreDescription = $Content[$i].Split(',')[1]
-    }
-}
-
-if ($WellArchitected) {
-    Write-host "Producing Well Architected report from $assessmentFile"
-    $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template.pptx"
-    $title = "Well-Architected [pillar] Assessment" # Don't edit this - it's used when multiple Pillars are included.
-    try {
-        $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context"
-    }
-    catch{
-        Write-host "That appears not to be a content file. Please use only content from the Well-Architected Assessment site."
-    }
-    try{
-        
-        $EndStringIdentifier = $content | Where-Object { $_.Contains("--,,") } | Select-Object -Unique -First 1
-        
-        $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
-        
-        $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
-        $importdata = Import-Csv -Path "$workingDirectory\$reportDate.csv"
-
-        # Clean the uncategorized data
-        
-            foreach ($lineData in $importdata) {
-                
-                if (!$lineData.ReportingCategory) {
-                    $lineData.ReportingCategory = "Uncategorized"
-                }
-            }
-
-        $data = $importdata | where {$_.Category -in $filteredPillars}
-        $data | Export-Csv -UseQuotes AsNeeded "$workingDirectory\$reportDate.csv" 
-        $data | % { $_.Weight = [int]$_.Weight }
-        $pillars = $data.Category | Select-Object -Unique
-    }
-    catch {
-        Write-Host "Unable to parse the content file."
-        Write-Host "Please ensure all input files are in the correct format and aren't open in Excel or another editor which locks the file."
-        Write-Host "--"
-        Write-Host $_
-        exit
-    }
-} else {
-    
-    $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - CloudAdoption.pptx"
-    $title = "Cloud Adoption Security Review"
-
-    if($CloudAdoption) {
-        Write-host "Producing Cloud Adoption Security Review report..."
-    } elseif($DevOpsCapability) {
-        Write-host "Producing DevOps Capability Review report..."
-        $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - DevOps.pptx"
-        $title = "DevOps Capability Review"
-    }
-
-    try {
-        $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note"
-        #Write-Debug "Tablestart: $tablestart"
-        $EndStringIdentifier = $content | Where-Object { $_.Contains("--,,") } | Select-Object -Unique -First 1
-        #Write-Debug "EndStringIdentifier: $EndStringIdentifier"
-        $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
-        #Write-Debug "Tableend: $tableend"
-        $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
-        $data = Import-Csv -Path "$workingDirectory\$reportDate.csv"
-        $data | % { $_.Weight = [int]$_.Weight }
-        #$pillars = $data.Category | Select-Object -Unique
-    }
-    catch {
-        Write-Host "Unable to parse the content file."
-        Write-Host "Please ensure all input files are in the correct format and aren't open in Excel or another editor which locks the file."
-        Write-Host "--"
-        Write-Host $_
-        exit
-    }
-}
-
-
-$descriptionsFile = LoadDescriptionFile
-
-$cloudAdoptionDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
-$devOpsDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
-$costDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Cost Optimization" -and $_.Category -eq "Survey Level Group" }).Description
-$operationsDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Operational Excellence" -and $_.Category -eq "Survey Level Group" }).Description
-$performanceDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Performance Efficiency" -and $_.Category -eq "Survey Level Group" }).Description
-$reliabilityDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Reliability" -and $_.Category -eq "Survey Level Group" }).Description
-$securityDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Security" -and $_.Category -eq "Survey Level Group" }).Description
-
-
-#region Instantiate PowerPoint variables
-
-$application = New-Object -ComObject powerpoint.application
-$application.visible = -1 # [Microsoft.Office.Core.MsoTriState]::msoTrue
-$presentation = $application.Presentations.open($templatePresentation)
-
-if ($WellArchitected) {
-    $titleSlide = $presentation.Slides[9]
-    $summarySlide = $presentation.Slides[10]
-    $detailSlide = $presentation.Slides[11]
-    $endSlide = $presentation.Slides[12]
-}
-else {
-    $titleSlide = $presentation.Slides[3]
-    $summarySlide = $presentation.Slides[4]
-    $detailSlide = $presentation.Slides[5]
-    $endSlide = $presentation.Slides[6]
-}
-
-#endregion
 
 
 
@@ -578,7 +387,7 @@ Function WellArchitectedAssessment
 
 Function CloudAdoptionAssessment
 {
-    $slideTitle = $title.Replace("[CA_Security_Review]", "Cloud Adoption Security Review")
+    $slideTitle = $title.Replace("[CAF_Security_Assessment]", "Cloud Adoption Security Assessment")
     $newTitleSlide = $titleSlide.Duplicate()
     $newTitleSlide.MoveTo($presentation.Slides.Count)
     $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
@@ -599,11 +408,11 @@ Function CloudAdoptionAssessment
 
 
     $CategoriesList = New-Object System.Collections.ArrayList
-    #Updated to use ReportingCategory vs Category due to Category column for CASR containing multiple instances of varying interests vs WASA(ie. "Security")
+    #Updated to use ReportingCategory vs Category due to Category column for CASA containing multiple instances of varying interests vs WASA(ie. "Security")
     $categories = $data.ReportingCategory | Sort-Object -Property "Weight" -Descending | Select-Object -Unique
     
         
-    # Remove non existing (aka empty) categories. CASR has only 6 categories (no Advisor/uncategorized category)
+    # Remove non existing (aka empty) categories. CASA has only 6 categories (no Advisor/uncategorized category)
     $FilteredCategoriesList = [System.Collections.ArrayList]($categories | Where-Object { $_ -ne "" })
     $categories = $FilteredCategoriesList
     
@@ -618,8 +427,8 @@ Function CloudAdoptionAssessment
 
     $counter = 13 #Shape count for the slide to start adding scores
     $categoryCounter = 0
-    $gaugeIconX = 378.1129
-    $gaugeIconY = @(176.4359, 217.6319, 258.3682, 299.1754, 339.8692, 382.6667, 423.9795, 461.0491)
+    $gaugeIconX = 437.76 # X coordinate for the gauge icon in points (1 point = 1/72 inch)
+    $gaugeIconY = @(147.6, 176.4, 204.48, 232.56, 261.36, 289.44, 317.52, 346.32, 375.12, 403.2, 432.0, 460.08 ) # Y coordinates for the remaining 12 gauge icons in points (vertically aligned)
 
     foreach ($category in $CategoriesList) {
         if ($category.Category -ne "Uncategorized") {
@@ -629,18 +438,22 @@ Function CloudAdoptionAssessment
                 $newSummarySlide.Shapes[$counter].TextFrame.TextRange.Text = $category.CategoryWeightiestCount.ToString("#")
                 $newSummarySlide.Shapes[$counter + 1].TextFrame.TextRange.Text = $category.Category
                 $counter = $counter + 3 # no graphic anymore
+                # Determining the color based on CategoryScore
                 switch ($category.CategoryScore) {
                     { $_ -lt 33 } { 
-                        $categoryShape = $newSummarySlide.Shapes[37]
+                        $categoryShape = $newSummarySlide.Shapes[49] #green
+                        break
                     }
                     { $_ -gt 33 -and $_ -lt 67 } { 
-                        $categoryShape = $newSummarySlide.Shapes[38] 
+                        $categoryShape = $newSummarySlide.Shapes[50] #yellow
+                        break
                     }
                     { $_ -gt 67 } { 
-                        $categoryShape = $newSummarySlide.Shapes[39] 
+                        $categoryShape = $newSummarySlide.Shapes[51] #red
+                        break
                     }
                     Default { 
-                        $categoryShape = $newSummarySlide.Shapes[38] 
+                        $categoryShape = $newSummarySlide.Shapes[50] #yellow
                     }
                 }
                 $categoryShape.Duplicate() | Out-Null
@@ -670,7 +483,7 @@ Function CloudAdoptionAssessment
 
     foreach ($category in $CategoriesList.Category) {
 
-        $categoryData = $data | Where-Object { $_.ReportingCategory -eq $category }# -and $_.Category -eq $casr}
+        $categoryData = $data | Where-Object { $_.ReportingCategory -eq $category }
         $categoryDataCount = ($categoryData | Measure-Object).Count
         $categoryWeight = ($data | Where-Object { $_.ReportingCategory -eq $category }).Weight | Measure-Object -Sum
         $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
@@ -730,7 +543,7 @@ Function DevOpsCapabilityAssessment {
     $categories = $data.Category | Sort-Object -Property "Weight" -Descending | Select-Object -Unique
     
         
-    # Remove non existing (aka empty) categories. CASR has only 6 categories (no Advisor/uncategorized category)
+    # Remove non existing (aka empty) categories. CASA has only 6 categories (no Advisor/uncategorized category)
     $FilteredCategoriesList = [System.Collections.ArrayList]($categories | Where-Object { $_ -ne "" })
     $categories = $FilteredCategoriesList
     
@@ -797,7 +610,7 @@ Function DevOpsCapabilityAssessment {
 
     foreach ($category in $CategoriesList.Category) {
 
-        $categoryData = $data | Where-Object { $_.Category -eq $category }# -and $_.Category -eq $casr}
+        $categoryData = $data | Where-Object { $_.Category -eq $category }
         $categoryDataCount = ($categoryData | Measure-Object).Count
         $categoryWeight = ($data | Where-Object { $_.Category -eq $category }).Weight | Measure-Object -Sum
         $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
@@ -855,7 +668,7 @@ Function CleanUp
         $presentation.SavecopyAs("$workingDirectory\DevOps-$($reportDate).pptx")
     } 
     else {
-        $presentation.SavecopyAs("$workingDirectory\CASR-$($reportDate).pptx")
+        $presentation.SavecopyAs("$workingDirectory\CASA-$($reportDate).pptx")
     }
 
     $presentation.Close()
@@ -867,6 +680,201 @@ Function CleanUp
 
 }
 
+#endregion
+
+
+#region Main
+
+
+$workingDirectory = (Get-Location).Path #Get the working directory from the script
+$content  = OpenAssessmentFile
+$assessmentTypeCheck = ""
+$assessmentTypeCheck = ($content | Select-Object -First 1)
+
+$reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
+$localReportDate = Get-Date -Format g
+$overallScore = ""
+$costScore = ""
+$operationsScore = ""
+$performanceScore = ""
+$reliabilityScore = ""
+$securityScore = ""
+$overallScoreDescription = ""
+
+$filteredPillars = @()
+
+$WellArchitected  = $false
+$CloudAdoption    = $false
+$DevOpsCapability = $false
+
+# Respect user switches first
+if ($PSBoundParameters.ContainsKey('CloudAdoption')) {
+    write-host "-CloudAdoption switch detected"
+    $CloudAdoption    = $true
+}
+elseif ($PSBoundParameters.ContainsKey('DevOpsCapability')) {
+    write-host "-DevOpsCapability switch detected"
+    $DevOpsCapability = $true
+}
+else {
+    # Only if no switch: auto-detect from CSV title
+    if ($assessmentTypeCheck.Contains('Cloud Adoption')) {
+        write-host "Auto detected Cloud Adoption Security Assessment CSV file"
+        $CloudAdoption   = $true
+    }
+    elseif ($assessmentTypeCheck.Contains('DevOps Capability')) {
+        write-host "Auto detected DevOps Capability Review CSV file"
+        $DevOpsCapability = $true
+    }
+    else {
+        $WellArchitected = $true
+    }
+}
+
+if ($WellArchitected) {
+    for ($i = 3; $i -le 8; $i++) {
+
+        if ($Content[$i].Contains("overall")) {
+            $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+        }
+        if ($Content[$i].Contains("Cost Optimization")) {
+            $costScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Cost Optimization"
+        }
+        if ($Content[$i].Contains("Reliability")) {
+            $reliabilityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Reliability"
+        }
+        if ($Content[$i].Contains("Operational Excellence")) {
+            $operationsScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Operational Excellence"
+        }
+        if ($Content[$i].Contains("Performance Efficiency")) {
+            $performanceScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Performance Efficiency"
+        }
+        if ($Content[$i].Contains("Security")) {
+            $securityScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+            $filteredPillars += "Security"
+        }
+        if ($Content[$i].Equals(",,,,,")) {
+            #End early if not all pillars assessed
+            Break
+        }
+    }
+}
+else {
+    $i = 3
+    if ($Content[$i].Contains("overall")) {
+        $overallScore = $Content[$i].Split(',')[2].Trim("'").Split('/')[0]
+        $overallScoreDescription = $Content[$i].Split(',')[1]
+    }
+}
+
+if ($WellArchitected) {
+    Write-host "Producing Well Architected report from  $global:assessmentFile"
+    $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template.pptx"
+    $title = "Well-Architected [pillar] Assessment" # Don't edit this - it's used when multiple Pillars are included.
+    try {
+        $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context"
+    }
+    catch{
+        Write-host "That appears not to be a content file. Please use only content from the Well-Architected Assessment site."
+    }
+    try{
+        
+        $EndStringIdentifier = $content | Where-Object { $_.Contains("--,,") } | Select-Object -Unique -First 1
+        
+        $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
+        
+        $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
+        $importdata = Import-Csv -Path "$workingDirectory\$reportDate.csv"
+
+        # Clean the uncategorized data
+        
+            foreach ($lineData in $importdata) {
+                
+                if (!$lineData.ReportingCategory) {
+                    $lineData.ReportingCategory = "Uncategorized"
+                }
+            }
+
+        $data = $importdata | where {$_.Category -in $filteredPillars}
+        $data | Export-Csv -UseQuotes AsNeeded "$workingDirectory\$reportDate.csv" 
+        $data | % { $_.Weight = [int]$_.Weight }
+        $pillars = $data.Category | Select-Object -Unique
+    }
+    catch {
+        Write-Host "Unable to parse the content file."
+        Write-Host "Please ensure all input files are in the correct format and aren't open in Excel or another editor which locks the file."
+        Write-Host "--"
+        Write-Host $_
+        exit
+    }
+} else {
+    if($CloudAdoption) {
+        Write-host "Producing Cloud Adoption Security Assessment report from $global:assessmentFile"
+        $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - CAF-Secure.pptx"
+        $title = "Cloud Adoption Security Assessment"
+    } elseif($DevOpsCapability) {
+        Write-host "Producing DevOps Capability Review report from $global:assessmentFile"
+        $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - DevOps.pptx"
+        $title = "DevOps Capability Review"
+    }
+
+    try {
+        $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note"
+        #Write-Debug "Tablestart: $tablestart"
+        $EndStringIdentifier = $content | Where-Object { $_.Contains("--,,") } | Select-Object -Unique -First 1
+        #Write-Debug "EndStringIdentifier: $EndStringIdentifier"
+        $tableEnd = $content.IndexOf($EndStringIdentifier) - 1
+        #Write-Debug "Tableend: $tableend"
+        $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
+        $data = Import-Csv -Path "$workingDirectory\$reportDate.csv"
+        $data | % { $_.Weight = [int]$_.Weight }
+        #$pillars = $data.Category | Select-Object -Unique
+    }
+    catch {
+        Write-Host "Unable to parse the content file."
+        Write-Host "Please ensure all input files are in the correct format and aren't open in Excel or another editor which locks the file."
+        Write-Host "--"
+        Write-Host $_
+        exit
+    }
+}
+
+
+$descriptionsFile = LoadDescriptionFile
+
+$cloudAdoptionDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
+$devOpsDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
+$costDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Cost Optimization" -and $_.Category -eq "Survey Level Group" }).Description
+$operationsDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Operational Excellence" -and $_.Category -eq "Survey Level Group" }).Description
+$performanceDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Performance Efficiency" -and $_.Category -eq "Survey Level Group" }).Description
+$reliabilityDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Reliability" -and $_.Category -eq "Survey Level Group" }).Description
+$securityDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Security" -and $_.Category -eq "Survey Level Group" }).Description
+
+
+#region Instantiate PowerPoint variables
+
+$application = New-Object -ComObject powerpoint.application
+$application.visible = -1 # [Microsoft.Office.Core.MsoTriState]::msoTrue
+$presentation = $application.Presentations.open($templatePresentation)
+
+if ($WellArchitected) {
+    $titleSlide = $presentation.Slides[9]
+    $summarySlide = $presentation.Slides[10]
+    $detailSlide = $presentation.Slides[11]
+    $endSlide = $presentation.Slides[12]
+}
+else {
+    $titleSlide = $presentation.Slides[3]
+    $summarySlide = $presentation.Slides[4]
+    $detailSlide = $presentation.Slides[5]
+    $endSlide = $presentation.Slides[6]
+}
+
+#endregion
 
 
 if ($WellArchitected) 
@@ -884,3 +892,4 @@ else
 
 CleanUp
 
+#endregion

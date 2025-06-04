@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
+    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Assessment .csv file.
     
 .DESCRIPTION
-    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Review .csv file.
+    Creates Milestones and Issues in a GitHub repository based on Well-Architected Assessment / Cloud Adoption Security Assessment .csv file.
 
 .PARAMETER GithubPersonalAccessToken
     Personal Access Token from Github - find in personal menu (top right), Settings, Developer Settings, Tokens. Token needs Full Access to target Repo.
@@ -12,7 +12,7 @@
     URI of the Github repo
     
 .PARAMETER AssessmentCsvPath
-    .csv file exported from Well-Architected Assessment / Cloud Adoption Security Review
+    .csv file exported from Well-Architected Assessment / Cloud Adoption Security Assessment
 
 .PARAMETER GithubTagName
     Name of assessment. Note tag cannot be longer than 50 characters. They will be truncated if longer.
@@ -151,10 +151,10 @@ function Import-Assessment {
     $tableEnd = $content.IndexOf($endStringIdentifier) - 1
     $devOpsList = ConvertFrom-Csv $content[$tableStart..$tableEnd] -Delimiter ','
 
-    # Azure Advisor recommendations do not have a reporting category so we add "Azure Advisor" as a default to make everything pretty.
+    # Defender for Cloud recommendations do not have a reporting category so we add "Defender for Cloud" as a default to make everything pretty.
     $devOpsList | 
         Where-Object -Property ReportingCategory -eq "" | 
-        ForEach-Object {$_.ReportingCategory = "Azure Advisor"}
+        ForEach-Object {$_.ReportingCategory = "Defender for Cloud"}
 
 
     # Get unique list of ReportCategory column
@@ -188,8 +188,7 @@ function Import-Assessment {
     $devOpsList | 
         Select-Object -Property Category, ReportingCategory -Unique | 
         ForEach-Object {
-
-            $githubMilestones[$_.Category + " - " + (GetMappedReportingCategory -reportingCategory $_.ReportingCategory)] = ""
+            $githubMilestones[(GetMappedReportingCategory -reportingCategory $_.ReportingCategory)] = ""
         }
 
         $assessment = @{
@@ -417,9 +416,14 @@ $AllMilestones = Get-GithubMilestones -settings $settings
 Write-Output "Creating Milestones in Github..."
 Write-Output ""
 
-$assessment.milestones.GetEnumerator() | ForEach-Object{
-    Add-MilestoneGithub -settings $settings -milestone $_.key -allmilestones $AllMilestones
+
+$sortedMilestones = $assessment.milestones.Keys |
+ Sort-Object @{ Expression = { if ($_ -like '*Defender for Cloud') { 0 } else { 1 } } }, { $_ }
+
+foreach ($milestone in $sortedMilestones) {
+    Add-MilestoneGithub -settings $settings -milestone $milestone -allmilestones $AllMilestones
 }
+
 Write-Output "All finished creating Milestones in Github..."
 Write-Output ""
 
@@ -448,7 +452,7 @@ foreach($item in $assessment.recommendations){
     }
 
     $bodytext=$item.Description
-    $MilestoneName = ($item.category + " - " + (GetMappedReportingCategory -reportingCategory $item.ReportingCategory))
+    $MilestoneName = (GetMappedReportingCategory -reportingCategory $item.ReportingCategory)
 
     $count = $AllMilestones.Count
     for ($i=0; $i -lt $count; $i++){
@@ -459,8 +463,7 @@ foreach($item in $assessment.recommendations){
         }
     }
 
- 
-    # there are some issues with the tag length. Truncate them to 50 characters
+     # there are some issues with the tag length. Truncate them to 50 characters
     # start gathering labels from the the assesment items 
     $labels = New-Object System.Collections.ArrayList
     $charLimit = 50

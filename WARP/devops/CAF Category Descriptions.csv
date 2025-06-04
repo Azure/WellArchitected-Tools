@@ -1,8 +1,8 @@
 ﻿Category,Description
-Survey Level Group,Assess your Security Journey for Cloud Adoption. Receive actionable considerations to improve your security posture.
-Business Alignment,"Security transformation is necessary to keep up with the pace of change in cloud platforms, the threat environment, and the evolution of security technologies. Integration of security with business processes is a core component of the methodology focusing on three categories of risk insights, security integration, and operational resiliency."
-Access Control,"Organizations must embrace a zero trust approach to access control as they embrace remote work and use cloud technology to digitally transform their business model, customer engagement model, employee engagement, and empowerment model."
-Security Operations,Security operations reduce risk by limiting damage from attackers who gain access to your organization's resources.
-Asset Protection,"Asset protection implements controls to support security architecture, standards, and policy. Each asset type and security requirement is unique. The security standards for any asset type should be consistently applied to all instances. Start with a proven cloud infrastructure security approach and adapt it to your organization's needs and initial workload deployments."
-Security Governance,"Security governance bridges your business priorities with technical implementation like architecture, standards, and policy."
-Innovation Security,Innovation security protects the processes and data of innovation against cyberattacks. Innovation in the digital age takes the form of developing applications using the DevOps or DevSecOps method to rapidly innovate without waiting for the traditional waterfall ship schedule that can take months or years between releases.
+Teams and Roles,Evaluate the security requirements to identify the roles necessary to address them effectively.
+Strategy,Incorporate security considerations as a fundamental aspect of the cloud adoption strategy.
+Plan,Create cloud adoption plans that integrate security measures and practices.
+Ready,Establish a cloud foundation with security controls implemented and ready for operation.
+Adopt,Deploy workloads with cloud security measures implemented to ensure a secure environment.
+Govern,Establish robust security governance controls to ensure ongoing compliance.
+Manage,Optimize security operations (SecOps and DevSecOps) by implementing efficient tools and practices.
