@@ -1,8 +1,0 @@
-﻿Category,Description
-Teams and Roles,Evaluate the security requirements to identify the roles necessary to address them effectively.
-Strategy,Incorporate security considerations as a fundamental aspect of the cloud adoption strategy.
-Plan,Create cloud adoption plans that integrate security measures and practices.
-Ready,Establish a cloud foundation with security controls implemented and ready for operation.
-Adopt,Deploy workloads with cloud security measures implemented to ensure a secure environment.
-Govern,Establish robust security governance controls to ensure ongoing compliance.
-Manage,Optimize security operations (SecOps and DevSecOps) by implementing efficient tools and practices.
