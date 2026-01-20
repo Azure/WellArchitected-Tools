@@ -1,13 +1,17 @@
 Azure_Well_Architected_Review_Sample.csv
 Cloud_Adoption_Security_Assessment_Sample.csv
+DevOps_Capability_Review_Sample.csv
+Gen_AI_Workload_Security_Assessment_Sample.csv
+WAF Category Descriptions.csv
 CAF Category Descriptions.csv
 DevOps Category Descriptions.csv
-DevOps_Capability_Review_Sample.csv
+GenAI Category Descriptions.csv
 GenerateAssessmentReport.ps1
 PnP-DevOps.ps1
 PnP-Github.ps1
 PnP_PowerPointReport_Template.pptx
 PnP_PowerPointReport_Template - CAF-Secure.pptx
-WAF Category Descriptions.csv
-UpdateWAFCategories.ps1
 PnP_PowerPointReport_Template - DevOps.pptx
+PnP_PowerPointReport_Template - GenAI.pptx
+UpdateWAFCategories.ps1
+

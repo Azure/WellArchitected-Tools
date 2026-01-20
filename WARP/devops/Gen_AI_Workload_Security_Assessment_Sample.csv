@@ -1,0 +1,704 @@
+Gen AI Workload Security Assessment - Sample File,,,,,
+,,,,,
+Recommendations for your Gen AI workload,,,,,
+Your overall results,Critical,'0/100',,,
+GenAI Security: Architecture,Critical,'0/100',,,
+GenAI Security: Risk Management and Compliance,Critical,'0/100',,,
+GenAI Security: Agents Security,Critical,'0/100',,,
+,,,,,
+,,,,,
+,https://learn.microsoft.com,,,,
+,,,,,
+Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context,CompleteY/N,Note
+GenAI Security: Architecture,Implement Azure AI Content Safety or equivalent validation at both input and output stages to prevent malicious prompt exploitation and unsafe responses.,https://learn.microsoft.com/azure/ai-services/content-safety/overview,High,SA:01,,100,,N,
+GenAI Security: Architecture,"Add workflow guardrails, such as policy checks or business rules, to restrict what AI outputs can trigger.",https://learn.microsoft.com/azure/ai-foundry/concepts/evaluation-evaluators/risk-safety-evaluators,High,SA:01,,100,,N,
+GenAI Security: Architecture,"Introduce mandatory security and quality reviews for all execution code and ensure only approved, version-controlled scripts are allowed to run in AI execution environments.",https://learn.microsoft.com/security/benchmark/azure/mcsb-v2-devop-security#ds-4.1,High,SA:01,,100,,N,
+GenAI Security: Architecture,"Run all AI execution tasks in isolated, short-lived environments to prevent executed code from accessing unauthorized resources or impacting other system components.",https://learn.microsoft.com/azure/container-apps/sessions,High,SA:01,,100,,N,
+GenAI Security: Architecture,"Apply API rate limiting, quotas, and usage monitoring to prevent overuse or endpoint overload.",https://learn.microsoft.com/microsoft-cloud/dev/dev-proxy/concepts/implement-rate-limiting-azure-api-management,High,SA:01,,100,,N,
+GenAI Security: Architecture,Implement an output validation layer that checks and approves AI-generated actions before they affect external systems.,https://learn.microsoft.com/azure/ai-foundry/concepts/evaluation-evaluators/risk-safety-evaluators,High,SA:01,,100,,N,
+GenAI Security: Architecture,"Configure Azure AI Content Safety Prompt Shield ",https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection,High,SA:01,,100,,N,
+GenAI Security: Architecture,"Define and document clear data boundaries for each AI application based on user access levels and application purpose, ensuring internal, customer, and public data are strictly separated.",https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/platform/security#secure-ai-data,High,SA:02,,100,,N,
+GenAI Security: Architecture,Apply Azure ML Responsible AI dashboard and Content Safety filters to analyze and clean datasets before model training.,https://learn.microsoft.com/azure/machine-learning/concept-responsible-ai-dashboard,High,SA:02,,100,,N,
+GenAI Security: Architecture,"Enable logging, monitoring, and alerting for all execution activities to detect abnormal behavior, misuse, or potential compromise at an early stage.",https://learn.microsoft.com/azure/defender-for-cloud/defender-for-cloud-introduction#cloud-workload-protection-platform-cwpp,High,SA:01,,100,,N,
+GenAI Security: Architecture,"Apply Azure RBAC and Managed Identities for all data/model access paths, and audit access regularly.",https://learn.microsoft.com/azure/ai-foundry/openai/how-to/role-based-access-control,High,SA:02,,100,,N,
+GenAI Security: Architecture,Add a data cleaning step to remove sensitive or private information from training datasets.,https://learn.microsoft.com/azure/ai-services/language-service/personally-identifiable-information/how-to/redact-text-pii,High,SA:02,,100,,N,
+GenAI Security: Architecture,Store training data in encrypted Azure Storage and limit access via roles and Managed Identities.,https://learn.microsoft.com/azure/machine-learning/how-to-administrate-data-authentication#identity-based-data-authentication,High,SA:02,,100,,N,
+GenAI Security: Architecture,"Use centralized data governance tools, such as Microsoft Purview, to classify data, monitor usage, and enforce data-handling policies consistently across all AI applications.",https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/platform/security#secure-ai-data,High,SA:02,,100,,N,
+GenAI Security: Architecture,Isolate datasets for each AI workload using separate storage or data environments and enforce access controls to prevent unintended cross-application data access.,https://learn.microsoft.com/cloud-adoption-framework/scenarios/ai/platform/security#secure-ai-data,High,SA:02,,100,,N,
+GenAI Security: Architecture,Verify all AI assets through Azure Machine Learning registries and Microsoft Purview to ensure trusted origin and safe deployment.,https://learn.microsoft.com/azure/machine-learning/concept-enterprise-security,High,SA:04,,100,,N,
+GenAI Security: Architecture,"Use Defender for DevOps to scan workload libraries for vulnerabilities and ensure all frameworks and packages come from verified, trusted sources.",https://learn.microsoft.com/azure/defender-for-cloud/defender-for-devops-introduction,High,SA:04,,100,,N,
+GenAI Security: Architecture,"Maintain and periodically refine threat identification as architecture, data, or model versions evolve.",https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/secure#detect-ai-security-threats,High,SA:04,,100,,N,
+GenAI Security: Architecture,"Enable Azure Storage Encryption, Key Vault–managed keys, and enforce TLS 1.2+ across all AI data paths.",https://learn.microsoft.com/azure/ai-foundry/openai/encrypt-data-at-rest,High,SA:02,,100,,N,
+GenAI Security: Architecture,Use an approval process to make sure only authorized datasets are used for training.,https://learn.microsoft.com/azure/well-architected/service-guides/azure-machine-learning#security,High,SA:02,,90,,N,
+GenAI Security: Architecture,Use Microsoft Purview data classification and Defender for AI to automatically detect and protect sensitive information.,https://learn.microsoft.com/purview/sensitivity-labels,High,SA:01,,90,,N,
+GenAI Security: Architecture,"Use Microsoft Purview to classify, label, and govern AI data assets before they are used in model training or fine-tuning.",https://learn.microsoft.com/purview/sensitivity-labels,High,SA:02,,90,,N,
+GenAI Security: Architecture,Integrate Azure AI Content Safety into inference pipelines to filter sensitive or harmful outputs.,https://learn.microsoft.com/azure/ai-services/content-safety/overview,High,SA:02,,90,,N,
+GenAI Security: Architecture,Add checks that compare important AI-generated information against reliable sources to prevent incorrect or misleading outputs from being used.,https://learn.microsoft.com/azure/ai-foundry/concepts/evaluation-evaluators/risk-safety-evaluators,High,SA:01,,90,,N,
+GenAI Security: Architecture,"Enable Defender for DevOps to continuously scan AI pipelines, images, and infrastructure for security and compliance issues.",https://learn.microsoft.com/azure/defender-for-cloud/ci-cd-pipeline-scanning-with-defender-cli,High,SA:04,,90,,N,
+GenAI Security: Architecture,Enable logging and monitoring for all training data access and review unusual activity.,https://learn.microsoft.com/azure/machine-learning/concept-model-monitoring,High,SA:02,,90,,N,
+GenAI Security: Architecture,"Define and enforce CPU, memory, storage, and runtime limits for execution environments to prevent resource abuse and service disruption.",https://learn.microsoft.com/azure/aks/developer-best-practices-resource-management#define-pod-resource-requests-and-limits,High,SA:01,,90,,N,
+GenAI Security: Architecture,"Perform adversarial testing, DLP validation, and AI red-team exercises to identify weaknesses before they are exploited.",https://learn.microsoft.com/azure/machine-learning/concept-enterprise-security#scan-for-vulnerabilities,High,SA:04,,90,,N,
+GenAI Security: Architecture,Use MITRE ATLAS and OWASP AI risk guidance to systematically assess risks across all AI components and integrations.,https://atlas.mitre.org/,High,SA:04,,90,,N,
+GenAI Security: Architecture,"Use data lineage tracking tools, such as Microsoft Purview, to record where data comes from, how it is processed, and who owns it, so only trusted and approved data sources are used.",https://learn.microsoft.com/purview/ai-azure-foundry,High,SA:02,,90,,N,
+GenAI Security: Architecture,"Approve and validate all AI plugins, APIs, and connectors before use, and apply Managed Identities and OAuth scopes for least-privilege operation.",https://learn.microsoft.com/azure/ai-foundry/openai/how-to/managed-identity,High,SA:04,,90,,N,
+GenAI Security: Architecture,"Apply role-based data access controls so users and AI components can only access data required for their responsibilities, and review permissions regularly to prevent privilege creep.",https://learn.microsoft.com/cloud-adoption-framework/scenarios/ai/platform/security#secure-ai-data,High,SA:02,,90,,N,
+GenAI Security: Architecture,Store models in private containers or blob storage with Key Vault integration and Private Endpoints.,https://learn.microsoft.com/azure/ai-foundry/how-to/data-add,High,SA:02,,90,,N,
+GenAI Security: Architecture,"Replace static API keys with Microsoft Entra ID authentication for all AI services and endpoints to enable centralized identity management, stronger security policies, and reduced credential exposure.",https://learn.microsoft.com/ai-services/authentication#authenticate-with-microsoft-entra-id,High,SA:03,,80,,N,
+GenAI Security: Architecture,Maintain a centralized AI asset inventory and ensure it is automatically updated as new AI assets are created or modified.,https://learn.microsoft.com/azure/defender-for-cloud/ai-security-posture,High,SA:04,,80,,N,
+GenAI Security: Architecture,Enforce Azure RBAC and Monitor logs for all model and data repositories.,https://learn.microsoft.com/azure/ai-foundry/concepts/rbac-azure-ai-foundry,High,SA:02,,80,,N,
+GenAI Security: Architecture,"Add human-in-the-loop approvals using Logic Apps, Power Automate, or Azure Functions for oversight.",https://learn.microsoft.com/power-automate/get-started-approvals,High,SA:01,,80,,N,
+GenAI Security: Architecture,Enable Defender for Cloud AI Protection Plan for model and data anomaly detection.,https://learn.microsoft.com/azure/defender-for-cloud/ai-threat-protection,High,SA:02,,80,,N,
+GenAI Security: Architecture,"Enable multifactor authentication for all users and apply privileged access management to limit administrative permissions to approved, time-bound access only.",https://learn.microsoft.com/entra/identity/authentication/howto-mfa-getstarted,High,SA:03,,70,,N,
+GenAI Security: Architecture,"Implement risk-based Conditional Access policies to restrict AI access based on sign-in risk, device compliance, location, and user context, and review policy effectiveness regularly.",https://learn.microsoft.com/entra/id-protection/howto-identity-protection-configure-risk-policies,High,SA:03,,70,,N,
+GenAI Security: Architecture,"Use managed identities for all service-to-service interactions to eliminate stored credentials and ensure secure, automatically managed authentication between AI components.",https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview,High,SA:03,,70,,N,
+GenAI Security: Architecture,Establish recurring AI risk assessments to maintain visibility into new threats and system changes.,https://learn.microsoft.com/security/ai-red-team/ai-risk-assessment,High,SA:04,,70,,N,
+GenAI Security: Architecture,"Store AI artifacts in private-endpoint-secured Blob Storage, enforce encryption, and apply strict access monitoring.",https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/secure#secure-ai-data,High,SA:04,,70,,N,
+GenAI Security: Architecture,"Use managed identities, virtual networks, and Azure API Management to secure all communication between AI components.",https://learn.microsoft.comcloud-adoption-framework/scenarios/ai/secure#secure-ai-resources,High,SA:04,,70,,N,
+GenAI Security: Architecture,Apply least-privilege principles using role-based access control so users and AI workloads receive only the permissions required for their specific responsibilities.,https://learn.microsoft.com/azure/role-based-access-control/overview,High,SA:03,,70,,N,
+GenAI Security: Architecture,"Restrict external access to AI endpoints using strong authentication and monitoring controls, and capture access telemetry to detect misuse or unauthorized usage.",https://learn.microsoft.com/azure/api-management/azure-ai-foundry-api,Medium,SA:03,,60,,N,
+GenAI Security: Architecture,Maintain and regularly validate an inventory of all AI agent identities to ensure every agent is governed by access policies and no unmanaged or shadow AI components exist.,https://learn.microsoft.com/defender-cloud-apps/ai-agent-inventory,Medium,SA:03,,60,,N,
+GenAI Security: Architecture,"Use centralized management tools to govern AI access, quotas, and resource usage consistently across all AI workloads and projects.",https://learn.microsoft.com/azure/ai-foundry/how-to/quota,Medium,SA:03,,60,,N,
+GenAI Security: Architecture,Use Confidential Computing VMs and encryption at rest and in use for sensitive workloads.,https://learn.microsoft.com/azure/confidential-computing/overview-azure-products,Medium,SA:02,,50,,N,
+GenAI Security: Architecture,"Use Purview, RBAC, and Private Link to enforce strict data boundaries for all AI data access.",https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/secure#secure-ai-data,Medium,SA:04,,50,,N,
+GenAI Security: Architecture,"Use private endpoints, network security groups, and firewalls to restrict AI workload communication to approved network paths and prevent unauthorized data access.",https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/platform/networking#control-network-traffic,Medium,SA:04,,50,,N,
+GenAI Security: Architecture,Reduce the AI attack surface by exposing only required services to the internet and using private connectivity for all internal APIs and data stores.,https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/platform/networking,Medium,SA:04,,50,,N,
+GenAI Security: Architecture,Enable regular patching and image updates for all AI compute hosts to address known vulnerabilities and reduce the risk of system compromise.,https://learn.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching,Medium,SA:04,,50,,N,
+GenAI Security: Architecture,Apply Azure PaaS or IaaS security guidance specific to your AI deployment model.,https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/secure#secure-ai-resources,Medium,SA:04,,40,,N,
+GenAI Security: Architecture,"Adopt an approved AI reference architecture to guide infrastructure, network, and security design decisions and ensure consistent application of security controls across the AI workload.",https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/ai/platform/architectures,Medium,SA:04,,40,,N,
+GenAI Security: Architecture,"Deploy endpoint detection and protection on AI compute infrastructure to identify malware, suspicious behavior, and active attacks early.",https://learn.microsoft.com/azure/defender-for-cloud/tutorial-enable-servers-plan,Medium,SA:04,,40,,N,
+GenAI Security: Risk Management and Compliance,"Maintain continuous drift and performance monitoring for AI models and periodically validate thresholds, alerts, and response procedures.",https://learn.microsoft.com/en-us/security/benchmark/azure/mcsb-v2-logging-threat-detection,High,RC:04,,0,,N,
+GenAI Security: Risk Management and Compliance,"Immediately implement foundational data protection controls for AI workloads by classifying data, restricting access, and preventing sensitive data exposure in training and outputs. ",https://learn.microsoft.com/en-us/purview/dlp-overview,High,RC:02,,100,,N,
+GenAI Security: Risk Management and Compliance,"Immediately establish foundational AI governance by defining and documenting roles and responsibilities for AI oversight, security, compliance, and lifecycle management. ",https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ai-agents/responsible-ai-across-organization,High,RC:01,,100,,N,
+GenAI Security: Risk Management and Compliance,"Immediately adopt the NIST AI RMF Map function to identify and categorize AI-unique risks such as model misuse, data leakage, adversarial manipulation, and drift. ",https://airc.nist.gov/airmf-resources/playbook/,High,RC:01,,100,,N,
+GenAI Security: Risk Management and Compliance,"Immediately establish foundational AI lifecycle governance by defining policies for each lifecycle stage and assigning accountability. ",https://airc.nist.gov/airmf-resources/playbook/govern/#govern-3-1,High,RC:01,,100,,N,
+GenAI Security: Risk Management and Compliance,"Immediately implement foundational AI risk assessments using the NIST AI Risk Management Framework to identify and evaluate AI-specific risks. ",https://airc.nist.gov/airmf-resources/playbook/manage/#manage-4-2,High,RC:01,,100,,N,
+GenAI Security: Risk Management and Compliance,"Immediately establish baseline AI security alignment by adopting Microsoft AI Security Guidance and using the Microsoft Cloud Security Benchmark as the minimum security control framework. ",https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/ai/govern,High,RC:01,,100,,N,
+GenAI Security: Risk Management and Compliance,"Immediately implement identity-based access control for AI workloads using Microsoft Entra ID and Azure RBAC. ",https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/delegate-by-task,High,RC:03,,95,,N,
+GenAI Security: Risk Management and Compliance,"Immediately implement foundational data governance for AI by identifying data sources, documenting data flows, and introducing basic quality validation. ",https://learn.microsoft.com/en-us/security/benchmark/azure/mcsb-v2-artificial-intelligence-security#ai-1.1,High,RC:02,,95,,N,
+GenAI Security: Risk Management and Compliance,"Define a formal AI risk assessment process with standardized criteria, documentation requirements, and ownership. ",https://airc.nist.gov/airmf-resources/playbook/manage/#Manage%201.1,High,RC:01,,95,,N,
+GenAI Security: Risk Management and Compliance,"Formalize alignment by explicitly mapping AI security controls to Microsoft AI Security Guidance and the Microsoft Cloud Security Benchmark. ",https://learn.microsoft.com/en-us/security/benchmark/azure/mcsb-v2-artificial-intelligence-security,High,RC:01,,90,,N,
+GenAI Security: Risk Management and Compliance,"Formally document AI governance roles and assign ownership for AI-specific risks and lifecycle stages. ",https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/ai/govern,High,RC:01,,90,,N,
+GenAI Security: Risk Management and Compliance,"Formally document AI-specific risks, assign ownership, and establish an initial AI risk inventory. Use Microsoft Cloud Security Benchmark domains as the structural baseline.",https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/ai/govern,High,RC:01,,90,,N,
+GenAI Security: Risk Management and Compliance,"Define baseline AI lifecycle policies that address design, validation, deployment, monitoring, and retirement. ",https://learn.microsoft.comOverview of Responsible AI practices for Azure OpenAI in Foundry Models - Microsoft Foundry | Microsoft Learn,High,RC:01,,90,,N,
+GenAI Security: Risk Management and Compliance,"Immediately establish AI-specific data lifecycle policies defining retention limits, minimization requirements, and disposal processes. ",https://airc.nist.gov/airmf-resources/playbook/govern/#govern-1-6,High,RC:02,,90,,N,
+GenAI Security: Risk Management and Compliance,"Immediately create a centralized inventory of AI assets, including models, data, code, and endpoints. ",https://airc.nist.gov/airmf-resources/playbook/govern/#govern-1-6,High,RC:02,,90,,N,
+GenAI Security: Risk Management and Compliance,"Introduce baseline automated controls to identify and restrict sensitive data in AI training, inference, and outputs. Begin with data classification and access controls aligned to Microsoft Cloud Security Benchmark data protection guidance.",https://learn.microsoft.com/en-us/purview/sensitivity-labels-overview,High,RC:02,,90,,N,
+GenAI Security: Risk Management and Compliance,"Establish centralized identity-based access control for AI assets and eliminate shared credentials. ",https://learn.microsoft.com/en-us/security/benchmark/azure/mcsb-v2-identity-management,High,RC:03,,90,,N,
+GenAI Security: Risk Management and Compliance,"Immediately implement foundational change control for AI workloads by introducing versioning, approval gates, and rollback procedures. ",https://learn.microsoft.com/en-us/azure/ai-foundry/control-plane/overview?view=foundry,High,RC:03,,85,,N,
+GenAI Security: Risk Management and Compliance,"Immediately establish foundational MLOps/AIOps security and governance by defining controlled pipelines, access restrictions, and approval processes.",https://learn.microsoft.com/en-us/azure/azure-monitor/aiops/aiops-machine-learning,High,RC:03,,85,,N,
+GenAI Security: Risk Management and Compliance,"Establish a recurring AI risk assessment cadence and define reassessment triggers (for example, model updates, data changes, drift detection, or regulatory changes). ",https://airc.nist.gov/airmf-resources/playbook/measure/,High,RC:01,,85,,N,
+GenAI Security: Risk Management and Compliance,Immediately apply baseline security hardening to AI infrastructure using Microsoft Cloud Security Benchmark guidance. Enable security posture monitoring to identify and remediate critical misconfigurations and establish ongoing validation processes.,https://learn.microsoft.com/en-us/azure/defender-for-cloud/secure-score-security-controls,High,RC:03,,85,,N,
+GenAI Security: Risk Management and Compliance,"Establish baseline data lineage documentation and assign ownership for AI datasets. Begin tracking data sources, transformations, and quality indicators using Microsoft Cloud Security Benchmark data governance principles as the structural foundation.",https://learn.microsoft.com/en-us/purview/data-governance-overview,High,RC:02,,85,,N,
+GenAI Security: Risk Management and Compliance,Standardize AI risk categories using NIST AI RMF risk definitions and formally map each category to Microsoft Cloud Security Benchmark domains.,https://airc.nist.gov/airmf-resources/playbook/map/,High,RC:01,,80,,N,
+GenAI Security: Risk Management and Compliance,"Standardize and enforce AI lifecycle policies across all teams and AI workloads. ",https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/manage-foundation-models-lifecycle,High,RC:01,,80,,N,
+GenAI Security: Risk Management and Compliance,"Establish a baseline AI asset inventory by identifying all existing AI models, datasets, pipelines, and endpoints. ",https://learn.microsoft.com/en-us/security/benchmark/azure/mcsb-v2-asset-management,High,RC:02,,80,,N,
+GenAI Security: Risk Management and Compliance,Perform a structured gap assessment against Microsoft AI Security Guidance and the Microsoft Cloud Security Benchmark. Prioritize remediation in high-risk domains and integrate benchmark alignment into ongoing governance and risk management processes.,https://learn.microsoft.com/en-us/security/benchmark/azure/overview,High,RC:01,,80,,N,
+GenAI Security: Risk Management and Compliance,"Define baseline data lifecycle requirements for AI workloads, including retention periods, minimization criteria, and disposal processes. ",https://learn.microsoft.com/en-us/purview/dspm-for-ai?tabs=m365,High,RC:02,,80,,N,
+GenAI Security: Risk Management and Compliance,"Clarify and standardize AI governance roles by defining a formal responsibility model (such as RACI) that covers governance, security, compliance, and lifecycle management. ",https://airc.nist.gov/airmf-resources/playbook/govern/#govern-2-1,High,RC:01,,80,,N,
+GenAI Security: Risk Management and Compliance,"Immediately implement a third-party AI risk assessment process that evaluates security, privacy, and AI-specific risks before adoption. Use Microsoft Cloud Security Benchmark governance guidance and NIST AI RMF risk management principles as the baseline.",https://airc.nist.gov/airmf-resources/playbook/govern/#govern-6-2,High,RC:03,,80,,N,
+GenAI Security: Risk Management and Compliance,Immediately introduce foundational adversarial testing for AI models by identifying relevant threat scenarios and testing for common attack classes.,https://devblogs.microsoft.com/foundry/assess-agentic-risks-with-the-ai-red-teaming-agent-in-microsoft-foundry/,High,RC:03,,80,,N,
+GenAI Security: Risk Management and Compliance,"Standardize access control policies for all AI assets using Microsoft Entra ID and Azure role-based access control. Reduce standing privileges, enforce consistent access reviews, and expand monitoring coverage for AI-specific access events.",https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/best-practices,High,RC:03,,80,,N,
+GenAI Security: Risk Management and Compliance,"Expand and standardize data protection controls for AI workloads. Apply consistent data classification, filtering, and output monitoring using Microsoft data governance and security tooling, and validate enforcement across all AI environments.",https://learn.microsoft.com/en-us/purview/data-governance-overview,High,RC:02,,80,,N,
+GenAI Security: Risk Management and Compliance,Define baseline security configurations for AI infrastructure and formally adopt the Microsoft Cloud Security Benchmark as the standard for hardening. Introduce routine configuration reviews and begin tracking compliance with benchmark requirements.,https://learn.microsoft.com/en-us/security/benchmark/azure/overview,High,RC:03,,75,,N,
+GenAI Security: Risk Management and Compliance,Expand data lineage and provenance tracking to cover all AI training and inference data. Standardize data quality checks and integrate lineage tracking into data pipelines using Microsoft-supported data governance tooling.,https://learn.microsoft.com/en-us/purview/data-gov-classic-lineage,High,RC:02,,75,,N,
+GenAI Security: Risk Management and Compliance,"Define baseline security and governance requirements for AI pipelines, including access control, logging, and artifact management. ",https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/genaiops-for-mlops,High,RC:03,,75,,N,
+GenAI Security: Risk Management and Compliance,"Define baseline change control requirements for AI models and artifacts, including versioning, approvals, and rollback expectations. Begin applying controls to high-risk AI workloads.",https://learn.microsoft.com/en-us/azure/ai-foundry/foundry-models/how-to/configure-deployment-policies?view=foundry-classic,High,RC:03,,75,,N,
+GenAI Security: Risk Management and Compliance,"Standardize enforcement of AI data lifecycle policies across all AI workloads. ",https://learn.microsoft.com/en-us/purview/data-lifecycle-management,High,RC:02,,70,,N,
+GenAI Security: Risk Management and Compliance,Define baseline adversarial testing requirements for AI models and begin testing high-impact use cases.,https://airc.nist.gov/airmf-resources/playbook/measure/#measure-2-7,High,RC:03,,70,,N,
+GenAI Security: Risk Management and Compliance,"Expand the AI asset inventory to include all relevant asset types and standardize classification criteria. ",https://learn.microsoft.com/en-us/security/security-for-ai/discover,High,RC:02,,70,,N,
+GenAI Security: Risk Management and Compliance,Establish baseline third-party AI risk assessment criteria and require evaluations prior to adoption.,https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/ai/govern,High,RC:03,,70,,N,
+GenAI Security: Risk Management and Compliance,Standardize security hardening across all AI infrastructure components using Microsoft Cloud Security Benchmark guidance.,https://learn.microsoft.com/en-us/security/benchmark/azure/baselines/azure-ai-foundry-security-baseline,Medium,RC:03,,65,,N,
+GenAI Security: Risk Management and Compliance,"Standardize and strengthen security controls across all MLOps/AIOps pipelines. Automate approval gates, artifact validation, and align pipeline security with Microsoft Cloud Security Benchmark DevOps and application security guidance.",https://learn.microsoft.com/en-us/azure/well-architected/ai/mlops-genaiops,Medium,RC:03,,65,,N,
+GenAI Security: Risk Management and Compliance,"Standardize versioning and approval requirements across all AI artifacts, including prompts, configurations, and data references. Formalize rollback testing and integrate change control checks into MLOps pipelines.",https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/built-in-policy-model-deployment?view=foundry-classic,Medium,RC:03,,65,,N,
+GenAI Security: Risk Management and Compliance,"Immediately implement foundational monitoring for AI models by defining performance and drift metrics, enabling telemetry, and establishing response procedures.",https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/monitor-model-performance,Medium,RC:04,,60,,N,
+GenAI Security: Risk Management and Compliance,"Immediately implement foundational logging and monitoring for AI workloads by enabling telemetry for model activity, access events, and security signals.",https://airc.nist.gov/airmf-resources/playbook/measure/#measure-4-1,Medium,RC:04,,60,,N,
+GenAI Security: Risk Management and Compliance,Expand adversarial testing to cover all high-risk AI models and repeat testing on a defined cadence or after material changes.,https://learn.microsoft.com/en-us/security/benchmark/azure/mcsb-v2-devop-security#ds-1,Medium,RC:03,,60,,N,
+GenAI Security: Risk Management and Compliance,"Expand third-party evaluation criteria to explicitly address AI-specific risks such as model behavior, data usage, and supply-chain dependencies.",https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/scenarios/ai/govern#document-ai-governance-policies,Medium,RC:03,,60,,N,
+GenAI Security: Risk Management and Compliance,"Immediately establish foundational AI incident response capabilities by identifying AI-specific threat scenarios, defining response and recovery procedures, and aligning them with Microsoft Cloud Security Benchmark incident response",https://airc.nist.gov/airmf-resources/playbook/manage/#manage-4-1,Medium,RC:04,,60,,N,
+GenAI Security: Risk Management and Compliance,Define baseline logging requirements for AI workloads and enable telemetry for critical events.,https://learn.microsoft.com,Medium,RC:04,,55,,N,
+GenAI Security: Risk Management and Compliance,Define baseline drift and performance metrics for AI models and begin systematic monitoring for high-risk use cases.,https://airc.nist.gov/airmf-resources/playbook/measure/#measure-1-2,Medium,RC:04,,50,,N,
+GenAI Security: Risk Management and Compliance,"Define baseline AI incident response procedures, including detection triggers, response roles, and recovery actions. ",https://learn.microsoft.com/en-us/security/operations/incident-response-playbooks,Medium,RC:04,,50,,N,
+GenAI Security: Risk Management and Compliance,Immediately introduce foundational explainability practices by adopting interpretability tools and documenting AI decision logic.,https://airc.nist.gov/airmf-resources/playbook/measure/#measure-4-2,Medium,RC:04,,50,,N,
+GenAI Security: Risk Management and Compliance,"Enhance monitoring by integrating AI telemetry into centralized security analytics platforms and defining alerting for abnormal behavior, access anomalies, and drift indicators.",https://learn.microsoft.com/en-us/security/benchmark/azure/mcsb-v2-artificial-intelligence-security#ai-6,Medium,RC:04,,45,,N,
+GenAI Security: Risk Management and Compliance,Define baseline explainability requirements for AI workloads and begin applying interpretability tools to priority models. Use Microsoft Responsible AI principles and NIST AI RMF guidance to establish minimum transparency expectations.,https://learn.microsoft.comTransparency Note for Azure OpenAI in Microsoft Foundry Models - Microsoft Foundry | Microsoft Learn,Medium,RC:04,,40,,N,
+GenAI Security: Risk Management and Compliance,"Extend existing incident response processes to explicitly address AI-specific threats such as prompt injection, model tampering, and data exfiltration. Align response workflows to Microsoft Cloud Security Benchmark incident response guidance and NIST AI RMF risk management practices.",https://learn.microsoft.com/en-us/security/benchmark/azure/mcsb-v2-artificial-intelligence-security#ai-6,Medium,RC:04,,40,,N,
+GenAI Security: Risk Management and Compliance,Expand drift monitoring to include automated detection and alerting for critical AI workloads.,https://learn.microsoft.com/en-us/azure/azure-monitor/ai-insights-overview,Medium,RC:04,,40,,N,
+GenAI Security: Risk Management and Compliance,"Expand explainability requirements to all high-impact or regulated AI workloads. Standardize how explainability outputs are generated, documented, and reviewed, and align practices to Microsoft Responsible AI guidance and organizational compliance needs.",https://learn.microsoft.com/en-us/azure/machine-learning/concept-responsible-ai-dashboard?view=azureml-api-2,Low,RC:04,,30,,N,
+GenAI Security: Agents Security,"Use Microsoft Purview DSPM (for AI) to discover agents, assess oversharing risk, and apply preconfigured protections (labels/DLP/audit) for AI interactions.",https://learn.microsoft.com/purview/dspm-for-ai?tabs=m365,High,AG:01,,100,,N,
+GenAI Security: Agents Security,Enable Azure AI Content Safety and set an evaluation gate to block jailbreak/injection patterns before tools or data are invoked.,https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-text?tabs=visual-studio%2Cwindows&pivots=programming-language-foundry-portal,High,AG:03,,100,,N,
+GenAI Security: Agents Security,"Use Microsoft Purview Data Lifecycle Management to enforce retention/deletion rules for stored interaction artifacts (“agent memory” stores, summaries, logs) so unverified/stale content doesn’t persist and re-influence future decisions.",https://learn.microsoft.com/en-us/purview/get-started-with-data-lifecycle-management,High,AG:03,,90,,N,
+GenAI Security: Agents Security,"Use Microsoft Entra entitlement management access packages for agent identities to grant time-bound, approval-based (JIT) access to tool permissions and revoke automatically when it expires.",https://learn.microsoft.com/entra/agent-id/identity-professional/agent-access-packages,High,AG:03,,90,,N,
+GenAI Security: Agents Security,Use enhanced human in the loop workflows by utilizing Copilot Studio agent flows.,https://learn.microsoft.com/microsoft-copilot-studio/flows-advanced-approvals,High,AG:04,,90,,N,
+GenAI Security: Agents Security,Use Responsible AI for Microsoft Foundry guidance as the baseline “discover → protect → govern” framework to standardize responsible engineering practices across agents.,https://learn.microsoft.com/azure/ai-foundry/responsible-use-of-ai-overview?view=foundry-classic,High,AG:04,,90,,N,
+GenAI Security: Agents Security,Use Azure AI Content Safety to automatically evaluate outputs and view events in XDR for monitoring.,https://learn.microsoft.com/azure/ai-services/content-safety,High,AG:04,,90,,N,
+GenAI Security: Agents Security,Use Microsoft Entra Conditional Access for Agent ID to contain anomalous access at the point of token issuance (policy enforcement when access is requested).,https://learn.microsoft.com/entra/identity/conditional-access/agent-id,High,AG:02,,90,,N,
+GenAI Security: Agents Security,"Use Microsoft Entra Agent ID (as part of Agent 365) to apply Conditional Access for agents, enforce time-bound entitlements, and monitor agent risk signals.",https://learn.microsoft.com/entra/agent-id/identity-professional/microsoft-entra-agent-identities-for-ai-agents,High,AG:02,,90,,N,
+GenAI Security: Agents Security,"Use Microsoft Entra Agent ID logs to capture agent-aware audit/sign-in events, and use the Microsoft Purview Audit Search Graph API to automate collection and reviewer workflows at scale.",https://learn.microsoft.com/entra/agent-id/identity-professional/sign-in-audit-logs-agents,High,AG:04,,90,,N,
+GenAI Security: Agents Security,"Use Microsoft Purview Audit for end-to-end audit trails, and use Microsoft Agent 365 Overview to surface agent-level governance signals (adoption, alerts, gaps) for accountability.",https://learn.microsoft.com/microsoft-365/admin/manage/agent-365-overview?view=o365-worldwide,High,AG:04,,90,,N,
+GenAI Security: Agents Security,Use Azure API Management (limit-concurrency policy) to cap concurrent requests per agent/session scope so overload fails fast before it cascades into shared backend exhaustion.,https://learn.microsoft.com/azure/api-management/limit-concurrency-policy,High,AG:03,,90,,N,
+GenAI Security: Agents Security,"Use Microsoft Entra Conditional Access for Agent ID to enforce real-time, risk/context-based access decisions for agent identities (including blocking risky agents).",https://learn.microsoft.com/entra/identity/conditional-access/agent-id,High,AG:02,,90,,N,
+GenAI Security: Agents Security,Implement Microsoft Entra Access Reviews for agent-related groups/app assignments/roles so access is re-certified on a schedule and stale permissions are removed.,https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-grant,High,AG:01,,90,,N,
+GenAI Security: Agents Security,"Use Microsoft Entra Conditional Access for Agent ID for risk/context-based enforcement, and Microsoft Copilot Studio quotas and limits to cap request rates and protect against usage surges.",https://learn.microsoft.com/microsoft-copilot-studio/requirements-quotas,High,AG:04,,90,,N,
+GenAI Security: Agents Security,"Use Microsoft Agent 365 for centralized agent oversight and governance signals, and Microsoft Copilot Studio multistage approvals in agent flows to require human approval for high-risk action chains.",https://learn.microsoft.com/microsoft-copilot-studio/flows-advanced-approvals,High,AG:04,,90,,N,
+GenAI Security: Agents Security,"Use Microsoft Purview DSPM for AI to discover AI data exposure, run oversharing/risk assessments, and activate recommended policies for AI interactions.",https://learn.microsoft.com/purview/dspm-for-ai,High,AG:01,,90,,N,
+GenAI Security: Agents Security,Use Microsoft Purview DLP to restrict processing of prompting to sensitive data.,https://learn.microsoft.com/en-us/purview/dlp-learn-about-dlp,High,AG:01,,90,,N,
+GenAI Security: Agents Security,Use Microsoft Purview DSPM for AI to monitor AI interactions for sensitive data exposure and identify control gaps that can lead to leakage via prompts/responses and downstream storage.,https://learn.microsoft.com/en-us/purview/dspm-for-ai,High,AG:01,,90,,N,
+GenAI Security: Agents Security,"Use Azure AI Content Safety – Groundedness detection as a required validation gate before agents store/share outputs or take downstream actions, so ungrounded claims are stopped early and don’t propagate.",https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/groundedness,High,AG:03,,90,,N,
+GenAI Security: Agents Security,Use Azure AI Content Safety – Prompt Shields to detect and block indirect/document-based attacks in real time before content is used.,https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection,High,AG:01,,90,,N,
+GenAI Security: Agents Security,Use Microsoft Entra Conditional Access for Agent ID to enforce risk- and context-based access decisions for agents (including blocking high-risk activity).,https://learn.microsoft.com/entra/identity/conditional-access/agent-id,High,AG:04,,90,,N,
+GenAI Security: Agents Security,"Use Azure API Management (MCP server support) as the governed gateway for agent tool/API access (centralized authN/authZ, policy enforcement, and control over tool exposure).",https://learn.microsoft.com/azure/api-management/secure-mcp-servers,High,AG:03,,90,,N,
+GenAI Security: Agents Security,Use Microsoft Defender for Cloud – AI threat protection to leverage threat intelligence–backed detections for evolving prompt injection patterns.,https://learn.microsoft.com/azure/defender-for-cloud/ai-threat-protection,High,AG:03,,90,,N,
+GenAI Security: Agents Security,"Use Microsoft Defender for Cloud Apps to discover which external AI apps/sources are in use, assess risk, and sanction/block as needed to close coverage gaps.",https://learn.microsoft.com/copilot/microsoft-365/manage-generative-ai-apps,High,AG:01,,80,,N,
+GenAI Security: Agents Security,Use authorization within Microsoft Entra Agent ID for agent-related groups/apps/roles to regularly attest and remove stale access.,https://learn.microsoft.com/entra/agent-id/identity-professional/authorization-agent-id,High,AG:02,,80,,N,
+GenAI Security: Agents Security,"Use Agent 365 to inventory agents, control who can onboard/activate agents, and apply standardized templates for secure-by-default identity and access.",https://learn.microsoft.com/microsoft-agent-365/overview,High,AG:02,,80,,N,
+GenAI Security: Agents Security,Establish visibility with Microsoft Purview DSPM for AI to discover agents in use and identify unmanaged/policy-uncovered agents.,https://learn.microsoft.com/purview/dspm-for-ai?tabs=m365,High,AG:02,,80,,N,
+GenAI Security: Agents Security,"Verify lineage in Purview and screen content with Azure AI Content Safety so agents consume only trusted, safe data.",https://learn.microsoft.com/en-us/purview/developer/secure-ai-with-purview,High,AG:01,,80,,N,
+GenAI Security: Agents Security,"Standardize on Entra app/service principal patterns for agents and enforce least privilege consistently (prefer cert-based auth, reduce secrets), then govern via reviews/monitoring.",https://learn.microsoft.com/entra/agent-id/identity-professional/microsoft-entra-agent-identities-for-ai-agents,High,AG:01,,80,,N,
+GenAI Security: Agents Security,"Use Microsoft Agent 365 to apply standardized agent templates, enforce activation/permission approval workflows, and maintain centralized visibility over agent usage and governance tasks.",https://learn.microsoft.com/microsoft-agent-365/admin/manage-agents,High,AG:04,,80,,N,
+GenAI Security: Agents Security,Use Microsoft Copilot Studio multistage approvals in agent flows to implement human approval stages (and conditional routing) for critical or high-risk actions.,https://learn.microsoft.com/microsoft-copilot-studio/flows-advanced-approvals,High,AG:04,,80,,N,
+GenAI Security: Agents Security,Use Microsoft Purview Data Lifecycle Management to maintain end-to-end lineage and provenance for datasets feeding agents/models.,https://learn.microsoft.com/purview/ai-agent-365,High,AG:02,,80,,N,
+GenAI Security: Agents Security,Include the ability to request for more information for the approvals in agent flows.,https://learn.microsoft.com/microsoft-copilot-studio/flows-request-for-information,High,AG:04,,70,,N,
+GenAI Security: Agents Security,Use Microsoft Copilot Studio quotas and limits to enforce execution caps and protect against runaway or excessive tool usage (request-rate constraints and platform limits).,https://learn.microsoft.com/microsoft-copilot-studio/requirements-quotas,High,AG:03,,70,,N,
+GenAI Security: Agents Security,Use Microsoft Copilot Studio quotas and limits to automatically enforce rate limits on agent messaging and generative actions to prevent excessive chaining.,https://learn.microsoft.com/microsoft-copilot-studio/requirements-quotas,High,AG:04,,70,,N,
+GenAI Security: Agents Security,Use Microsoft Foundry risk & safety evaluators to systematically evaluate outputs (including ungroundedness signals) and block/hold high-impact actions when validation fails.,https://learn.microsoft.com/azure/ai-foundry/concepts/evaluation-evaluators/risk-safety-evaluators?view=foundry&preserve-view=true,High,AG:03,,70,,N,
+GenAI Security: Agents Security,Use Microsoft Purview sensitivity labels (with protection settings) to enforce durable access controls and reduce exposure of regulated data in AI-assisted workflows.,https://learn.microsoft.com/purview/create-sensitivity-labels,High,AG:01,,70,,N,
+GenAI Security: Agents Security,Use Azure API Management (rate-limit policy) to throttle burst traffic and contain surges automatically before they overwhelm downstream services.,https://learn.microsoft.com/azure/api-management/rate-limit-policy,High,AG:03,,70,,N,
+GenAI Security: Agents Security,Use Microsoft Purview Data Lifecycle Management to define and enforce retention/deletion rules so stored interaction artifacts and derived content don’t persist longer than needed.,https://learn.microsoft.com/purview/get-started-with-data-lifecycle-management,High,AG:01,,70,,N,
+GenAI Security: Agents Security,Use Microsoft Purview auto-labeling to increase consistent classification at scale so sensitive content is reliably identified and protected before it can be reused by AI.,https://learn.microsoft.com/purview/apply-sensitivity-label-automatically,High,AG:01,,70,,N,
+GenAI Security: Agents Security,"Use Microsoft Purview APIs (via Microsoft Graph) to enforce consistent, centralized policy decisions (for example, label/DLP-aware controls) in your app workflow before ingestion.",https://learn.microsoft.com/purview/developer/microsoft-purview-sdk-documentation-overview,High,AG:01,,70,,N,
+GenAI Security: Agents Security,Use Azure AI Content Safety – Prompt Shields to validate both user prompts and document inputs for jailbreak and indirect prompt injection before execution.,https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection,High,AG:03,,70,,N,
+GenAI Security: Agents Security,Apply Conditional Access for workload identities to restrict agent/service principal access by location and risk signals.,https://learn.microsoft.com/entra/identity/conditional-access/workload-identity,High,AG:02,,70,,N,
+GenAI Security: Agents Security,Use Microsoft Entra Entitlement Management access packages for agent identities to require approval and ensure access is time-bound with automatic expiry.,https://learn.microsoft.com/entra/agent-id/identity-professional/agent-access-packages,High,AG:02,,70,,N,
+GenAI Security: Agents Security,Centralize agent onboarding/retirement by using Microsoft Agent 365 to inventory agents and close gaps consistently.,https://learn.microsoft.com/microsoft-365/admin/manage/agent-365-overview?view=o365-worldwide&toc=%2Fmicrosoft-agent-365%2Ftoc.json&bc=%2F%2Fmicrosoft-agent-365%2Fbreadcrumb%2Fagent365%2Ftoc.json,High,AG:02,,70,,N,
+GenAI Security: Agents Security,"Use the Responsible AI dashboard for Azure ML to assess and track fairness (and related responsible AI measures) with a single, unified view for governance and review.",https://learn.microsoft.com/azure/machine-learning/concept-responsible-ai-dashboard?view=azureml-api-2,High,AG:04,,70,,N,
+GenAI Security: Agents Security,Use Azure AI Content Safety – Groundedness detection to add truthfulness/grounding checks beyond category filtering so plausible-but-wrong content is detected before it spreads.,https://learn.microsoft.com/azure/ai-services/content-safety/concepts/groundedness,High,AG:03,,70,,N,
+GenAI Security: Agents Security,Use Microsoft Purview Insider Risk Management to detect and investigate risky usage patterns (including prompt injection signals) and triage through policy-driven alerts.,https://learn.microsoft.com/purview/insider-risk-management-policies,High,AG:03,,70,,N,
+GenAI Security: Agents Security,Add an AI stage to your multiapproval process to streamline your system.,https://learn.microsoft.com/microsoft-copilot-studio/flows-advanced-approvals,Medium,AG:04,,60,,N,
+GenAI Security: Agents Security,"Separate identities by using workload identities (service principals) for agents and apply Conditional Access for workload identities (e.g., block by location/risk) to control non-human access distinctly from users.",https://learn.microsoft.com/entra/identity/conditional-access/concept-conditional-access-grant,Medium,AG:01,,60,,N,
+GenAI Security: Agents Security,Use Microsoft Purview Audit to maintain auditable evidence of governance activities and support investigations/compliance reporting.,https://learn.microsoft.com/purview/audit-solutions-overview,Medium,AG:02,,60,,N,
+GenAI Security: Agents Security,"Use Microsoft Purview for AI capabilities to move from manual restrictions to consistent, enforceable controls tied to sensitivity labels or sensitive info types.",https://learn.microsoft.com/purview/developer/secure-ai-with-purview,Medium,AG:01,,60,,N,
+GenAI Security: Agents Security,"Start with Azure AI Content Safety – Prompt Shields using the quickstart to establish baseline jailbreak and document-attack detection, then expand coverage.",https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-jailbreak,Medium,AG:01,,60,,N,
+GenAI Security: Agents Security,"Use Microsoft Agent 365 to centralize agent inventory, apply consistent guardrails via templates, and surface governance gaps for remediation.",https://learn.microsoft.com/en-us/microsoft-agent-365/overview,Medium,AG:04,,60,,N,
+GenAI Security: Agents Security,"Use the Microsoft Purview Developer Platform (Purview APIs) to enforce inline, policy-based blocking/sanitization in custom AI apps before sensitive data is persisted or reused across sessions.",https://learn.microsoft.com/en-us/purview/developer/microsoft-purview-sdk-documentation-overview,Medium,AG:01,,60,,N,
+GenAI Security: Agents Security,"Use Microsoft Purview APIs to standardize how custom apps record and govern prompts/responses and related actions, then support investigations and evidence with Microsoft Purview Audit.","https://learn.microsoft.com/purview/developer/use-the-api ",Medium,AG:04,,60,,N,
+GenAI Security: Agents Security,Use Microsoft Purview Communication Compliance to operationalize ethical/safety constraints by detecting and triaging risky or non-compliant AI interactions (prompts/responses).,https://learn.microsoft.com/purview/communication-compliance-copilot,Medium,AG:04,,60,,N,
+GenAI Security: Agents Security,Use Microsoft Purview sensitivity labels (with encryption/permissions) to ensure sensitive content cannot be accessed or extracted into AI workflows unless explicitly authorized.,https://learn.microsoft.com/purview/create-sensitivity-labels,Medium,AG:01,,60,,N,
+GenAI Security: Agents Security,Use Microsoft Purview Audit to capture searchable audit trails of tool-related activity and support investigations when misuse occurs.,https://learn.microsoft.com/purview/audit-solutions-overview,Medium,AG:03,,60,,N,
+GenAI Security: Agents Security,"Use Microsoft Agent 365 Observability to monitor agent activity patterns and operational signals, improving detection and triage of overload conditions.",https://learn.microsoft.com/microsoft-agent-365/admin/monitor-agents,Medium,AG:03,,60,,N,
+GenAI Security: Agents Security,Use Microsoft Entra Access Reviews to periodically recertify agent access to roles/groups/apps and remove stale elevated permissions.,https://learn.microsoft.com/entra/id-governance/access-reviews-overview,Medium,AG:02,,60,,N,
+GenAI Security: Agents Security,Use Microsoft Agent 365 to monitor agent behavior and performance and surface governance gaps that indicate unsafe chaining patterns.,https://learn.microsoft.com/microsoft-365/admin/manage/agent-map?view=o365-worldwide&toc=%2Fmicrosoft-agent-365%2Ftoc.json&bc=%2F%2Fmicrosoft-agent-365%2Fbreadcrumb%2Fagent365%2Ftoc.json,Medium,AG:04,,60,,N,
+GenAI Security: Agents Security,Use Microsoft Copilot Studio quotas and limits to enforce automatic throttling (per-minute/per-hour request caps) so excessive usage is blocked rather than degrading service.,https://learn.microsoft.com/en-us/microsoft-copilot-studio/requirements-quotas,Medium,AG:03,,50,,N,
+GenAI Security: Agents Security,Use Microsoft Entra Agent ID logs to add agent-specific context (agent sign-ins and audit events),https://learn.microsoft.com/entra/agent-id/identity-professional/sign-in-audit-logs-agents,Medium,AG:04,,50,,N,
+GenAI Security: Agents Security,Use Azure API Management rate-limit policy to enforce consistent call-rate limits at the tool/API layer that agents invoke.,https://learn.microsoft.com/azure/api-management/rate-limit-policy,Medium,AG:04,,50,,N,
+GenAI Security: Agents Security,Use Microsoft Entra ID Governance for agent identities to make agent access intentional and time-bound (with sponsors/ownership and lifecycle controls).,https://learn.microsoft.com/entra/id-governance/,Medium,AG:04,,50,,N,
+GenAI Security: Agents Security,Use Azure AI Content Safety filters to implement consistent standards of ethical guidelines.,https://learn.microsoft.com/azure/ai-services/content-safety,Medium,AG:04,,50,,N,
+-----------,,,,,
+,,,,,
+Category,Question,Answers,Selected Answer,Note
+GenAI Security: Architecture,"How is the workload protected from malicious or hidden instructions that attempt to manipulate the model's behavior, and what measures ensure that generated outputs remain safe and aligned with organizational policy?
+",Input and output validation mechanisms detect and filter unsafe or adversarial content before processing or displaying results.,,,
+GenAI Security: Architecture,"How is the workload protected from malicious or hidden instructions that attempt to manipulate the model's behavior, and what measures ensure that generated outputs remain safe and aligned with organizational policy?
+","System prompts are fixed and cannot be altered by user input, prompt chaining, or indirect instructions.",,,
+GenAI Security: Architecture,"How is the workload protected from malicious or hidden instructions that attempt to manipulate the model's behavior, and what measures ensure that generated outputs remain safe and aligned with organizational policy?
+","Sensitive or confidential data in prompts or context is masked, redacted, or encrypted before being sent to the model.",,,
+GenAI Security: Architecture,"How is the workload protected from malicious or hidden instructions that attempt to manipulate the model's behavior, and what measures ensure that generated outputs remain safe and aligned with organizational policy?
+",Human approval or policy enforcement is required before executing any model-generated action with potential impact.,,,
+GenAI Security: Architecture,"How is the workload protected from malicious or hidden instructions that attempt to manipulate the model's behavior, and what measures ensure that generated outputs remain safe and aligned with organizational policy?
+",Red teaming and adversarial testing are conducted regularly to identify prompt injection vulnerabilities and unsafe outputs.,,,
+GenAI Security: Architecture,"How is the workload protected from malicious or hidden instructions that attempt to manipulate the model's behavior, and what measures ensure that generated outputs remain safe and aligned with organizational policy?
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How are AI-generated outputs monitored, validated, and controlled to prevent unintended actions, harmful automation, or misinformation?
+","AI-generated actions, commands, or instructions are validated before execution in downstream systems.",,,
+GenAI Security: Architecture,"How are AI-generated outputs monitored, validated, and controlled to prevent unintended actions, harmful automation, or misinformation?
+",Guardrails prevent AI outputs from triggering unsafe automation or workflow steps.,,,
+GenAI Security: Architecture,"How are AI-generated outputs monitored, validated, and controlled to prevent unintended actions, harmful automation, or misinformation?
+","Rate limits, quotas, and monitoring protect against excessive model usage or denial-of-service.",,,
+GenAI Security: Architecture,"How are AI-generated outputs monitored, validated, and controlled to prevent unintended actions, harmful automation, or misinformation?
+","Controls detect incorrect, fabricated, or misleading information in AI responses when accuracy is important.",,,
+GenAI Security: Architecture,"How are AI-generated outputs monitored, validated, and controlled to prevent unintended actions, harmful automation, or misinformation?
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How are AI execution environments controlled and monitored to prevent malicious code execution, resource abuse, and system compromise?
+","AI executions run in isolated, disposable environments.",,,
+GenAI Security: Architecture,"How are AI execution environments controlled and monitored to prevent malicious code execution, resource abuse, and system compromise?
+",All execution code is reviewed and approved before deployment,,,
+GenAI Security: Architecture,"How are AI execution environments controlled and monitored to prevent malicious code execution, resource abuse, and system compromise?
+",Execution activity is monitored for anomalies or suspicious behavior.,,,
+GenAI Security: Architecture,"How are AI execution environments controlled and monitored to prevent malicious code execution, resource abuse, and system compromise?
+",Resource limits and timeouts are configured for execution environments.,,,
+GenAI Security: Architecture,"How are AI execution environments controlled and monitored to prevent malicious code execution, resource abuse, and system compromise?
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How is the integrity and confidentiality of data and models ensured across their lifecycle, and what safeguards prevent tampering, poisoning, or unauthorized access?
+","Data used for training and fine-tuning is validated for accuracy, toxicity, and bias.",,,
+GenAI Security: Architecture,"How is the integrity and confidentiality of data and models ensured across their lifecycle, and what safeguards prevent tampering, poisoning, or unauthorized access?
+",The origin and processing history of all datasets and model inputs are tracked and documented.,,,
+GenAI Security: Architecture,"How is the integrity and confidentiality of data and models ensured across their lifecycle, and what safeguards prevent tampering, poisoning, or unauthorized access?
+","Model artifacts and checkpoints are stored in secure, access-controlled repositories.",,,
+GenAI Security: Architecture,"How is the integrity and confidentiality of data and models ensured across their lifecycle, and what safeguards prevent tampering, poisoning, or unauthorized access?
+",Role-based access control (RBAC) and logging are implemented for all model and data access operations.,,,
+GenAI Security: Architecture,"How is the integrity and confidentiality of data and models ensured across their lifecycle, and what safeguards prevent tampering, poisoning, or unauthorized access?
+",Continuous monitoring and integrity checks detect data poisoning or adversarial modifications.,,,
+GenAI Security: Architecture,"How is the integrity and confidentiality of data and models ensured across their lifecycle, and what safeguards prevent tampering, poisoning, or unauthorized access?
+",Privacy-preserving computation and encryption methods protect sensitive data during processing and storage.,,,
+GenAI Security: Architecture,"How is the integrity and confidentiality of data and models ensured across their lifecycle, and what safeguards prevent tampering, poisoning, or unauthorized access?
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How are AI data assets, models, and generated outputs protected against unauthorized access, leakage, or tampering?
+
+",Data and models are encrypted at rest and in transit using Azure-managed encryption.,,,
+GenAI Security: Architecture,"How are AI data assets, models, and generated outputs protected against unauthorized access, leakage, or tampering?
+
+",Access to AI data and models is restricted using role-based access control (RBAC) and managed identities.,,,
+GenAI Security: Architecture,"How are AI data assets, models, and generated outputs protected against unauthorized access, leakage, or tampering?
+
+","Sensitive or regulated data is classified, governed, and monitored using Microsoft Purview.",,,
+GenAI Security: Architecture,"How are AI data assets, models, and generated outputs protected against unauthorized access, leakage, or tampering?
+
+",AI outputs are monitored and filtered for sensitive or unsafe content before being returned to users.,,,
+GenAI Security: Architecture,"How are AI data assets, models, and generated outputs protected against unauthorized access, leakage, or tampering?
+
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How is training data protected to ensure that private, confidential, or sensitive information cannot be learned, exposed, or reconstructed from the model?
+
+",Training data is reviewed and cleaned to remove sensitive or personal information before model training.,,,
+GenAI Security: Architecture,"How is training data protected to ensure that private, confidential, or sensitive information cannot be learned, exposed, or reconstructed from the model?
+
+",Training data is stored in secure locations with encryption and restricted access.,,,
+GenAI Security: Architecture,"How is training data protected to ensure that private, confidential, or sensitive information cannot be learned, exposed, or reconstructed from the model?
+
+",Only approved and verified datasets are used for model training.,,,
+GenAI Security: Architecture,"How is training data protected to ensure that private, confidential, or sensitive information cannot be learned, exposed, or reconstructed from the model?
+
+",Access to training data is logged and monitored.,,,
+GenAI Security: Architecture,"How is training data protected to ensure that private, confidential, or sensitive information cannot be learned, exposed, or reconstructed from the model?
+
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How are data boundaries, access controls, and governance mechanisms enforced to ensure AI applications only process appropriate and authorized data?
+
+","Microsoft Purview is used for data governance, classification, and policy enforcement across AI systems.",,,
+GenAI Security: Architecture,"How are data boundaries, access controls, and governance mechanisms enforced to ensure AI applications only process appropriate and authorized data?
+
+",Data boundaries are defined to separate information types based on application scope and user access levels.,,,
+GenAI Security: Architecture,"How are data boundaries, access controls, and governance mechanisms enforced to ensure AI applications only process appropriate and authorized data?
+
+",Datasets for different AI applications are isolated to prevent cross-contamination or unintended data access.,,,
+GenAI Security: Architecture,"How are data boundaries, access controls, and governance mechanisms enforced to ensure AI applications only process appropriate and authorized data?
+
+",Role-based data access controls ensure users and applications only access data matching their responsibilities.,,,
+GenAI Security: Architecture,"How are data boundaries, access controls, and governance mechanisms enforced to ensure AI applications only process appropriate and authorized data?
+
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How are authentication, authorization, and access governance applied to ensure only approved users, services, and applications can interact with AI resources?
+
+",Microsoft Entra ID is used for authentication instead of static API keys.,,,
+GenAI Security: Architecture,"How are authentication, authorization, and access governance applied to ensure only approved users, services, and applications can interact with AI resources?
+
+",Multifactor authentication and privileged access controls are enforced.,,,
+GenAI Security: Architecture,"How are authentication, authorization, and access governance applied to ensure only approved users, services, and applications can interact with AI resources?
+
+",Conditional Access policies restrict and monitor AI access based on risk and context.,,,
+GenAI Security: Architecture,"How are authentication, authorization, and access governance applied to ensure only approved users, services, and applications can interact with AI resources?
+
+","Least privilege access is enforced for all users, services, and AI workloads",,,
+GenAI Security: Architecture,"How are authentication, authorization, and access governance applied to ensure only approved users, services, and applications can interact with AI resources?
+
+",Service-to-service communication uses managed identities instead of stored credentials,,,
+GenAI Security: Architecture,"How are authentication, authorization, and access governance applied to ensure only approved users, services, and applications can interact with AI resources?
+
+",An accurate inventory of AI agent identities is maintained,,,
+GenAI Security: Architecture,"How are authentication, authorization, and access governance applied to ensure only approved users, services, and applications can interact with AI resources?
+
+",External access to AI endpoints is restricted and monitored.,,,
+GenAI Security: Architecture,"How are authentication, authorization, and access governance applied to ensure only approved users, services, and applications can interact with AI resources?
+
+",Microsoft Foundry Portal is used to centrally govern access and resource usage,,,
+GenAI Security: Architecture,"How are authentication, authorization, and access governance applied to ensure only approved users, services, and applications can interact with AI resources?
+
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How are third-party AI components, datasets, and dependencies verified and secured to prevent supply chain compromise?
+
+","Model, dataset, and dependency origin and authenticity are verified and tracked throughout the AI lifecycle.",,,
+GenAI Security: Architecture,"How are third-party AI components, datasets, and dependencies verified and secured to prevent supply chain compromise?
+
+","AI frameworks, libraries, and model packages are verified and kept up to date using secure sources.",,,
+GenAI Security: Architecture,"How are third-party AI components, datasets, and dependencies verified and secured to prevent supply chain compromise?
+
+",Continuous vulnerability scanning is implemented across AI pipelines and deployment environments.,,,
+GenAI Security: Architecture,"How are third-party AI components, datasets, and dependencies verified and secured to prevent supply chain compromise?
+
+","Plugins, APIs, and external connectors operate under least-privilege access.",,,
+GenAI Security: Architecture,"How are third-party AI components, datasets, and dependencies verified and secured to prevent supply chain compromise?
+
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How are AI-specific security risks and threats identified, assessed, and tracked across the AI workload lifecycle?
+
+",Comprehensive AI threat assessments are performed and integrated across the AI lifecycle.,,,
+GenAI Security: Architecture,"How are AI-specific security risks and threats identified, assessed, and tracked across the AI workload lifecycle?
+
+",AI system risks are identified using AI-specific security frameworks such as MITRE ATLAS or OWASP Generative AI risks.,,,
+GenAI Security: Architecture,"How are AI-specific security risks and threats identified, assessed, and tracked across the AI workload lifecycle?
+
+","AI models are tested for vulnerabilities using adversarial testing, data-loss-prevention checks, or AI red-team simulations.",,,
+GenAI Security: Architecture,"How are AI-specific security risks and threats identified, assessed, and tracked across the AI workload lifecycle?
+
+","AI risks are reviewed regularly to identify new threats as data, models, and usage evolve.",,,
+GenAI Security: Architecture,"How are AI-specific security risks and threats identified, assessed, and tracked across the AI workload lifecycle?
+
+",None of the above.,None of the above.,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",A complete and continuously maintained inventory exists for all AI assets.,,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",All AI communication paths are secured to prevent unauthorized access or data interception.,,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+","AI artifacts such as models and datasets are protected against unauthorized access, tampering, or theft.",,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",Clear data boundaries are defined and enforced to ensure AI components only access appropriate data.,,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",Platform-specific security controls are applied based on the AI deployment model (PaaS or IaaS).,,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",Private network connectivity and traffic filtering controls are enforced for AI workloads.,,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",Endpoint detection and protection are enabled on AI compute hosts.,,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",Internet exposure is minimized by closing unused ports and limiting externally accessible services.,,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",A reference AI architecture is used as the foundation for the AI workload design.,,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",Virtual machines and container hosts used by AI workloads are regularly patched and protected.,,,
+GenAI Security: Architecture,"How are AI assets inventoried and AI infrastructure resources protected from unauthorized access and threats?
+
+",None of the above.,None of the above.,,
+GenAI Security: Risk Management and Compliance,"How clearly are roles and responsibilities defined for AI governance, security, compliance, and lifecycle management?
+","Fully defined and documented roles across security, data, and engineering",,,
+GenAI Security: Risk Management and Compliance,"How clearly are roles and responsibilities defined for AI governance, security, compliance, and lifecycle management?
+",Roles defined but responsibilities overlap,,,
+GenAI Security: Risk Management and Compliance,"How clearly are roles and responsibilities defined for AI governance, security, compliance, and lifecycle management?
+",Informal or inconsistently applied roles,,,
+GenAI Security: Risk Management and Compliance,"How clearly are roles and responsibilities defined for AI governance, security, compliance, and lifecycle management?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How well has your organization defined AI-specific risk categories (e.g., model misuse, model extraction, data leakage, adversarial manipulation, drift)?
+",Fully defined and aligned with recognized frameworks,,,
+GenAI Security: Risk Management and Compliance,"How well has your organization defined AI-specific risk categories (e.g., model misuse, model extraction, data leakage, adversarial manipulation, drift)?
+",Partially defined but not aligned to standards,,,
+GenAI Security: Risk Management and Compliance,"How well has your organization defined AI-specific risk categories (e.g., model misuse, model extraction, data leakage, adversarial manipulation, drift)?
+",Informal recognition without documentation,,,
+GenAI Security: Risk Management and Compliance,"How well has your organization defined AI-specific risk categories (e.g., model misuse, model extraction, data leakage, adversarial manipulation, drift)?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How mature are your policies governing AI model lifecycle stages (design, development, validation, deployment, monitoring, retirement)?
+",Formal lifecycle policies aligned to NIST AI RMF,,,
+GenAI Security: Risk Management and Compliance,"How mature are your policies governing AI model lifecycle stages (design, development, validation, deployment, monitoring, retirement)?
+",Partial lifecycle processes exist,,,
+GenAI Security: Risk Management and Compliance,"How mature are your policies governing AI model lifecycle stages (design, development, validation, deployment, monitoring, retirement)?
+",Informal or inconsistent lifecycle stages,,,
+GenAI Security: Risk Management and Compliance,"How mature are your policies governing AI model lifecycle stages (design, development, validation, deployment, monitoring, retirement)?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How often and how rigorously are formal risk assessments conducted on AI workloads?
+",Formal assessments before deployment AND at regular intervals,,,
+GenAI Security: Risk Management and Compliance,"How often and how rigorously are formal risk assessments conducted on AI workloads?
+",Assessments only before deployment,,,
+GenAI Security: Risk Management and Compliance,"How often and how rigorously are formal risk assessments conducted on AI workloads?
+",Ad hoc assessments only,,,
+GenAI Security: Risk Management and Compliance,"How often and how rigorously are formal risk assessments conducted on AI workloads?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How aligned is your environment with Microsoft’s AI Security Guidance, the Microsoft Cloud Security Benchmark, and applicable regulatory frameworks (for example, NIST AI RMF, ISO/IEC 42001, NIST SP 800-53, GDPR, HIPAA)?
+",Fully aligned and formally mapped,,,
+GenAI Security: Risk Management and Compliance,"How aligned is your environment with Microsoft’s AI Security Guidance, the Microsoft Cloud Security Benchmark, and applicable regulatory frameworks (for example, NIST AI RMF, ISO/IEC 42001, NIST SP 800-53, GDPR, HIPAA)?
+",Partially aligned or partially mapped,,,
+GenAI Security: Risk Management and Compliance,"How aligned is your environment with Microsoft’s AI Security Guidance, the Microsoft Cloud Security Benchmark, and applicable regulatory frameworks (for example, NIST AI RMF, ISO/IEC 42001, NIST SP 800-53, GDPR, HIPAA)?
+",Informal alignment without formal mapping,,,
+GenAI Security: Risk Management and Compliance,"How aligned is your environment with Microsoft’s AI Security Guidance, the Microsoft Cloud Security Benchmark, and applicable regulatory frameworks (for example, NIST AI RMF, ISO/IEC 42001, NIST SP 800-53, GDPR, HIPAA)?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How comprehensive is your inventory and classification of AI assets (models, datasets, code, endpoints, pipelines)?
+",Full CMDB integration with classification of all AI assets,,,
+GenAI Security: Risk Management and Compliance,"How comprehensive is your inventory and classification of AI assets (models, datasets, code, endpoints, pipelines)?
+",Partial inventory exists,,,
+GenAI Security: Risk Management and Compliance,"How comprehensive is your inventory and classification of AI assets (models, datasets, code, endpoints, pipelines)?
+",Informal or team-owned inventories,,,
+GenAI Security: Risk Management and Compliance,"How comprehensive is your inventory and classification of AI assets (models, datasets, code, endpoints, pipelines)?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How effectively does your organization track and verify the lineage, provenance, and quality of data used in AI training and inference?
+","Full lineage tracking for all datasets, automated validation, auditable trail",,,
+GenAI Security: Risk Management and Compliance,"How effectively does your organization track and verify the lineage, provenance, and quality of data used in AI training and inference?
+","Partial lineage tracking, mostly manual or inconsistent",,,
+GenAI Security: Risk Management and Compliance,"How effectively does your organization track and verify the lineage, provenance, and quality of data used in AI training and inference?
+","Lineage tracked only for training data, not inference data",,,
+GenAI Security: Risk Management and Compliance,"How effectively does your organization track and verify the lineage, provenance, and quality of data used in AI training and inference?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How well do you prevent sensitive or regulated data from unintentionally being used in training, inference, or model outputs?
+","Automated detection, redaction, masking, and privacy controls",,,
+GenAI Security: Risk Management and Compliance,"How well do you prevent sensitive or regulated data from unintentionally being used in training, inference, or model outputs?
+",Partial data protection measures,,,
+GenAI Security: Risk Management and Compliance,"How well do you prevent sensitive or regulated data from unintentionally being used in training, inference, or model outputs?
+",Manual checks only,,,
+GenAI Security: Risk Management and Compliance,"How well do you prevent sensitive or regulated data from unintentionally being used in training, inference, or model outputs?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How effectively do you govern data retention, minimization, and lifecycle requirements for AI training and inference?
+",Automated enforcement of retention/minimization policies across all AI datasets,,,
+GenAI Security: Risk Management and Compliance,"How effectively do you govern data retention, minimization, and lifecycle requirements for AI training and inference?
+",Policies exist but enforcement is manual or inconsistent,,,
+GenAI Security: Risk Management and Compliance,"How effectively do you govern data retention, minimization, and lifecycle requirements for AI training and inference?
+",Unclear or incomplete retention policies,,,
+GenAI Security: Risk Management and Compliance,"How effectively do you govern data retention, minimization, and lifecycle requirements for AI training and inference?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How strongly is access to AI models, datasets, pipelines, and inference endpoints controlled and monitored?
+","Least-privilege IAM, RBAC/ABAC, audit logs, regular reviews",,,
+GenAI Security: Risk Management and Compliance,"How strongly is access to AI models, datasets, pipelines, and inference endpoints controlled and monitored?
+",IAM controls implemented but partially aligned to standards,,,
+GenAI Security: Risk Management and Compliance,"How strongly is access to AI models, datasets, pipelines, and inference endpoints controlled and monitored?
+",Informal access controls without consistent logging,,,
+GenAI Security: Risk Management and Compliance,"How strongly is access to AI models, datasets, pipelines, and inference endpoints controlled and monitored?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How thoroughly are AI infrastructure components (compute clusters, model registries, storage, inference endpoints) hardened following security benchmarks?
+",Fully hardened using CIS/MCSB benchmarks with annual validation,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly are AI infrastructure components (compute clusters, model registries, storage, inference endpoints) hardened following security benchmarks?
+",Partial hardening implemented,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly are AI infrastructure components (compute clusters, model registries, storage, inference endpoints) hardened following security benchmarks?
+",Basic OS hardening only,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly are AI infrastructure components (compute clusters, model registries, storage, inference endpoints) hardened following security benchmarks?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How secure and well-governed are your MLOps/AIOps pipelines (model training, deployment, promotion, and rollback)?
+",Fully secured MLOps pipelines with integrated security gates and automated controls,,,
+GenAI Security: Risk Management and Compliance,"How secure and well-governed are your MLOps/AIOps pipelines (model training, deployment, promotion, and rollback)?
+",IR plan exists but not tailored to AI systems,,,
+GenAI Security: Risk Management and Compliance,"How secure and well-governed are your MLOps/AIOps pipelines (model training, deployment, promotion, and rollback)?
+",Ad hoc response only,,,
+GenAI Security: Risk Management and Compliance,"How secure and well-governed are your MLOps/AIOps pipelines (model training, deployment, promotion, and rollback)?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How effectively do you version, track, approve, and manage changes to AI models and their associated artifacts?
+","Full versioning of code, weights, data, configs, & lineage metadata",,,
+GenAI Security: Risk Management and Compliance,"How effectively do you version, track, approve, and manage changes to AI models and their associated artifacts?
+",Partial versioning,,,
+GenAI Security: Risk Management and Compliance,"How effectively do you version, track, approve, and manage changes to AI models and their associated artifacts?
+",Basic Git-based versioning only,,,
+GenAI Security: Risk Management and Compliance,"How effectively do you version, track, approve, and manage changes to AI models and their associated artifacts?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you evaluate third-party AI services, pretrained models, datasets, and cloud-hosted AI tools?
+","Full Third Party Risk Management process including attestations, audits, SBOMs, and contracts",,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you evaluate third-party AI services, pretrained models, datasets, and cloud-hosted AI tools?
+",Partial review limited to security practices,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you evaluate third-party AI services, pretrained models, datasets, and cloud-hosted AI tools?
+",Basic vendor questionnaires only,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you evaluate third-party AI services, pretrained models, datasets, and cloud-hosted AI tools?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you test AI models for robustness against adversarial attacks (evasion, poisoning, prompt injection, model inversion)?
+",Formal adversarial testing using recognized tools and frameworks,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you test AI models for robustness against adversarial attacks (evasion, poisoning, prompt injection, model inversion)?
+",Partially secured pipelines with inconsistent controls,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you test AI models for robustness against adversarial attacks (evasion, poisoning, prompt injection, model inversion)?
+",Basic CI/CD practices applied but not AI-specific,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you test AI models for robustness against adversarial attacks (evasion, poisoning, prompt injection, model inversion)?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you log and monitor AI workload activity, including model inputs, outputs, decisions, drift signals, and security events?
+",Comprehensive telemetry and audit logs covering all AI components,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you log and monitor AI workload activity, including model inputs, outputs, decisions, drift signals, and security events?
+",Partial logging across some AI components,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you log and monitor AI workload activity, including model inputs, outputs, decisions, drift signals, and security events?
+",Basic system logs only,,,
+GenAI Security: Risk Management and Compliance,"How thoroughly do you log and monitor AI workload activity, including model inputs, outputs, decisions, drift signals, and security events?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How effectively do you detect, monitor, and respond to model drift, degradation, and unexpected behavior?
+","Automated drift detection with alerts, baselines, retraining policies",,,
+GenAI Security: Risk Management and Compliance,"How effectively do you detect, monitor, and respond to model drift, degradation, and unexpected behavior?
+",Periodic manual drift analysis,,,
+GenAI Security: Risk Management and Compliance,"How effectively do you detect, monitor, and respond to model drift, degradation, and unexpected behavior?
+",Occasional reviews without clear metrics,,,
+GenAI Security: Risk Management and Compliance,"How effectively do you detect, monitor, and respond to model drift, degradation, and unexpected behavior?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How effectively do you implement explainability and interpretability tools to support compliance, fairness, and operational transparency?
+","Comprehensive explainability using tools such as SHAP, LIME, Microsoft RAI Dashboards",,,
+GenAI Security: Risk Management and Compliance,"How effectively do you implement explainability and interpretability tools to support compliance, fairness, and operational transparency?
+",Partial explainability for some models,,,
+GenAI Security: Risk Management and Compliance,"How effectively do you implement explainability and interpretability tools to support compliance, fairness, and operational transparency?
+",Minimal interpretability practices,,,
+GenAI Security: Risk Management and Compliance,"How effectively do you implement explainability and interpretability tools to support compliance, fairness, and operational transparency?
+",None of the above,None of the above,,
+GenAI Security: Risk Management and Compliance,"How prepared is your organization to detect, respond to, and recover from AI-specific security incidents (model corruption, prompt injection, jailbreaks, model exfiltration)?
+",Dedicated AI incident response plan aligned to NIST & Microsoft security guidance,,,
+GenAI Security: Risk Management and Compliance,"How prepared is your organization to detect, respond to, and recover from AI-specific security incidents (model corruption, prompt injection, jailbreaks, model exfiltration)?
+",IR plan exists but not tailored to AI systems,,,
+GenAI Security: Risk Management and Compliance,"How prepared is your organization to detect, respond to, and recover from AI-specific security incidents (model corruption, prompt injection, jailbreaks, model exfiltration)?
+",Ad hoc response only,,,
+GenAI Security: Risk Management and Compliance,"How prepared is your organization to detect, respond to, and recover from AI-specific security incidents (model corruption, prompt injection, jailbreaks, model exfiltration)?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How does your organisation control which AI agents can access sensitive enterprise data?
+",Basic access controls exist.,,,
+GenAI Security: Agents Security,"How does your organisation control which AI agents can access sensitive enterprise data?
+",Role-based access applied to at all AI agents,,,
+GenAI Security: Agents Security,"How does your organisation control which AI agents can access sensitive enterprise data?
+",AI agents have scoped access with periodic reviews.,,,
+GenAI Security: Agents Security,"How does your organisation control which AI agents can access sensitive enterprise data?
+",Data is secured with policies to prevent unauthorized access from agents.,,,
+GenAI Security: Agents Security,"How does your organisation control which AI agents can access sensitive enterprise data?
+",None of the other options.,None of the other options.,,
+GenAI Security: Agents Security,"How do you govern AI agent lifecycle and compliance?
+",Data lineage and source verification are maintained for all datasets and model inputs.,,,
+GenAI Security: Agents Security,"How do you govern AI agent lifecycle and compliance?
+",Regular audits take place to provide oversight.,,,
+GenAI Security: Agents Security,"How do you govern AI agent lifecycle and compliance?
+",Formal governance framework for most AI agents.,,,
+GenAI Security: Agents Security,"How do you govern AI agent lifecycle and compliance?
+",Governance and compliance for AI agent interactions is managed centrally.,,,
+GenAI Security: Agents Security,"How do you govern AI agent lifecycle and compliance?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you manage identity and access for AI Agents
+","A Zero Trust model is enforced for agents using distinct identities, continuous verification, and least privilege, with policy-driven controls that adapt to risk.",,,
+GenAI Security: Agents Security,"How do you manage identity and access for AI Agents
+","Agents are centrally governed through an enterprise control plane with a registry, approved templates, and enforced access boundaries.",,,
+GenAI Security: Agents Security,"How do you manage identity and access for AI Agents
+","Each agent uses a distinct non-human identity integrated with centralized identity controls, and access is re-certified on a schedule to prevent privilege drift.",,,
+GenAI Security: Agents Security,"How do you manage identity and access for AI Agents
+",Agents are integrated with centralized identities.,,,
+GenAI Security: Agents Security,"How do you manage identity and access for AI Agents
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you mitigate prompt injection and malicious input risks?
+","Comprehensive defence combines multi-layered validation, anomaly detection, and continuous monitoring for prompt injection attacks.",,,
+GenAI Security: Agents Security,"How do you mitigate prompt injection and malicious input risks?
+",Dynamic filtering uses threat intelligence to adapt and block evolving injection techniques.,,,
+GenAI Security: Agents Security,"How do you mitigate prompt injection and malicious input risks?
+",Context-aware validation ensures inputs align with expected behaviour and authorised actions.,,,
+GenAI Security: Agents Security,"How do you mitigate prompt injection and malicious input risks?
+",Pattern-based checks detect common injection attempts.,,,
+GenAI Security: Agents Security,"How do you mitigate prompt injection and malicious input risks?
+",Basic sanitisation is applied to remove obvious malicious content.,,,
+GenAI Security: Agents Security,"How do you mitigate prompt injection and malicious input risks?
+",None of the above.,None of the above.,,
+GenAI Security: Agents Security,"How do you prevent data exfiltration by AI agents?
+",Comprehensive data security posture management policies to control AI access to data.,,,
+GenAI Security: Agents Security,"How do you prevent data exfiltration by AI agents?
+",Dynamic DLP policies monitor and block unauthorised data sharing in real time.,,,
+GenAI Security: Agents Security,"How do you prevent data exfiltration by AI agents?
+",Automated output sanitisation prevents exposure of classified or regulated data.,,,
+GenAI Security: Agents Security,"How do you prevent data exfiltration by AI agents?
+",Policies restrict certain data types.,,,
+GenAI Security: Agents Security,"How do you prevent data exfiltration by AI agents?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you validate external data sources before AI agents consume them?
+","Comprehensive controls include dynamic validation, provenance checks, and continuous monitoring of external data sources.",,,
+GenAI Security: Agents Security,"How do you validate external data sources before AI agents consume them?
+",Automated scanning detects and blocks suspicious content in real time.,,,
+GenAI Security: Agents Security,"How do you validate external data sources before AI agents consume them?
+",Policies enforce sanitisation and validation for all external data before agent consumption.,,,
+GenAI Security: Agents Security,"How do you validate external data sources before AI agents consume them?
+","Some external sources are validated, but coverage is incomplete and manual.",,,
+GenAI Security: Agents Security,"How do you validate external data sources before AI agents consume them?
+",Basic checks exist for obvious malicious patterns in external content.,,,
+GenAI Security: Agents Security,"How do you validate external data sources before AI agents consume them?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you prevent unauthorised autonomous actions by AI agents?
+","Comprehensive governance enforces strict autonomy boundaries, adaptive controls, and continuous oversight for all AI agents.",,,
+GenAI Security: Agents Security,"How do you prevent unauthorised autonomous actions by AI agents?
+",Dynamic risk-based policies adjust agent permissions based on context and behaviour.,,,
+GenAI Security: Agents Security,"How do you prevent unauthorised autonomous actions by AI agents?
+",Automated controls restrict high-risk actions and require human approval for critical tasks.,,,
+GenAI Security: Agents Security,"How do you prevent unauthorised autonomous actions by AI agents?
+",Policies define boundaries for agents.,,,
+GenAI Security: Agents Security,"How do you prevent unauthorised autonomous actions by AI agents?
+",Basic restrictions exist in the form of guardrails.,,,
+GenAI Security: Agents Security,"How do you prevent unauthorised autonomous actions by AI agents?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you prevent sensitive data leakage through AI agent memory?
+","Comprehensive memory management includes encryption, dynamic sanitisation, and continuous monitoring for sensitive data exposure.",,,
+GenAI Security: Agents Security,"How do you prevent sensitive data leakage through AI agent memory?
+",Automated tools scrub sensitive data from agent memory during and after sessions.,,,
+GenAI Security: Agents Security,"How do you prevent sensitive data leakage through AI agent memory?
+",Policies exist to enforce memory sanitisation and data retention limits for agents.,,,
+GenAI Security: Agents Security,"How do you prevent sensitive data leakage through AI agent memory?
+",Agents are not allowed to access any sensitive data.,,,
+GenAI Security: Agents Security,"How do you prevent sensitive data leakage through AI agent memory?
+",Sensitive data is masked.,,,
+GenAI Security: Agents Security,"How do you prevent sensitive data leakage through AI agent memory?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you control recursive or chained actions by AI agents?
+","Comprehensive governance includes loop detection, human-in-the-loop for critical chains, and continuous monitoring for runaway behaviour.",,,
+GenAI Security: Agents Security,"How do you control recursive or chained actions by AI agents?
+",Dynamic risk-based throttling adjusts execution limits based on context.,,,
+GenAI Security: Agents Security,"How do you control recursive or chained actions by AI agents?
+",Automated controls detect and block excessive chaining or looping behaviour.,,,
+GenAI Security: Agents Security,"How do you control recursive or chained actions by AI agents?
+",Policies define maximum recursion depth.,,,
+GenAI Security: Agents Security,"How do you control recursive or chained actions by AI agents?
+",Basic limits exist.,,,
+GenAI Security: Agents Security,"How do you control recursive or chained actions by AI agents?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you ensure transparency and explainability in the decision-making of AI agents?
+","Comprehensive transparency including full audit trails, explainability dashboards, and/or continuous monitoring for accountability.",,,
+GenAI Security: Agents Security,"How do you ensure transparency and explainability in the decision-making of AI agents?
+",Automated logging captures decision rationale with human-readable summaries of agent decisions.,,,
+GenAI Security: Agents Security,"How do you ensure transparency and explainability in the decision-making of AI agents?
+",Internal policies require at least some documentation and logging of agent decisions,,,
+GenAI Security: Agents Security,"How do you ensure transparency and explainability in the decision-making of AI agents?
+",Basic logs exist,,,
+GenAI Security: Agents Security,"How do you ensure transparency and explainability in the decision-making of AI agents?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you enforce ethical and safety constraints during autonomous decision-making?
+","Comprehensive responsible AI framework ensures transparency, explainability, and accountability for all AI agent decisions.",,,
+GenAI Security: Agents Security,"How do you enforce ethical and safety constraints during autonomous decision-making?
+",Ethical compliance is monitored continouously with automated checks for bias and fairness.,,,
+GenAI Security: Agents Security,"How do you enforce ethical and safety constraints during autonomous decision-making?
+",Responsible AI principles are documented and applied across most AI agents.,,,
+GenAI Security: Agents Security,"How do you enforce ethical and safety constraints during autonomous decision-making?
+","Policies cover some ethical aspects, such as bias reduction, but are incomplete.",,,
+GenAI Security: Agents Security,"How do you enforce ethical and safety constraints during autonomous decision-making?
+","Basic ethical guidelines exist, but lack enforcement or monitoring.",,,
+GenAI Security: Agents Security,"How do you enforce ethical and safety constraints during autonomous decision-making?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you restrict AI agents from misusing integrated tools or APIs (Tool Misuse)?
+","Tool definitions are signed, SBOMs are verified, and mutual authentication with automated containment is in place.",,,
+GenAI Security: Agents Security,"How do you restrict AI agents from misusing integrated tools or APIs (Tool Misuse)?
+","Just-in-time credentials, rate limiting, and behaviour monitoring actively contain suspicious tool usage.",,,
+GenAI Security: Agents Security,"How do you restrict AI agents from misusing integrated tools or APIs (Tool Misuse)?
+",Tool calls are validated against approved workflows and executed in isolated sandboxes with resource caps.,,,
+GenAI Security: Agents Security,"How do you restrict AI agents from misusing integrated tools or APIs (Tool Misuse)?
+",Tool scopes and input constraints are defined and calls are logged.,,,
+GenAI Security: Agents Security,"How do you restrict AI agents from misusing integrated tools or APIs (Tool Misuse)?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you prevent privilege compromise or escalation by AI agents, including dynamic role inheritance?
+","Dynamic access controls enforce least privilege, deny-by-default, and automatically revoke or downgrade permissions when anomalies are detected.",,,
+GenAI Security: Agents Security,"How do you prevent privilege compromise or escalation by AI agents, including dynamic role inheritance?
+","Real-time monitoring is used to detect privilege drift and anomalous role changes, with automated containment.",,,
+GenAI Security: Agents Security,"How do you prevent privilege compromise or escalation by AI agents, including dynamic role inheritance?
+","Privilege elevation requires approval, is strictly scoped, and is time-boxed with audit trails.",,,
+GenAI Security: Agents Security,"How do you prevent privilege compromise or escalation by AI agents, including dynamic role inheritance?
+","Role-based access control is defined, but privilege elevation is possible without time limits or formal approval.",,,
+GenAI Security: Agents Security,"How do you prevent privilege compromise or escalation by AI agents, including dynamic role inheritance?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you monitor and control resource consumption by AI agents to prevent resource overload or denial-of-service?
+","Cross-agent caps, isolation domains, and adaptive throttling are enforced to prevent cascading failures and denial-of-service.",,,
+GenAI Security: Agents Security,"How do you monitor and control resource consumption by AI agents to prevent resource overload or denial-of-service?
+","Task scheduling is risk-aware, with prioritisation and deferral based on system load and context.",,,
+GenAI Security: Agents Security,"How do you monitor and control resource consumption by AI agents to prevent resource overload or denial-of-service?
+",Rate limits and circuit breakers automatically engage when resource thresholds are exceeded.,,,
+GenAI Security: Agents Security,"How do you monitor and control resource consumption by AI agents to prevent resource overload or denial-of-service?
+",Resource consumption is logged and tracked.,,,
+GenAI Security: Agents Security,"How do you monitor and control resource consumption by AI agents to prevent resource overload or denial-of-service?
+",Quotas are defined for resource usage.,,,
+GenAI Security: Agents Security,"How do you monitor and control resource consumption by AI agents to prevent resource overload or denial-of-service?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you detect and prevent cascading hallucination/fabrication attacks in agentic AI systems?
+","Probabilistic truth-checking, cross-agent consensus, and lineage tracking are used to prevent and contain the spread of false information.",,,
+GenAI Security: Agents Security,"How do you detect and prevent cascading hallucination/fabrication attacks in agentic AI systems?
+","Memory hygiene practices prevent unverified knowledge from persisting, and drift is monitored and rolled back.",,,
+GenAI Security: Agents Security,"How do you detect and prevent cascading hallucination/fabrication attacks in agentic AI systems?
+",Outputs are validated against trusted sources before high-impact actions are taken.,,,
+GenAI Security: Agents Security,"How do you detect and prevent cascading hallucination/fabrication attacks in agentic AI systems?
+",Policy gates block certain content types.,,,
+GenAI Security: Agents Security,"How do you detect and prevent cascading hallucination/fabrication attacks in agentic AI systems?
+",None of the above,None of the above,,
+GenAI Security: Agents Security,"How do you protect human-in-the-loop workflows from being overwhelmed or manipulated by AI agents?
+",Multi-stage approvals are in place to prevent overload in decision-making.,,,
+GenAI Security: Agents Security,"How do you protect human-in-the-loop workflows from being overwhelmed or manipulated by AI agents?
+",Low-risk cases are automated; humans gate high-risk actions and overrides are logged.,,,
+GenAI Security: Agents Security,"How do you protect human-in-the-loop workflows from being overwhelmed or manipulated by AI agents?
+","High-impact items are flagged, but all approvals are done by humans manually.",,,
+GenAI Security: Agents Security,"How do you protect human-in-the-loop workflows from being overwhelmed or manipulated by AI agents?
+","Requests are queued for approval with no prioritisation, caps, or fatigue control.",,,
+GenAI Security: Agents Security,"How do you protect human-in-the-loop workflows from being overwhelmed or manipulated by AI agents?
+",None of the above,None of the above,,

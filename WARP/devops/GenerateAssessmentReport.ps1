@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
     Takes output from the Well-Architected Review Assessment website and produces a PowerPoint presentation incorporating the findings.
-    Also support the Cloud Adoption Security Assessment and the DevOps Capability Assessment.
+    Also support the Cloud Adoption Security Assessment, the DevOps Capability Assessment, and the GenAI Workload Security Assessment.
     https://learn.microsoft.com/en-us/assessments/azure-architecture-review/
     
 .DESCRIPTION
@@ -21,6 +21,10 @@
 
         .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -DevOpsCapability
 
+    For a GenAI report:
+
+        .\GenerateAssessmentReport.ps1 -ContentFile .\mycontent.csv -GenAI
+
     Ensure the powerpoint template file and the Category Descriptions file exist in the paths shown below before attempting to run this script
     Once the script is run, close the powershell window and a timestamped PowerPoint report and a subset csv file will be created on the working directory
     Use these reports to represent and edit your findings for the WAF Engagement
@@ -37,6 +41,9 @@
 
 .PARAMETER DevOpsCapability
     If set, indicates the DevOps Capability Review format should be used. If not set, Well-Architected is assumed.
+
+.PARAMETER GenAI
+    If set, indicates the GenAI Workload Security Assessment format should be used. If not set, Well-Architected is assumed.
 
 .PARAMETER MinimumReportLevel
     The level above which a finding is considered high severity, By convention, scores up to 32 are low, 65 medium, and 66+ high.
@@ -99,21 +106,41 @@ param (
     [switch] $CloudAdoption,
 
     [Parameter()]
-    [switch] $DevOpsCapability
+    [switch] $DevOpsCapability,
+
+    [Parameter()]
+    [switch] $GenAI
 
 )
 
 
 #region Functions
 
+function Release-ComObject {
+    param(
+        [Parameter(Mandatory=$true)]
+        [System.__ComObject]$ComObject
+    )
+    
+    try {
+        [System.Runtime.InteropServices.Marshal]::ReleaseComObject($ComObject) | Out-Null
+        [System.GC]::Collect()
+        [System.GC]::WaitForPendingFinalizers()
+    }
+    catch {
+        Write-Warning "Failed to release COM object: $_"
+    }
+}
+
+
 $assessmentFile = ""
 
-function OpenAssessmentFile
-{
+function OpenAssessmentFile {
 
     if ($null -eq $ContentFile -or !(Test-Path $ContentFile)) {
         $inputFile = Get-FileName $workingDirectory
-    } else {
+    }
+    else {
         $inputFile = $ContentFile
     }
 
@@ -173,6 +200,15 @@ function LoadDescriptionFile {
             exit
         }
     }
+    elseif ($GenAI) {
+        try {
+            $descriptionsFile = Import-Csv "$workingDirectory\GenAI Category Descriptions.csv"
+        }
+        catch {
+            Write-Error -Message "Unable to open $($workingDirectory)\GenAI Category Descriptions.csv"
+            exit
+        }
+    }
     else {
         try {
             $descriptionsFile = Import-Csv "$workingDirectory\CAF Category Descriptions.csv"
@@ -204,7 +240,7 @@ function Get-PillarInfo($pillar) {
     }
 }
 
-function GetMappedReportingCategory{
+function GetMappedReportingCategory {
     param (
         $reportingCategrory,
         $currentPillar
@@ -220,26 +256,27 @@ function GetMappedReportingCategory{
 
 
 
-Function WellArchitectedAssessment
-{
-    foreach ($pillar in $filteredpillars) 
-    {
+Function WellArchitectedAssessment {
+    
+    # Capture gauge templates ONCE before processing any pillars
+    # This prevents the template slide from being modified
+    $redGaugeTemplate = $summarySlide.Shapes[51]
+    $yellowGaugeTemplate = $summarySlide.Shapes[50]
+    $greenGaugeTemplate = $summarySlide.Shapes[49]
+    
+    foreach ($pillar in $filteredpillars) {
         $pillarData = $data | Where-Object { $_.Category -eq $pillar }
-        # for debug: Write-host -Debug $data
 
         $pillarInfo = Get-PillarInfo -pillar $pillar
-        # Write-host -Debug "PILLAR INFO: $pillarInfo"
+        
         # Populates Title Slide
-
-        $slideTitle = $title.Replace("[pillar]", $pillar) #,$pillar.substring(0,1).toupper()+$pillar.substring(1).tolower()) #lowercase only here?
+        $slideTitle = $title.Replace("[pillar]", $pillar)
         $newTitleSlide = $titleSlide.Duplicate()
         $newTitleSlide.MoveTo($presentation.Slides.Count)
         $newTitleSlide.Shapes[3].TextFrame.TextRange.Text = $slideTitle
         $newTitleSlide.Shapes[4].TextFrame.TextRange.Text = $newTitleSlide.Shapes[4].TextFrame.TextRange.Text.Replace("[Report_Date]", $localReportDate)
 
-
         # Populates Executive Summary Slide(s)
-
         # prepare category list and identify "high importance" recommendations
 
         $CategoriesList = New-Object System.Collections.ArrayList
@@ -261,18 +298,18 @@ Function WellArchitectedAssessment
         [Double]$summBarScore = [int]$pillarInfo.Score * 2.47 + 56
         $newSummarySlide.Shapes[11].Left = $summBarScore
 
-        $counter = 13 #Shape index for the slide to start adding scores (it's 13 because the first 12 shapes are the boilerplate text: 12 is gauge icon, 13 is score, 14 is category, etc.)
+        $counter = 13 #Shape index for the slide to start adding scores
         $categoryCounter = 0
         $pageCounter = 1
-        $gaugeIconX = 437.76 # X coordinate for the gauge icon in points (1 point = 1/72 inch)
-        $gaugeIconY = @(147.6, 176.4, 204.48, 232.56, 261.36, 289.44, 317.52, 346.32, 375.12, 403.2, 432.0, 460.08 ) # Y coordinates for the remaining 12 gauge icons in points (vertically aligned)
+        $gaugeIconX = 437.76
+        $gaugeIconY = @(147.6, 176.4, 204.48, 232.56, 261.36, 289.44, 317.52, 346.32, 375.12, 403.2, 432.0, 460.08)
         
         # Filter out any empty / non-existing categories including "Uncategorized" (aka Advisor)
         $FilteredCategoriesList = ($CategoriesList | Where-Object { $_.Category -ne "" -and $_.Category -ne "Uncategorized" })
         $CategoriesList = $FilteredCategoriesList 
         
         foreach ($category in $CategoriesList) {
-            if($categoryCounter -ge (12 * $pageCounter)) {
+            if ($categoryCounter -ge (12 * $pageCounter)) {
                 # add another page if there are more categories than can fit
                 $newSummarySlide = $summarySlide.Duplicate()
                 $newSummarySlide.MoveTo($presentation.Slides.Count)
@@ -284,8 +321,8 @@ Function WellArchitectedAssessment
                 $counter = 13 #Shape count for the slide to start adding scores
                 $categoryCounter = 0
                 $pageCounter = $pageCounter + 1
-                $gaugeIconX = 437.76 # X coordinate for the gauge icon in points (1 point = 1/72 inch)
-                $gaugeIconY = @(147.6, 176.4, 204.48, 232.56, 261.36, 289.44, 317.52, 346.32, 375.12, 403.2, 432.0, 460.08 ) # Y coordinates for the remaining 12 gauge icons in points (vertically aligned)
+                $gaugeIconX = 437.76
+                $gaugeIconY = @(147.6, 176.4, 204.48, 232.56, 261.36, 289.44, 317.52, 346.32, 375.12, 403.2, 432.0, 460.08)
             }
 
             try {
@@ -294,26 +331,28 @@ Function WellArchitectedAssessment
                 # Replacing the domain area (aka category) with the caption (aka new category) from the description file (if any)
                 $newSummarySlide.Shapes[$counter + 1].TextFrame.TextRange.Text = GetmappedReportingCategory -reportingCategrory $category.Category -currentPillar $pillar
 
-                $counter = $counter + 3 # select the next score textbox shape on the slide (1. Gauge, 2. Score, 3. Category)
+                $counter = $counter + 3 # select the next score textbox shape on the slide
                     
                 # Determining the color based on CategoryScore
+                # Use the saved template references instead of shapes from newSummarySlide
                 switch ($category.CategoryScore) {
                     { $_ -lt 33 } { 
-                        $categoryShape = $newSummarySlide.Shapes[49] #green
+                        $categoryShape = $greenGaugeTemplate
                         break
                     }
                     { $_ -gt 33 -and $_ -lt 67 } { 
-                        $categoryShape = $newSummarySlide.Shapes[50] #yellow
+                        $categoryShape = $yellowGaugeTemplate
                         break
                     }
                     { $_ -gt 67 } { 
-                        $categoryShape = $newSummarySlide.Shapes[51] #red
+                        $categoryShape = $redGaugeTemplate
                         break
                     }
                     Default { 
-                        $categoryShape = $newSummarySlide.Shapes[50] #yellow
+                        $categoryShape = $yellowGaugeTemplate
                     }
                 }
+                
                 $categoryShape.Duplicate() | Out-Null
                 $newShape = $newSummarySlide.Shapes.Count
                 $newSummarySlide.Shapes[$newShape].Left = $gaugeIconX
@@ -323,8 +362,7 @@ Function WellArchitectedAssessment
                 $categoryCounter = $categoryCounter + 1
             }
             catch {
-                Write-Error "Error: $($Error[0].Exception.ToString())" 
-                Write-Error "Error: $($Error[0].Exception.InnerException.ToString())"
+                Write-Warning "Error processing category: $($_.Exception.Message)"
                 continue
             }
         }
@@ -332,10 +370,8 @@ Function WellArchitectedAssessment
         # Populates Pillar Slides
 
         foreach ($category in $CategoriesList.Category) {
-            #Write-Debug "Processing Category: $category"
             $categoryData = $pillarData | Where-Object { $_.ReportingCategory -eq $category -and $_.Category -eq $pillar }
             $categoryDataCount = ($categoryData | measure).Count
-            #write-Debug "  Category Data Count: $categoryDataCount"
             $categoryWeight = ($pillarData | Where-Object { $_.ReportingCategory -eq $category }).Weight | Measure-Object -Sum
             $categoryScore = $categoryWeight.Sum / $categoryWeight.Count
             $categoryDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq $pillar -and $_.Category.StartsWith($category) }).Description
@@ -372,9 +408,11 @@ Function WellArchitectedAssessment
         }
 
         #Remove boilerplate shapes. 
-        if ($categories.Count -lt (12 * $pageCounter)) { #12 is the number of categories shapes on the summary slide 
+        if ($categories.Count -lt (12 * $pageCounter)) {
+            #12 is the number of categories shapes on the summary slide 
             for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
-                if ($null -ne $newSummarySlide.Shapes[$k] -and $newSummarySlide.Shapes[$k].Name -ne "NewGauges") { # Fix: Don't delete the newly added colored gauge shapes 
+                if ($null -ne $newSummarySlide.Shapes[$k] -and $newSummarySlide.Shapes[$k].Name -ne "NewGauges") {
+                    # Don't delete the newly added colored gauge shapes 
                     try {
                         $newSummarySlide.Shapes[$k].Delete()
                     }
@@ -385,8 +423,7 @@ Function WellArchitectedAssessment
     }
 }
 
-Function CloudAdoptionAssessment
-{
+Function CloudAdoptionAssessment {
     $slideTitle = $title.Replace("[CAF_Security_Assessment]", "Cloud Adoption Security Assessment")
     $newTitleSlide = $titleSlide.Duplicate()
     $newTitleSlide.MoveTo($presentation.Slides.Count)
@@ -398,7 +435,7 @@ Function CloudAdoptionAssessment
         $ScoreText = "$($overallScore)"
     }
 
-    #Add logic to get overall score
+    # Add logic to get overall score
     $newSummarySlide = $summarySlide.Duplicate()
     $newSummarySlide.MoveTo($presentation.Slides.Count)
     $newSummarySlide.Shapes[3].TextFrame.TextRange.Text = $ScoreText
@@ -460,9 +497,21 @@ Function CloudAdoptionAssessment
                 $newShape = $newSummarySlide.Shapes.Count
                 $newSummarySlide.Shapes[$newShape].Left = $gaugeIconX
                 $newSummarySlide.Shapes[$newShape].top = $gaugeIconY[$categoryCounter] 
+                # Mark newly added gauge shapes so cleanup logic can remove unused placeholders without touching these.
+                $newSummarySlide.Shapes[$newShape].Name = "NewGauges"
                 $categoryCounter = $categoryCounter + 1
             }
             catch {}
+        }
+    }
+
+    # Remove unused placeholder rows on the summary slide.
+    # The template contains a fixed number of placeholder rows; for GenAI we only want the rows we populated.
+    if ($CategoriesList.Count -lt $gaugeIconY.Count) {
+        for ($k = $newSummarySlide.Shapes.Count; $k -gt $counter - 1; $k--) {
+            if ($null -ne $newSummarySlide.Shapes[$k] -and $newSummarySlide.Shapes[$k].Name -ne "NewGauges") {
+                try { $newSummarySlide.Shapes[$k].Delete() } catch {}
+            }
         }
     }
 
@@ -473,7 +522,7 @@ Function CloudAdoptionAssessment
         for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
             try {
                 $newSummarySlide.Shapes[$k].Delete()
-                $newSummarySlide.Shapes[$k+1].Delete()
+                $newSummarySlide.Shapes[$k + 1].Delete()
             }
             catch {}
         }
@@ -587,6 +636,7 @@ Function DevOpsCapabilityAssessment {
                 $newShape = $newSummarySlide.Shapes.Count
                 $newSummarySlide.Shapes[$newShape].Left = $gaugeIconX
                 $newSummarySlide.Shapes[$newShape].top = $gaugeIconY[$categoryCounter] 
+                $newSummarySlide.Shapes[$newShape].Name = "NewGauges"
                 $categoryCounter = $categoryCounter + 1
             }
             catch {}
@@ -594,13 +644,12 @@ Function DevOpsCapabilityAssessment {
     }
 
 
-
     #Remove the boilerplate placeholder text if categories < 8
     if ($categories.Count -lt 8) {
         for ($k = $newSummarySlide.Shapes.count; $k -gt $counter - 1; $k--) {
             try {
                 $newSummarySlide.Shapes[$k].Delete()
-                $newSummarySlide.Shapes[$k+1].Delete()
+                $newSummarySlide.Shapes[$k + 1].Delete()
             }
             catch {}
         }
@@ -645,10 +694,352 @@ Function DevOpsCapabilityAssessment {
     }    
 }
 
+Function GenAIAssessment
+{
+    $slideTitle = $title
+    $newTitleSlide = $titleSlide.Duplicate()
+    $newTitleSlide.MoveTo($presentation.Slides.Count)
+    $newTitleSlide.Shapes("Title").TextFrame.TextRange.Text = $slideTitle
+    $newTitleSlide.Shapes("ReportDate").TextFrame.TextRange.Text = $newTitleSlide.Shapes("ReportDate").TextFrame.TextRange.Text.Replace("[Report_Date]", $localReportDate)
+
+    if (![string]::IsNullOrEmpty($overallScore)) {
+        $ScoreText = "$($overallScore)"
+    }
+
+    $newSummarySlide = $summarySlide.Duplicate()
+    $newSummarySlide.MoveTo($presentation.Slides.Count)
+    $newSummarySlide.Shapes("ScoreText").TextFrame.TextRange.Text = $ScoreText
+    $newSummarySlide.Shapes("PillarDescription").TextFrame.TextRange.Text = $genAIDescription
+    [Double]$summBarScore = [int]$ScoreText * 2.47 + 56
+    $newSummarySlide.Shapes("ScoreIndicator").Left = $summBarScore
+
+    $categoryField = "ReportingCategory"
+    if (-not ($data | Get-Member -Name $categoryField -ErrorAction SilentlyContinue)) {
+        $categoryField = "Category"
+    }
+
+    $prefixMap = @{}
+    foreach ($d in $descriptionsFile) {
+        if ([string]::IsNullOrWhiteSpace($d.Category)) { continue }
+        $pfx = ($d.Category -split ':')[0].Trim()
+        if ([string]::IsNullOrWhiteSpace($pfx)) { continue }
+
+        if (-not $prefixMap.ContainsKey($pfx)) {
+            $prefixMap[$pfx] = [pscustomobject]@{
+                Prefix      = $pfx
+                Pillar      = $d.Pillar
+                Caption     = $(if (-not [string]::IsNullOrWhiteSpace($d.Caption)) { $d.Caption } elseif (-not [string]::IsNullOrWhiteSpace($d.Pillar)) { $d.Pillar } else { $pfx })
+                Description = $d.Description
+            }
+        }
+        else {
+            if ([string]::IsNullOrWhiteSpace($prefixMap[$pfx].Pillar) -and -not [string]::IsNullOrWhiteSpace($d.Pillar)) { $prefixMap[$pfx].Pillar = $d.Pillar }
+            if ([string]::IsNullOrWhiteSpace($prefixMap[$pfx].Caption) -and -not [string]::IsNullOrWhiteSpace($d.Caption)) { $prefixMap[$pfx].Caption = $d.Caption }
+            if ([string]::IsNullOrWhiteSpace($prefixMap[$pfx].Description) -and -not [string]::IsNullOrWhiteSpace($d.Description)) { $prefixMap[$pfx].Description = $d.Description }
+        }
+    }
+
+
+    $data | ForEach-Object {
+        $raw = $_.$categoryField
+        $pfx = ""
+        if (-not [string]::IsNullOrWhiteSpace($raw)) { $pfx = ($raw -split ':')[0].Trim() }
+        $_ | Add-Member -NotePropertyName "ReportingCategoryPrefix" -NotePropertyValue $pfx -Force
+    }
+
+
+
+    $CategoriesList = New-Object System.Collections.ArrayList
+    $categories = ($data | Select-Object -ExpandProperty $categoryField) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique # 12 categories
+
+    
+    foreach ($category in $categories) {        
+        $categoryData = $data | Where-Object { $_.$categoryField -eq $category } 
+        $weights = $categoryData.Weight | Measure-Object -Average
+        $categoryScore = if ($weights.Count -gt 0) { [double]$weights.Average } else { 0 }
+        $categoryWeightiestCount = ($categoryData | Where-Object { $_.Weight -ge $MinimumReportLevel } | Measure-Object).Count
+
+
+    $categoryLabel = $category
+    $matchingDesc = $descriptionsFile | Where-Object { $_.Category -eq $category }
+    if ($matchingDesc -and -not [string]::IsNullOrWhiteSpace($matchingDesc.Caption)) {
+        $categoryLabel = $matchingDesc.Caption
+    }
+
+        $CategoriesList.Add([pscustomobject]@{
+            "Prefix"                =  $category 
+            "Category"              = $categoryLabel
+            "CategoryScore"         = $categoryScore
+            "CategoryWeightiestCount" = $categoryWeightiestCount
+        }) | Out-Null
+    }
+
+    #$CategoriesList = $CategoriesList | Sort-Object -Property CategoryScore -Descending
+    #$CategoriesList = $CategoriesList | Sort-Object -Property Prefix
+    # Define category sort order: SA first, then RC, then AG
+    $categoryOrder = @{
+        'SA' = 1
+        'RC' = 2
+        'AG' = 3
+    }
+
+    #Sort by category prefix first (SA, RC, AG), but within each category prefix, sort by the CategoryScore descending.
+    $CategoriesList = $CategoriesList | Sort-Object @{Expression={
+        $prefix = ($_.Prefix -split ':')[0]
+        if ($categoryOrder.ContainsKey($prefix)) { $categoryOrder[$prefix] } else { 99 }
+    }}, @{Expression={$_.CategoryScore}; Descending=$true}
+
+
+    $redTemplate = $null
+    $yellowTemplate = $null
+    $greenTemplate = $null
+    
+    for ($i = 1; $i -le $newSummarySlide.Shapes.Count; $i++) {
+        try {
+            $sh = $newSummarySlide.Shapes[$i]
+            if ($null -eq $sh) { continue }
+            
+            $shapeName = $sh.Name
+            if ([string]::IsNullOrWhiteSpace($shapeName)) { continue }
+            
+            if ($shapeName -match "Gauge.*Red" -or $shapeName -eq "Gauge_Red") {
+                $redTemplate = $sh
+            }
+            elseif ($shapeName -match "Gauge.*Yellow" -or $shapeName -eq "Gauge_Yellow") {
+                $yellowTemplate = $sh
+            }
+            elseif ($shapeName -match "Gauge.*Green" -or $shapeName -eq "Gauge_Green") {
+                $greenTemplate = $sh
+            }
+        } catch {
+            continue
+        }
+    }
+    
+    if (-not $redTemplate -or -not $yellowTemplate -or -not $greenTemplate) {
+        Write-Error "Could not find all gauge templates by name."
+        return
+    }
+
+    $maxRows = 12
+    $rowInfo = @()
+    
+    for ($rowNum = 1; $rowNum -le $maxRows; $rowNum++) {
+        $placeholderGauge = $null
+        $countBox = $null
+        $nameBox = $null
+        $gaugePosition = $null
+        
+        for ($i = 1; $i -le $newSummarySlide.Shapes.Count; $i++) {
+            try {
+                $sh = $newSummarySlide.Shapes[$i]
+                if ($null -eq $sh) { continue }
+                
+                $shapeName = $sh.Name
+                if ([string]::IsNullOrWhiteSpace($shapeName)) { continue }
+                
+                if ($shapeName -match "Gauge[_\s]*(Row[_\s]*)?$rowNum$" -or $shapeName -eq "Gauge_$rowNum") {
+                    $placeholderGauge = $sh
+                    $gaugePosition = @{Left = $sh.Left; Top = $sh.Top}
+                }
+                elseif ($shapeName -match "Count[_\s]*(Row[_\s]*)?$rowNum$" -or $shapeName -eq "Count_$rowNum" -or $shapeName -eq "S$rowNum") {
+                    $countBox = $sh
+                }
+                elseif ($shapeName -match "Name[_\s]*(Row[_\s]*)?$rowNum$" -or $shapeName -eq "Name_$rowNum" -or $shapeName -eq "Domain_$rowNum") {
+                    $nameBox = $sh
+                }
+            } catch {
+                continue
+            }
+        }
+        
+        if ($countBox -and $nameBox) {
+            $rowInfo += @{
+                RowNum = $rowNum
+                PlaceholderGauge = $placeholderGauge
+                CountBox = $countBox
+                NameBox = $nameBox
+                GaugePosition = $gaugePosition
+            }
+        }
+    }
+    
+    if ($rowInfo.Count -eq 0) {
+        Write-Error "Could not find any named rows."
+        return
+    }
+
+    $categoryCounter = 0
+    
+    foreach ($category in $CategoriesList) {
+        if ($category.Category -ne "Uncategorized" -and $categoryCounter -lt $rowInfo.Count) {
+            try {
+                $row = $rowInfo[$categoryCounter]
+                
+                #$row.CountBox.TextFrame.TextRange.Text = $category.CategoryWeightiestCount.ToString("#")
+                $row.CountBox.TextFrame.TextRange.Text = $category.CategoryWeightiestCount.ToString()
+                $row.NameBox.TextFrame.TextRange.Text = $category.Category
+                
+                $scoreValue = $category.CategoryScore
+                if ($scoreValue -le 33) { 
+                    $categoryShape = $greenTemplate
+                }
+                elseif ($scoreValue -lt 67) { 
+                    $categoryShape = $yellowTemplate
+                }
+                else { 
+                    $categoryShape = $redTemplate
+                }
+
+                $gaugeLeft = 437.76
+                $gaugeTop = 147.6 + ($categoryCounter * 28.8)
+                
+                if ($row.PlaceholderGauge -ne $null) {
+                    try {
+                        $gaugeLeft = [double]([float]$row.PlaceholderGauge.Left)
+                        $gaugeTop = [double]([float]$row.PlaceholderGauge.Top)
+                        $row.PlaceholderGauge.Delete()
+                        $row.PlaceholderGauge = $null
+                    } catch {
+                        # Silently continue if placeholder can't be deleted
+                    }
+                } elseif ($row.GaugePosition -ne $null) {
+                    $gaugeLeft = [double]([float]$row.GaugePosition.Left)
+                    $gaugeTop = [double]([float]$row.GaugePosition.Top)
+                }
+
+                $categoryShape.Duplicate() | Out-Null
+                $newShape = $newSummarySlide.Shapes.Count
+                $newSummarySlide.Shapes[$newShape].Left = [double]$gaugeLeft
+                $newSummarySlide.Shapes[$newShape].Top = [double]$gaugeTop
+                $newSummarySlide.Shapes[$newShape].Name = "NewGauges"
+                
+                $categoryCounter++
+            }
+            catch {
+                Write-Warning "Error processing category '$($category.Category)': $($_.Exception.Message)"
+            }
+        }
+    }
+  
+    for ($i = $rowInfo.Count - 1; $i -ge $categoryCounter; $i--) {
+        try {
+            $row = $rowInfo[$i]
+            
+            if ($row.PlaceholderGauge) {
+                try { $row.PlaceholderGauge.Delete() } catch {}
+            }
+            
+            try { $row.NameBox.Delete() } catch {}
+            try { $row.CountBox.Delete() } catch {}
+        } catch {
+            continue
+        }
+    }
+
+    foreach ($cat in $CategoriesList) {
+        $categoryLabel = $cat.Category
+        $pfx = $cat.Prefix
+
+        #$categoryData = $data | Where-Object { $_.ReportingCategoryPrefix -eq $pfx } # 3 categories
+        $categoryData = $data | Where-Object { $_.$categoryField -eq $cat.Prefix} # 12 categories
+        $categoryDataCount = ($categoryData | Measure-Object).Count
+        $categoryScore = $cat.CategoryScore
+
+        $categoryDescription = ""
+        $matchingDesc = $descriptionsFile | Where-Object { $_.Category -eq $cat.Prefix }
+        if ($matchingDesc -and -not [string]::IsNullOrWhiteSpace($matchingDesc.Description)) {
+            $categoryDescription = $matchingDesc.Description
+        }
+
+
+        $y = $categoryDataCount
+        $x = $ShowTop
+        if ($categoryDataCount -lt $x) {
+            $x = $categoryDataCount
+        }
+
+        $newDetailSlide = $detailSlide.Duplicate()
+        $newDetailSlide.MoveTo($presentation.Slides.Count)
+
+        $newDetailSlide.Shapes("CategoryLabel").TextFrame.TextRange.Text = $categoryLabel
+        $newDetailSlide.Shapes("CategoryScore").TextFrame.TextRange.Text = $categoryScore.ToString("#")
+        
+        # Calculate bar position without type casting
+        $scoreNum = 0
+        if ($categoryScore -is [double] -or $categoryScore -is [int]) {
+            $scoreNum = $categoryScore
+        } else {
+            $scoreNum = [float]::Parse($categoryScore.ToString())
+        }
+        $detailBarScore = ($scoreNum * 2.48) + 38
+        $newDetailSlide.Shapes("ScoreIndicator").Left = $detailBarScore
+        
+        $newDetailSlide.Shapes("CategoryDescription").TextFrame.TextRange.Text = $categoryDescription
+        $newDetailSlide.Shapes("TOPRecommendations").TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
+
+        $recoShape = $null
+        try {
+            if ($newDetailSlide.Shapes.Count -ge 8) {
+                $tmp = $newDetailSlide.Shapes.Item(8)
+                if ($tmp.HasTextFrame -eq -1) { $recoShape = $tmp }
+            }
+        } catch {}
+
+        if (-not $recoShape) {
+            $best = $null
+            [double]$bestArea = 0
+            for ($i = 1; $i -le $newDetailSlide.Shapes.Count; $i++) {
+                $s = $newDetailSlide.Shapes.Item($i)
+                if ($s.HasTextFrame -eq -1) {
+                    [double]$area = $s.Width * $s.Height
+                    if ($area -gt $bestArea) { $best = $s; $bestArea = $area }
+                }
+            }
+            $recoShape = $best
+        }
+
+        if (-not $recoShape) {
+            throw "Could not locate the recommendations textbox"
+        }
+
+
+        #$recoShape.TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
+        $sortedRecommendations = $categoryData | Sort-Object -Property Weight -Descending | Select-Object -First $x
+
+        # Trim all Link-Text to remove trailing spaces
+        $trimmedText = $sortedRecommendations | ForEach-Object { $_.'Link-Text'.Trim() }
+        $recoShape.TextFrame.TextRange.Text = $trimmedText -join "`r`n`r`n"
+
+        $lastFoundRange = $null
+        foreach ($rec in $sortedRecommendations) {
+            $recText = $rec.'Link-Text'.Trim()
+            try {
+                # Find the text in the shape (or find next occurrence)
+                if ($null -eq $lastFoundRange) {
+                    $textRange = $recoShape.TextFrame.TextRange.Find($recText)
+                }
+                else {
+                    $textRange = $recoShape.TextFrame.TextRange.Find($recText, $lastFoundRange.Start + $lastFoundRange.Length)
+                }
+                
+                if ($textRange) {
+                    $textRange.ActionSettings(1).HyperLink.Address = $rec.Link
+                    $lastFoundRange = $textRange
+                }
+                else {
+                    Write-Warning "Could not find text in shape: $recText"
+                }
+            }
+            catch {
+                Write-Warning "Failed to set hyperlink for: $recText - Error: $_"
+            }
+        }
+    }
+ }
 
 Function CleanUp
 {
-
     try {
         $newEndSlide = $endSlide.Duplicate()
         $newEndSlide.MoveTo($presentation.Slides.Count)
@@ -658,27 +1049,168 @@ Function CleanUp
         $endSlide.Delete()        
     }
     catch {
+        Write-Warning "Error during slide cleanup: $_"
     }
 
-    if ($WellArchitected)
-    {
-        $presentation.SavecopyAs("$workingDirectory\WAF-Review-$($reportDate).pptx")
+    # Build output path
+    $safeReportDate = ($reportDate.ToString() -replace '[\\\/:\*\?"<>\|]', '-')
+
+    if ($WellArchitected) {
+        $outputFileName = "WAF-Review-$safeReportDate.pptx"
     }
-    elseif($DevOpsCapability){
-        $presentation.SavecopyAs("$workingDirectory\DevOps-$($reportDate).pptx")
-    } 
+    elseif ($DevOpsCapability) {
+        $outputFileName = "DevOps-$safeReportDate.pptx"
+    }
+    elseif ($GenAI) {
+        $outputFileName = "GenAI-$safeReportDate.pptx"
+    }
     else {
-        $presentation.SavecopyAs("$workingDirectory\CASA-$($reportDate).pptx")
+        $outputFileName = "CASA-$safeReportDate.pptx"
     }
 
-    $presentation.Close()
-    $application.quit()
-    $application = $null
-    [gc]::collect()
-    [gc]::WaitForPendingFinalizers()
-    
+    $outputPath = Join-Path $workingDirectory $outputFileName
 
+    # Remove existing file if present
+    if (Test-Path $outputPath) {
+        try {
+            Remove-Item -LiteralPath $outputPath -Force
+            Write-Host "Removed existing file: $outputFileName"
+        }
+        catch {
+            Write-Warning "Could not remove existing file: $_"
+        }
+    }
+
+    # Try SaveAs first (more reliable than SaveCopyAs)
+    $saveSuccess = $false
+    try {
+        $presentation.SaveAs($outputPath)
+        $saveSuccess = $true
+        Write-Host "Saving presentation..."
+    }
+    catch {
+        Write-Warning "SaveAs failed: $($_.Exception.Message)"
+        
+        # Fallback to SaveCopyAs
+        try {
+            $presentation.SaveCopyAs($outputPath)
+            $saveSuccess = $true
+            Write-Host "Saving presentation (using SaveCopyAs)..."
+        }
+        catch {
+            Write-Warning "SaveCopyAs also failed: $($_.Exception.Message)"
+        }
+    }
+
+    # Verify the file was created
+    if (!(Test-Path $outputPath)) {
+        Write-Error "Output file was not created at: $outputPath"
+    }
+
+   # Close presentation and quit PowerPoint (suppress expected errors)
+    try {
+        if ($presentation) {
+            $presentation.Close()
+        }
+    }
+    catch {
+        # Silently continue - process will be force-closed anyway
+    }
+
+    # Quit PowerPoint application
+    try {
+        if ($application) {
+            $application.Quit()
+        }
+    }
+    catch {
+        # Silently continue - process will be force-closed anyway
+    }
+
+    # Release COM objects explicitly
+    if ($presentation) {
+        try {
+            [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($presentation)
+        }
+        catch {
+            Write-Warning "Error releasing presentation COM object: $_"
+        }
+    }
+    
+    if ($application) {
+        try {
+            [void][System.Runtime.Interopservices.Marshal]::ReleaseComObject($application)
+        }
+        catch {
+            Write-Warning "Error releasing application COM object: $_"
+        }
+    }
+
+    # Clean up variables at script scope
+    Remove-Variable -Name presentation -Scope Script -ErrorAction SilentlyContinue
+    Remove-Variable -Name application -Scope Script -ErrorAction SilentlyContinue
+    Remove-Variable -Name titleSlide -Scope Script -ErrorAction SilentlyContinue
+    Remove-Variable -Name summarySlide -Scope Script -ErrorAction SilentlyContinue
+    Remove-Variable -Name detailSlide -Scope Script -ErrorAction SilentlyContinue
+    Remove-Variable -Name endSlide -Scope Script -ErrorAction SilentlyContinue
+    
+    # Force garbage collection
+    [gc]::Collect()
+    [gc]::WaitForPendingFinalizers()
+    [gc]::Collect()
+    
+    # Brief wait for COM cleanup
+    Start-Sleep -Milliseconds 500
+   
+    # Delete the temporary template file (with retry logic)
+    if ($tempTemplatePath -and (Test-Path $tempTemplatePath)) {
+        $deleteAttempts = 0
+        $maxAttempts = 5
+        $deleted = $false
+        
+        while ($deleteAttempts -lt $maxAttempts -and -not $deleted) {
+            try {
+                Remove-Item -Path $tempTemplatePath -Force -ErrorAction Stop
+                $deleted = $true
+                Write-Host "Temporary template file deleted" 
+            } catch {
+                $deleteAttempts++
+                if ($deleteAttempts -lt $maxAttempts) {
+                    Start-Sleep -Milliseconds 500
+                } else {
+                    Write-Host "WARNING: Could not delete temp file after $maxAttempts attempts: $tempTemplatePath" -ForegroundColor Yellow
+                    Write-Host "You may need to delete it manually." -ForegroundColor Yellow
+                }
+            }
+        }
+    }
+    
+    # Check if PowerPoint is still running and force close if needed
+    $ppProcesses = Get-Process -Name "POWERPNT" -ErrorAction SilentlyContinue
+
+    
+    # Check if PowerPoint is still running and force close if needed
+    $ppProcesses = Get-Process -Name "POWERPNT" -ErrorAction SilentlyContinue
+    if ($ppProcesses) {
+        Write-Host "Closing PowerPoint process..."
+        foreach ($proc in $ppProcesses) {
+            try {
+                $proc.Kill()
+                $proc.WaitForExit(2000) | Out-Null
+                Write-Host "PowerPoint closed (PID: $($proc.Id))"
+            }
+            catch {
+                Write-Warning "Could not close PowerPoint process: $_"
+            }
+        }
+    }
+    
+    if ($saveSuccess -or (Test-Path $outputPath)) {
+        Write-Host "`nReport generation completed successfully!" -ForegroundColor Green
+        Write-Host "Output file: $outputPath" -ForegroundColor Green
+    }
 }
+
 
 #endregion
 
@@ -687,11 +1219,12 @@ Function CleanUp
 
 
 $workingDirectory = (Get-Location).Path #Get the working directory from the script
-$content  = OpenAssessmentFile
+$content = OpenAssessmentFile
 $assessmentTypeCheck = ""
 $assessmentTypeCheck = ($content | Select-Object -First 1)
 
 $reportDate = Get-Date -Format "yyyy-MM-dd-HHmm"
+$tempTemplatePath = $null  # Temp template file to prevent modifying original
 $localReportDate = Get-Date -Format g
 $overallScore = ""
 $costScore = ""
@@ -703,28 +1236,46 @@ $overallScoreDescription = ""
 
 $filteredPillars = @()
 
-$WellArchitected  = $false
-$CloudAdoption    = $false
+$WellArchitected = $false
+$CloudAdoption = $false
 $DevOpsCapability = $false
+$GenAI = $false
 
-# Respect user switches first
+# Respect user switches first (and don't allow multiple)
+$selectedSwitches = @()
+foreach ($name in @('CloudAdoption', 'DevOpsCapability', 'GenAI')) {
+    if ($PSBoundParameters.ContainsKey($name)) { $selectedSwitches += $name }
+}
+if ($selectedSwitches.Count -gt 1) {
+    Write-Error "Specify only one assessment switch: -CloudAdoption, -DevOpsCapability, or -GenAI."
+    exit
+}
+
 if ($PSBoundParameters.ContainsKey('CloudAdoption')) {
     write-host "-CloudAdoption switch detected"
-    $CloudAdoption    = $true
+    $CloudAdoption = $true
 }
 elseif ($PSBoundParameters.ContainsKey('DevOpsCapability')) {
     write-host "-DevOpsCapability switch detected"
     $DevOpsCapability = $true
 }
+elseif ($PSBoundParameters.ContainsKey('GenAI')) {
+    write-host "-GenAI switch detected"
+    $GenAI = $true
+}
 else {
     # Only if no switch: auto-detect from CSV title
     if ($assessmentTypeCheck.Contains('Cloud Adoption')) {
         write-host "Auto detected Cloud Adoption Security Assessment CSV file"
-        $CloudAdoption   = $true
+        $CloudAdoption = $true
     }
     elseif ($assessmentTypeCheck.Contains('DevOps Capability')) {
         write-host "Auto detected DevOps Capability Review CSV file"
         $DevOpsCapability = $true
+    }
+    elseif ($assessmentTypeCheck -match '(?i)\b(generative\s+ai|gen\s*ai|genai)\b') {
+        write-host "Auto detected GenAI Assessment CSV file"
+        $GenAI = $true
     }
     else {
         $WellArchitected = $true
@@ -778,10 +1329,10 @@ if ($WellArchitected) {
     try {
         $tableStart = FindIndexBeginningWith $content "Category,Link-Text,Link,Priority,ReportingCategory,ReportingSubcategory,Weight,Context"
     }
-    catch{
+    catch {
         Write-host "That appears not to be a content file. Please use only content from the Well-Architected Assessment site."
     }
-    try{
+    try {
         
         $EndStringIdentifier = $content | Where-Object { $_.Contains("--,,") } | Select-Object -Unique -First 1
         
@@ -789,17 +1340,18 @@ if ($WellArchitected) {
         
         $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
         $importdata = Import-Csv -Path "$workingDirectory\$reportDate.csv"
+        Write-Host "Processing assessment data..." 
 
         # Clean the uncategorized data
         
-            foreach ($lineData in $importdata) {
+        foreach ($lineData in $importdata) {
                 
-                if (!$lineData.ReportingCategory) {
-                    $lineData.ReportingCategory = "Uncategorized"
-                }
+            if (!$lineData.ReportingCategory) {
+                $lineData.ReportingCategory = "Uncategorized"
             }
+        }
 
-        $data = $importdata | where {$_.Category -in $filteredPillars}
+        $data = $importdata | where { $_.Category -in $filteredPillars }
         $data | Export-Csv -UseQuotes AsNeeded "$workingDirectory\$reportDate.csv" 
         $data | % { $_.Weight = [int]$_.Weight }
         $pillars = $data.Category | Select-Object -Unique
@@ -811,15 +1363,22 @@ if ($WellArchitected) {
         Write-Host $_
         exit
     }
-} else {
-    if($CloudAdoption) {
+}
+else {
+    if ($CloudAdoption) {
         Write-host "Producing Cloud Adoption Security Assessment report from $global:assessmentFile"
         $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - CAF-Secure.pptx"
         $title = "Cloud Adoption Security Assessment"
-    } elseif($DevOpsCapability) {
+    }
+    elseif ($DevOpsCapability) {
         Write-host "Producing DevOps Capability Review report from $global:assessmentFile"
         $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - DevOps.pptx"
         $title = "DevOps Capability Review"
+    }
+    elseif ($GenAI) {
+        Write-host "Producing GenAI Workload Security Assessment report from $global:assessmentFile"
+        $templatePresentation = "$workingDirectory\PnP_PowerPointReport_Template - GenAI.pptx"
+        $title = "GenAI Workload Security Assessment"
     }
 
     try {
@@ -831,6 +1390,7 @@ if ($WellArchitected) {
         #Write-Debug "Tableend: $tableend"
         $csv = $content[$tableStart..$tableEnd] | Out-File  "$workingDirectory\$reportDate.csv"
         $data = Import-Csv -Path "$workingDirectory\$reportDate.csv"
+        Write-Host "Processing assessment data..." 
         $data | % { $_.Weight = [int]$_.Weight }
         #$pillars = $data.Category | Select-Object -Unique
     }
@@ -846,8 +1406,23 @@ if ($WellArchitected) {
 
 $descriptionsFile = LoadDescriptionFile
 
+# Clean up any existing PowerPoint COM objects from previous runs
+if ($application) {
+    try {
+        $application.Quit()
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($application) | Out-Null
+    } catch {}
+}
+Remove-Variable -Name application, presentation, titleSlide, summarySlide, detailSlide, endSlide -ErrorAction SilentlyContinue
+[gc]::Collect()
+[gc]::WaitForPendingFinalizers()
+Start-Sleep -Milliseconds 500
+
+
+
 $cloudAdoptionDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
 $devOpsDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
+$genAIDescription = ($descriptionsFile | Where-Object { $_.Category -eq "Survey Level Group" }).Description
 $costDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Cost Optimization" -and $_.Category -eq "Survey Level Group" }).Description
 $operationsDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Operational Excellence" -and $_.Category -eq "Survey Level Group" }).Description
 $performanceDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Performance Efficiency" -and $_.Category -eq "Survey Level Group" }).Description
@@ -857,9 +1432,25 @@ $securityDescription = ($descriptionsFile | Where-Object { $_.Pillar -eq "Securi
 
 #region Instantiate PowerPoint variables
 
+Write-Host "Launching PowerPoint..." 
+
+# Create a temporary copy of the template to prevent modifying the original
+$tempTemplatePath = Join-Path $workingDirectory "~temp_template_$reportDate.pptx"
+try {
+    Copy-Item -Path $templatePresentation -Destination $tempTemplatePath -Force
+    Write-Host "Created temporary template copy" 
+} catch {
+    Write-Error "Failed to create template copy: $_"
+    exit
+}
+
 $application = New-Object -ComObject powerpoint.application
-$application.visible = -1 # [Microsoft.Office.Core.MsoTriState]::msoTrue
-$presentation = $application.Presentations.open($templatePresentation)
+$application.visible = -1
+
+# Open the TEMPORARY copy instead of the original template
+$presentation = $application.Presentations.open($tempTemplatePath)
+$presentation.Saved = -1
+
 
 if ($WellArchitected) {
     $titleSlide = $presentation.Slides[9]
@@ -874,19 +1465,21 @@ else {
     $endSlide = $presentation.Slides[6]
 }
 
+Write-Host "Generating report slides..." 
+
 #endregion
 
 
-if ($WellArchitected) 
-{
+if ($WellArchitected) {
     WellArchitectedAssessment
 }
-elseif ($DevOpsCapability) 
-{
+elseif ($DevOpsCapability) {
     DevOpsCapabilityAssessment
 }
-else 
-{
+elseif ($GenAI) {
+    GenAIAssessment
+}
+else {
     CloudAdoptionAssessment
 }
 
