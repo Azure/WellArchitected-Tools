@@ -393,18 +393,32 @@ Function WellArchitectedAssessment {
             $newDetailSlide.Shapes[12].Left = $detailBarScore
             $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
             $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
-            $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
-            $sentenceCount = $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences().count
+            $sortedRecommendations = $categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x
+            $trimmedText = $sortedRecommendations | ForEach-Object { $_.'Link-Text'.Trim() }
+            $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = $trimmedText -join "`r`n`r`n"
 
-            for ($k = 1; $k -le $sentenceCount; $k++) {
-                if ($newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text) {
-                    try {
-                        $recommendationObject = $categoryData | Where-Object { $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text.Contains($_.'Link-Text') }
-                        $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).ActionSettings(1).HyperLink.Address = $recommendationObject.Link
+            $lastFoundRange = $null
+            foreach ($rec in $sortedRecommendations) {
+                $recText = $rec.'Link-Text'.Trim()
+                try {
+                    if ($null -eq $lastFoundRange) {
+                        $textRange = $newDetailSlide.Shapes[8].TextFrame.TextRange.Find($recText)
                     }
-                    catch {}
+                    else {
+                        $textRange = $newDetailSlide.Shapes[8].TextFrame.TextRange.Find($recText, $lastFoundRange.Start + $lastFoundRange.Length)
+                    }
+                    if ($textRange) {
+                        $textRange.ActionSettings(1).HyperLink.Address = $rec.Link
+                        $lastFoundRange = $textRange
+                    }
+                    else {
+                        Write-Warning "Could not find text in shape: $recText"
+                    }
                 }
-            }    
+                catch {
+                    Write-Warning "Failed to set hyperlink for: $recText - Error: $_"
+                }
+            }
         }
 
         #Remove boilerplate shapes. 
@@ -552,18 +566,32 @@ Function CloudAdoptionAssessment {
         $newDetailSlide.Shapes[12].Left = $detailBarScore
         $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
         $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
-        $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
-        $sentenceCount = $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences().count
+        $sortedRecommendations = $categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x
+        $trimmedText = $sortedRecommendations | ForEach-Object { $_.'Link-Text'.Trim() }
+        $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = $trimmedText -join "`r`n`r`n"
 
-        for ($k = 1; $k -le $sentenceCount; $k++) {
-            if ($newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text) {
-                try {
-                    $recommendationObject = $categoryData | Where-Object { $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text.Contains($_.'Link-Text') }
-                    $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).ActionSettings(1).HyperLink.Address = $recommendationObject.Link
+        $lastFoundRange = $null
+        foreach ($rec in $sortedRecommendations) {
+            $recText = $rec.'Link-Text'.Trim()
+            try {
+                if ($null -eq $lastFoundRange) {
+                    $textRange = $newDetailSlide.Shapes[8].TextFrame.TextRange.Find($recText)
                 }
-                catch {}
+                else {
+                    $textRange = $newDetailSlide.Shapes[8].TextFrame.TextRange.Find($recText, $lastFoundRange.Start + $lastFoundRange.Length)
+                }
+                if ($textRange) {
+                    $textRange.ActionSettings(1).HyperLink.Address = $rec.Link
+                    $lastFoundRange = $textRange
+                }
+                else {
+                    Write-Warning "Could not find text in shape: $recText"
+                }
             }
-        }     
+            catch {
+                Write-Warning "Failed to set hyperlink for: $recText - Error: $_"
+            }
+        }
     }
 }
 
@@ -679,18 +707,32 @@ Function DevOpsCapabilityAssessment {
         $newDetailSlide.Shapes[12].Left = $detailBarScore
         $newDetailSlide.Shapes[4].TextFrame.TextRange.Text = $categoryDescription
         $newDetailSlide.Shapes[7].TextFrame.TextRange.Text = "Top $x out of $y recommendations:"
-        $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = ($categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x).'Link-Text' -join "`r`n`r`n"
-        $sentenceCount = $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences().count
+        $sortedRecommendations = $categoryData | Sort-Object -Property "Link-Text" -Unique | Sort-Object -Property Weight -Descending | Select-Object -First $x
+        $trimmedText = $sortedRecommendations | ForEach-Object { $_.'Link-Text'.Trim() }
+        $newDetailSlide.Shapes[8].TextFrame.TextRange.Text = $trimmedText -join "`r`n`r`n"
 
-        for ($k = 1; $k -le $sentenceCount; $k++) {
-            if ($newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text) {
-                try {
-                    $recommendationObject = $categoryData | Where-Object { $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).Text.Contains($_.'Link-Text') }
-                    $newDetailSlide.Shapes[8].TextFrame.TextRange.Sentences($k).ActionSettings(1).HyperLink.Address = $recommendationObject.Link
+        $lastFoundRange = $null
+        foreach ($rec in $sortedRecommendations) {
+            $recText = $rec.'Link-Text'.Trim()
+            try {
+                if ($null -eq $lastFoundRange) {
+                    $textRange = $newDetailSlide.Shapes[8].TextFrame.TextRange.Find($recText)
                 }
-                catch {}
+                else {
+                    $textRange = $newDetailSlide.Shapes[8].TextFrame.TextRange.Find($recText, $lastFoundRange.Start + $lastFoundRange.Length)
+                }
+                if ($textRange) {
+                    $textRange.ActionSettings(1).HyperLink.Address = $rec.Link
+                    $lastFoundRange = $textRange
+                }
+                else {
+                    Write-Warning "Could not find text in shape: $recText"
+                }
             }
-        }     
+            catch {
+                Write-Warning "Failed to set hyperlink for: $recText - Error: $_"
+            }
+        }
     }    
 }
 
